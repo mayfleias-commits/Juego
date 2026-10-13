@@ -565,7 +565,9 @@ func _process(delta: float) -> void:
 	smat.set_shader_parameter("wind", Vector2(1.5 + cold * 9.0, 0.5 + cold * 3.0))
 	var wave := sim.in_wave()
 	var base_n: int = Settings.p("snow") if Settings.effects else 0
-	snow.multimesh.visible_instance_count = mini(3000, base_n * (2 if wave else 1)) if base_n > 0 else 0
+	# En oleada la nevada se duplica, pero nunca pasa el tope del preset de celular (300).
+	var snow_cap := 300 if Settings.preset in ["muy_bajo", "bajo"] else 3000
+	snow.multimesh.visible_instance_count = mini(snow_cap, base_n * (2 if wave else 1)) if base_n > 0 else 0
 	if env:
 		env.fog_density = 0.0012 + cold * 0.0025 + (0.003 if wave else 0.0)
 	# Generador

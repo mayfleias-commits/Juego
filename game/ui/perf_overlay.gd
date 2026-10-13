@@ -30,7 +30,7 @@ func _process(delta: float) -> void:
 	if _acc < 0.5:
 		return
 	_acc = 0.0
-	var mem := Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
+	var mem := SysMem.process_mb()
 	var vmem := Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
 	label.text = "FPS %d  |  RAM %.0f MB  |  VRAM %.0f MB\nLlamadas %d  |  Triángulos %dk  |  %s" % [
 		Engine.get_frames_per_second(), mem, vmem,

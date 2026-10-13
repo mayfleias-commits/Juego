@@ -31,9 +31,10 @@ static func build(seed: int = 4242, day: int = 55) -> Simulation:
 			b2["state"] = 1
 			b2["o"] = 10
 			break
-	sim.st["pop"]["obreros"]["h"] = 200
-	sim.st["pop"]["ingenieros"]["h"] = 40
-	sim.st["pop"]["ninos"]["h"] = 30
+	# Peor caso pedido: 400 ciudadanos simulados.
+	sim.st["pop"]["obreros"]["h"] = 300
+	sim.st["pop"]["ingenieros"]["h"] = 60
+	sim.st["pop"]["ninos"]["h"] = 40
 	sim.st["day"] = day
 	sim.st["hour"] = 20
 	sim.st["gen"]["level"] = 4

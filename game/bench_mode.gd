@@ -14,6 +14,7 @@ var times: Array = []
 var dc_max := 0
 var tri_max := 0
 var save_file := true
+var mem_peak := 0.0
 var _warm := 0
 
 func _ready() -> void:
@@ -34,6 +35,7 @@ func _process(delta: float) -> void:
 	times.append(delta)
 	dc_max = maxi(dc_max, int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
 	tri_max = maxi(tri_max, int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)))
+	mem_peak = maxf(mem_peak, SysMem.process_mb())
 	var rig := world.camera_rig
 	var k := t / seconds
 	rig._t_yaw = k * TAU
@@ -62,7 +64,8 @@ func _report() -> Dictionary:
 		"fps_promedio": snappedf(avg_fps, 0.1), "fps_1pct_bajo": snappedf(1.0 / maxf(0.0001, p99), 0.1),
 		"fps_minimo": snappedf(1.0 / maxf(0.0001, worst), 0.1),
 		"draw_calls_max": dc_max, "triangulos_max": tri_max,
-		"memoria_estatica_mb": snappedf(Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0, 0.1),
+		"memoria_proceso_mb": snappedf(SysMem.process_mb(), 0.1),
+		"memoria_pico_mb": snappedf(mem_peak, 0.1),
 		"video_mb": snappedf(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0, 0.1),
 		"ram_sistema_mb": int(mem.get("physical", 0)) / 1048576,
 		"gpu": RenderingServer.get_video_adapter_name(), "api": RenderingServer.get_video_adapter_api_version(),

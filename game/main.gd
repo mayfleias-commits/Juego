@@ -123,7 +123,7 @@ func _benchmark(quit_after: bool) -> void:
 	show_menu()
 	var layer := menu_layer
 	var p := PanelContainer.new()
-	var txt := "Benchmark (%s): %.1f FPS promedio, %.1f mínimo, %d llamadas de dibujo, %dk triángulos, %.0f MB.\nGuardado en %s" % [Settings.PRESET_NAMES[Settings.preset], r["fps_promedio"], r["fps_minimo"], r["draw_calls_max"], int(r["triangulos_max"]) / 1000, r["memoria_estatica_mb"], r.get("archivo", "")]
+	var txt := "Benchmark (%s): %.1f FPS promedio, %.1f mínimo, %d llamadas de dibujo, %dk triángulos, %.0f MB.\nGuardado en %s" % [Settings.PRESET_NAMES[Settings.preset], r["fps_promedio"], r["fps_minimo"], r["draw_calls_max"], int(r["triangulos_max"]) / 1000, r["memoria_pico_mb"], r.get("archivo", "")]
 	var l := UiKit.label(txt, 15, UiKit.TXT, true)
 	l.custom_minimum_size = Vector2(600, 0)
 	p.add_child(l)
