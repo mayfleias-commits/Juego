@@ -102,9 +102,15 @@ static func button(text: String, ic: String = "", cb: Callable = Callable(), min
 		b.add_theme_constant_override("icon_max_width", 34 if mobile else 24)
 	b.custom_minimum_size = Vector2(min_w, btn_h())
 	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(_click)
 	if cb.is_valid():
 		b.pressed.connect(cb)
 	return b
+
+static func _click() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree and tree.root.has_node("Audio"):
+		tree.root.get_node("Audio").click()
 
 static func icon_rect(name: String, size: int = 22) -> TextureRect:
 	var r := TextureRect.new()

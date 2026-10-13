@@ -320,11 +320,16 @@ const NOTE_ICONS := {"alerta": "alerta", "muerte": "muerte", "evento": "pedido",
 	"obra": "construir", "oleada": "temperatura", "llegada": "poblacion", "exploracion": "exploracion", "pedido": "pedido",
 	"fin": "estrella", "recurso": "carbon", "autom": "automata"}
 
+const NOTE_SOUNDS := {"muerte": "campana", "oleada": "oleada", "evento": "evento", "pedido": "evento",
+	"investigacion": "investigacion", "ley": "ley", "obra": "obra", "alerta": "evento"}
+
 func add_note(n: Dictionary) -> void:
 	var k: String = n.get("kind", "")
 	if k == "rechazo":
 		toast(n["text"], UiKit.BAD)
 		return
+	if NOTE_SOUNDS.has(k):
+		Audio.play(NOTE_SOUNDS[k], -4.0 if k in ["oleada", "muerte"] else -8.0)
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", UiKit._sb(Color(0.06, 0.08, 0.11, 0.82), 6, Color(0, 0, 0, 0), 0, 6))
 	var h := UiKit.hbox(6)
@@ -386,8 +391,51 @@ func _on_stepped(notes: Array) -> void:
 		history.remove_at(0)
 	refresh()
 
+var _day_card: PanelContainer
+
+## Resumen breve al final de cada día (no bloquea; desaparece solo).
 func _on_day_end(rep: Dictionary) -> void:
-	toast("Terminó el día %d. Mirá el reporte." % int(rep["day"]))
+	if _day_card and is_instance_valid(_day_card):
+		_day_card.queue_free()
+	var c := PanelContainer.new()
+	c.add_theme_stylebox_override("panel", UiKit._sb(Color(0.06, 0.08, 0.12, 0.92), 8, UiKit.ACCENT_D, 1, 12))
+	var v := UiKit.vbox(4)
+	c.add_child(v)
+	v.add_child(UiKit.label("Fin del día %d" % int(rep["day"]), 18, UiKit.ACCENT))
+	var deaths: int = rep["deaths"]
+	var line := "Mínima %d °C · %d personas · %d enfermos" % [int(rep["tmin"]), int(rep["pop"]), int(rep["sick"])]
+	if deaths > 0:
+		line += " · %d muertes" % deaths
+	if int(rep["arrived"]) > 0:
+		line += " · llegaron %d" % int(rep["arrived"])
+	v.add_child(UiKit.label(line, 15))
+	var res_line := ""
+	for r in ["carbon", "madera", "metal", "raciones"]:
+		var net: int = (int(rep["prod"].get(r, 0)) - int(rep["cons"].get(r, 0))) / FX.ONE
+		res_line += "%s %s   " % [UiKit.RES_NAMES[r], Fmt.sgn(net)]
+	v.add_child(UiKit.label(res_line, 14, UiKit.TXT_DIM))
+	var h := UiKit.hbox(8)
+	h.add_child(UiKit.button("Ver reporte", "reporte", func():
+		open_panel("report")
+		if is_instance_valid(c):
+			c.queue_free()))
+	h.add_child(UiKit.button("", "cerrar", func():
+		if is_instance_valid(c):
+			c.queue_free()))
+	v.add_child(h)
+	add_child(c)
+	_day_card = c
+	await get_tree().process_frame
+	if not is_instance_valid(c):
+		return
+	var vp := get_viewport_rect().size
+	c.position = Vector2((vp.x - c.size.x) / 2, _top_h() + (70 if UiKit.mobile else 10))
+	var tw := create_tween()
+	tw.tween_interval(10.0)
+	tw.tween_property(c, "modulate:a", 0.0, 1.0)
+	tw.tween_callback(func():
+		if is_instance_valid(c):
+			c.queue_free())
 
 func _process(delta: float) -> void:
 	_acc += delta
