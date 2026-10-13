@@ -1,1 +1,2 @@
-# Binarios de Última Brasa (rama solo para publicar releases)
+# Binarios de Última Brasa
+Rama usada solo para publicar Releases (no contiene código). El código está en la rama principal.
