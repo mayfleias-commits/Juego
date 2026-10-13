@@ -356,7 +356,7 @@ func add_note(n: Dictionary) -> void:
 		var last := notes_box.get_child(notes_box.get_child_count() - 1)
 		notes_box.remove_child(last)
 		last.queue_free()
-	var tw := create_tween()
+	var tw := row.create_tween()
 	tw.tween_interval(9.0)
 	tw.tween_property(row, "modulate:a", 0.0, 1.0)
 	tw.tween_callback(row.queue_free)
@@ -370,7 +370,7 @@ func toast(text: String, col: Color = UiKit.TXT) -> void:
 	await get_tree().process_frame
 	var vp := get_viewport_rect().size
 	p.position = Vector2((vp.x - p.size.x) / 2, vp.y - _bottom_h() - 70 - (60 if place_bar.visible else 0))
-	var tw := create_tween()
+	var tw := p.create_tween()
 	tw.tween_interval(2.2)
 	tw.tween_property(p, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(p.queue_free)
@@ -419,23 +419,24 @@ func _on_day_end(rep: Dictionary) -> void:
 		open_panel("report")
 		if is_instance_valid(c):
 			c.queue_free()))
-	h.add_child(UiKit.button("", "cerrar", func():
+	var xb := UiKit.button("", "cerrar", func():
 		if is_instance_valid(c):
-			c.queue_free()))
+			c.queue_free())
+	xb.custom_minimum_size = Vector2(UiKit.btn_h(), UiKit.btn_h())
+	h.add_child(xb)
 	v.add_child(h)
 	add_child(c)
+	move_child(c, modal_host.get_index()) # debajo de los diálogos
 	_day_card = c
 	await get_tree().process_frame
 	if not is_instance_valid(c):
 		return
 	var vp := get_viewport_rect().size
 	c.position = Vector2((vp.x - c.size.x) / 2, _top_h() + (70 if UiKit.mobile else 10))
-	var tw := create_tween()
+	var tw := c.create_tween()
 	tw.tween_interval(10.0)
 	tw.tween_property(c, "modulate:a", 0.0, 1.0)
-	tw.tween_callback(func():
-		if is_instance_valid(c):
-			c.queue_free())
+	tw.tween_callback(c.queue_free)
 
 func _process(delta: float) -> void:
 	_acc += delta

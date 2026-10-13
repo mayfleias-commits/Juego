@@ -48,6 +48,9 @@ func setup(s: Simulation) -> void:
 	mat_static = ShaderMaterial.new()
 	mat_static.shader = sh
 	mat_static.set_shader_parameter("use_instance", false)
+	var q := 1 if int(Settings.p("detail")) >= 2 else 0
+	mat_building.set_shader_parameter("quality", q)
+	mat_static.set_shader_parameter("quality", q)
 	_make_environment()
 	_make_terrain()
 	_make_generator()
@@ -284,6 +287,10 @@ func _make_ghost() -> void:
 	add_child(ghost)
 
 func apply_settings() -> void:
+	if mat_building:
+		var q := 1 if int(Settings.p("detail")) >= 2 else 0
+		mat_building.set_shader_parameter("quality", q)
+		mat_static.set_shader_parameter("quality", q)
 	if sun:
 		sun.shadow_enabled = Settings.shadows
 	if snow:
@@ -590,15 +597,15 @@ func _update_daylight(h: float) -> void:
 	if not is_day:
 		night = 1.0
 	sun.rotation_degrees = Vector3(-10.0 - 55.0 * elev, 30.0 + day_t * 120.0, 0.0)
-	sun.light_energy = lerpf(0.12, 1.05, 1.0 - night)
+	sun.light_energy = lerpf(0.12, 0.85, 1.0 - night)
 	sun.light_color = Color(0.55, 0.62, 0.9).lerp(Color(1.0, 0.95, 0.88), 1.0 - night)
-	env.ambient_light_energy = lerpf(0.28, 0.6, 1.0 - night)
+	env.ambient_light_energy = lerpf(0.28, 0.45, 1.0 - night)
 	env.ambient_light_color = Color(0.32, 0.4, 0.62).lerp(Color(0.62, 0.68, 0.78), 1.0 - night)
 	env.fog_light_color = Color(0.2, 0.25, 0.38).lerp(Color(0.74, 0.8, 0.88), 1.0 - night)
 	if env.background_mode == Environment.BG_COLOR:
 		env.background_color = Color(0.1, 0.12, 0.2).lerp(Color(0.62, 0.68, 0.76), 1.0 - night)
 	mat_building.set_shader_parameter("night", night)
 	mat_static.set_shader_parameter("night", night)
-	var snow_amt := clampf(0.55 + (-sim.outdoor() - 20.0) / 80.0, 0.4, 0.95)
+	var snow_amt := clampf(0.45 + (-sim.outdoor() - 20.0) / 90.0, 0.35, 0.85)
 	mat_building.set_shader_parameter("snow_amount", snow_amt)
 	mat_static.set_shader_parameter("snow_amount", snow_amt * 0.5)

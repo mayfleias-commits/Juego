@@ -65,6 +65,10 @@ func _rebuild() -> void:
 		Settings.apply()
 		Settings.save_cfg(), "%d"))
 	body.add_child(UiKit.sep())
+	body.add_child(_slider("Tamaño de la interfaz", Settings.ui_scale, 75, 150, 5, func(v):
+		Settings.ui_scale = int(v)
+		Settings.apply()
+		Settings.save_cfg(), "%d%%"))
 	body.add_child(_toggle("Mostrar el tutorial", Settings.tutorial, func(v):
 		Settings.tutorial = v
 		Settings.save_cfg()))

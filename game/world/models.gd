@@ -25,6 +25,27 @@ const GLASS := Color(0.55, 0.85, 0.8, 0.68)
 const CORE := Color(1.0, 0.55, 0.15, 0.1)
 
 static var _cache := {}
+## Material por color base (va en UV.x): 0 genérico, 1 metal, 2 hielo, 3 piedra, 4 madera, 5 nieve, 6 tela.
+static var MAT_OF := {}
+
+static func _mat_id(col: Color) -> float:
+	if MAT_OF.is_empty():
+		for c in [RUST, IRON, BRASS]:
+			MAT_OF[c] = 1.0
+		MAT_OF[ICE] = 2.0
+		for c in [STONE, STONE_D, COAL]:
+			MAT_OF[c] = 3.0
+		for c in [WOOD, WOOD_D]:
+			MAT_OF[c] = 4.0
+		MAT_OF[SNOWC] = 5.0
+		MAT_OF[CANVAS] = 6.0
+	var key := Color(col.r, col.g, col.b, 1.0)
+	if MAT_OF.has(key):
+		return MAT_OF[key]
+	# variantes oscurecidas: por tono aproximado
+	if absf(col.r - col.g) < 0.04 and absf(col.g - col.b) < 0.06 and col.r < 0.7:
+		return 3.0
+	return 0.0
 
 var st := SurfaceTool.new()
 var _inside := Vector3.ZERO # punto interior del primitivo actual (para orientar caras)
@@ -48,9 +69,11 @@ func tri(a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 		n = -n
 	n = n.normalized()
 	var order := [a, c, b] if not FLIP else [a, b, c]
+	var mid := _mat_id(col)
 	for v in order:
 		st.set_color(col)
 		st.set_normal(n)
+		st.set_uv(Vector2(mid, 0.0))
 		st.add_vertex(v)
 
 func quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color) -> void:

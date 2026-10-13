@@ -105,6 +105,9 @@ func apply() -> void:
 		var msaa: int = P[preset]["msaa"]
 		vp.msaa_3d = Viewport.MSAA_2X if msaa == 2 else Viewport.MSAA_DISABLED
 	_apply_audio()
+	var w := get_window()
+	if w:
+		w.content_scale_factor = clampf(ui_scale / 100.0, 0.75, 1.5)
 	changed.emit()
 
 func _apply_audio() -> void:

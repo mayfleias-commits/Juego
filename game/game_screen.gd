@@ -85,6 +85,8 @@ func on_request() -> void:
 
 func _on_game_over(_status: String, _reason: String) -> void:
 	Session.set_paused(true)
+	cancel_place()
+	hud.close_panel()
 	hud.push_modal(EventDialogs.game_over(self))
 
 # ---------------------------------------------------------------- selección
