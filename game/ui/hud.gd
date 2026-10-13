@@ -96,6 +96,15 @@ func _build_top() -> void:
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
 	var h := UiKit.hbox(14 if not UiKit.mobile else 8)
 	top.add_child(h)
+	# Margen para recortes de pantalla (notch) en celulares.
+	if UiKit.mobile:
+		var safe := DisplayServer.get_display_safe_area()
+		var scr := DisplayServer.screen_get_size()
+		if safe.size.x > 0 and scr.x > 0:
+			var k := 960.0 / float(scr.x)
+			var pad_l := int(safe.position.x * k)
+			var pad_r := int((scr.x - safe.end.x) * k)
+			top.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.9), 0, Color(0, 0, 0, 0), 0, 8 + maxi(pad_l, pad_r)))
 	for r in Simulation.RES:
 		var item := UiKit.hbox(3)
 		item.add_child(UiKit.icon_rect(r, 24))

@@ -1,0 +1,27 @@
+name: Publicar release
+on:
+  push:
+    branches: [release-assets]
+permissions:
+  contents: write
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Leer versión y commit
+        id: v
+        run: |
+          echo "tag=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+          echo "target=$(cat TARGET)" >> "$GITHUB_OUTPUT"
+      - name: Crear o actualizar la Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: Última Brasa ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ steps.v.outputs.target }}
+          body_path: NOTAS.md
+          make_latest: true
+          files: |
+            UltimaBrasa-Windows-x64.zip
+            UltimaBrasa-Android.apk

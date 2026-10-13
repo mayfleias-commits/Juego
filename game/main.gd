@@ -132,6 +132,8 @@ func _benchmark(quit_after: bool) -> void:
 
 ## Batería: bajar los FPS cuando el juego está en pausa o nadie toca la pantalla.
 func _process(delta: float) -> void:
+	if menu_world and is_instance_valid(menu_world) and menu_world.camera_rig:
+		menu_world.camera_rig._t_yaw += delta * 0.04
 	if game == null:
 		return
 	_idle += delta
@@ -142,6 +144,22 @@ func _process(delta: float) -> void:
 		elif _idle > 20.0:
 			limit = 20
 	Engine.max_fps = limit
+
+## Botón "atrás" de Android: cierra paneles/diálogos, abre el menú o sale desde el menú principal.
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_GO_BACK_REQUEST:
+		return
+	if game and game.hud:
+		if game.placing != "":
+			game.cancel_place()
+		elif game.hud.modal_open:
+			pass
+		elif game.hud.current_panel:
+			game.hud.close_panel()
+		else:
+			game.hud.open_panel("menu")
+	elif menu:
+		get_tree().quit()
 
 func _input(ev: InputEvent) -> void:
 	if ev is InputEventScreenTouch or ev is InputEventMouseButton or ev is InputEventKey or ev is InputEventScreenDrag:
