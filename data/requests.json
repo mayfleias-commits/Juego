@@ -1,0 +1,570 @@
+{
+ "list": [
+  {
+   "id": "rq_techo",
+   "name": "Techo para todos",
+   "text": "Nadie debería dormir en la nieve: que todos tengan vivienda.",
+   "goal": {
+    "k": "no_homeless"
+   },
+   "hours": 48,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 6
+    },
+    {
+     "k": "disc",
+     "v": -4
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -5
+    },
+    {
+     "k": "disc",
+     "v": 6
+    }
+   ],
+   "day_min": 3,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_barracones",
+   "name": "Paredes de verdad",
+   "text": "Queremos al menos 3 barracones o casas nuevas.",
+   "goal": {
+    "k": "count_delta",
+    "types": [
+     "barracon",
+     "casa_piedra"
+    ],
+    "v": 3
+   },
+   "hours": 72,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 6
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -4
+    },
+    {
+     "k": "disc",
+     "v": 6
+    }
+   ],
+   "day_min": 6,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "research",
+     "v": "viv_barracones"
+    }
+   ]
+  },
+  {
+   "id": "rq_medico",
+   "name": "Un médico más",
+   "text": "Los enfermos no tienen dónde ir: construí otro edificio médico.",
+   "goal": {
+    "k": "count_delta",
+    "types": [
+     "puesto_medico",
+     "enfermeria",
+     "casa_cuidados",
+     "casa_sanacion"
+    ],
+    "v": 1
+   },
+   "hours": 48,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -4
+    },
+    {
+     "k": "disc",
+     "v": 5
+    }
+   ],
+   "day_min": 4,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "sick_min",
+     "v": 5
+    }
+   ]
+  },
+  {
+   "id": "rq_raciones",
+   "name": "Despensa llena",
+   "text": "Queremos ver la despensa con al menos 150 raciones.",
+   "goal": {
+    "k": "res_min",
+    "r": "raciones",
+    "v": 150
+   },
+   "hours": 48,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 5
+    }
+   ],
+   "day_min": 5,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_calor",
+   "name": "Casas tibias",
+   "text": "Que ninguna vivienda esté Muy fría o Congelante.",
+   "goal": {
+    "k": "heat_homes_min",
+    "v": 2
+   },
+   "hours": 36,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 7
+    },
+    {
+     "k": "disc",
+     "v": -4
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -5
+    },
+    {
+     "k": "disc",
+     "v": 6
+    }
+   ],
+   "day_min": 4,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_curar",
+   "name": "Curar a los graves",
+   "text": "Que no quede ningún enfermo grave en la ciudad.",
+   "goal": {
+    "k": "sick_max",
+    "v": 2
+   },
+   "hours": 48,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 6
+    },
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -5
+    },
+    {
+     "k": "disc",
+     "v": 4
+    }
+   ],
+   "day_min": 8,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "sick_min",
+     "v": 4
+    }
+   ]
+  },
+  {
+   "id": "rq_ciencia",
+   "name": "Descubrimientos",
+   "text": "Que el taller complete 2 investigaciones.",
+   "goal": {
+    "k": "research_delta",
+    "v": 2
+   },
+   "hours": 96,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 4
+    }
+   ],
+   "day_min": 4,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_explorar",
+   "name": "Noticias del páramo",
+   "text": "Queremos saber qué hay afuera: explorá 2 lugares.",
+   "goal": {
+    "k": "explore_delta",
+    "v": 2
+   },
+   "hours": 120,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 6
+    },
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 4
+    }
+   ],
+   "day_min": 6,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "building",
+     "type": "faro",
+     "min": 1
+    }
+   ]
+  },
+  {
+   "id": "rq_carbon",
+   "name": "Reserva para la tormenta",
+   "text": "Juntá 400 de carbón antes de que llegue el próximo frío.",
+   "goal": {
+    "k": "res_min",
+    "r": "carbon",
+    "v": 400
+   },
+   "hours": 60,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 5
+    }
+   ],
+   "day_min": 10,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_entierro",
+   "name": "Descanso para los muertos",
+   "text": "Que no quede ningún cuerpo sin sepultura.",
+   "goal": {
+    "k": "no_bodies"
+   },
+   "hours": 36,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -5
+    },
+    {
+     "k": "disc",
+     "v": 5
+    }
+   ],
+   "day_min": 3,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "bodies_min",
+     "v": 2
+    }
+   ]
+  },
+  {
+   "id": "rq_generador",
+   "name": "Más fuego",
+   "text": "Subí el generador a potencia 3 o más.",
+   "goal": {
+    "k": "gen_level_min",
+    "v": 3
+   },
+   "hours": 48,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 4
+    }
+   ],
+   "day_min": 12,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "research",
+     "v": "cal_valvulas"
+    }
+   ]
+  },
+  {
+   "id": "rq_madera",
+   "name": "Leña de reserva",
+   "text": "Queremos 200 de madera guardada.",
+   "goal": {
+    "k": "res_min",
+    "r": "madera",
+    "v": 200
+   },
+   "hours": 60,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 4
+    },
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 4
+    }
+   ],
+   "day_min": 8,
+   "day_max": 60,
+   "conds": []
+  },
+  {
+   "id": "rq_taberna",
+   "name": "Un lugar para olvidar",
+   "text": "Construí una taberna o baños.",
+   "goal": {
+    "k": "count_delta",
+    "types": [
+     "taberna",
+     "banos"
+    ],
+    "v": 1
+   },
+   "hours": 72,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 4
+    },
+    {
+     "k": "disc",
+     "v": -5
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -2
+    },
+    {
+     "k": "disc",
+     "v": 5
+    }
+   ],
+   "day_min": 10,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "law",
+     "v": "ley_taberna"
+    }
+   ]
+  },
+  {
+   "id": "rq_fe",
+   "name": "Un altar",
+   "text": "Los fieles piden una capilla o templo nuevo.",
+   "goal": {
+    "k": "count_delta",
+    "types": [
+     "capilla",
+     "templo",
+     "santuario"
+    ],
+    "v": 1
+   },
+   "hours": 72,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 7
+    },
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -5
+    },
+    {
+     "k": "disc",
+     "v": 3
+    }
+   ],
+   "day_min": 10,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "path",
+     "v": "fe"
+    }
+   ]
+  },
+  {
+   "id": "rq_orden",
+   "name": "Más vigilancia",
+   "text": "Los vecinos piden otro puesto de guardia o torre.",
+   "goal": {
+    "k": "count_delta",
+    "types": [
+     "guardia",
+     "torre_vigia",
+     "proclamas"
+    ],
+    "v": 1
+   },
+   "hours": 72,
+   "reward": [
+    {
+     "k": "hope",
+     "v": 3
+    },
+    {
+     "k": "disc",
+     "v": -6
+    }
+   ],
+   "penalty": [
+    {
+     "k": "hope",
+     "v": -2
+    },
+    {
+     "k": "disc",
+     "v": 6
+    }
+   ],
+   "day_min": 10,
+   "day_max": 60,
+   "conds": [
+    {
+     "k": "path",
+     "v": "orden"
+    }
+   ]
+  }
+ ]
+}

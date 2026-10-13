@@ -1,0 +1,2957 @@
+{
+ "list": [
+  {
+   "id": "ev_ladron_carbon",
+   "title": "Ladrón de carbón",
+   "text": "Un obrero fue sorprendido llenando su abrigo con carbón del generador. Dice que su hija tiene fiebre.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 3,
+   "day_max": 60,
+   "weight": 12,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Perdonarlo y darle una manta.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": 1
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -10
+      }
+     ]
+    },
+    {
+     "text": "Castigo público.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -2
+      },
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    },
+    {
+     "text": "Que trabaje dos turnos extra.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 2
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": 5
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ingenieros_piden",
+   "title": "Los ingenieros exigen",
+   "text": "Los ingenieros piden mejores raciones a cambio de trabajar más rápido.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 4,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Darles raciones extra (20).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -20
+      },
+      {
+       "k": "perm_mod",
+       "key": "research_pct",
+       "v": 5
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Todos comemos lo mismo.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_fiebre_helada",
+   "title": "Fiebre helada",
+   "text": "Una fiebre se propaga entre las carpas más frías.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 5,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "pop_min",
+     "v": 40
+    }
+   ],
+   "choices": [
+    {
+     "text": "Cuarentena estricta (se pierde un día de trabajo).",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 0
+      },
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "text": "Seguir como si nada.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 8,
+       "grave": 0
+      },
+      {
+       "k": "sick",
+       "v": 2,
+       "grave": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_lobos",
+   "title": "Lobos en el borde",
+   "text": "Una manada de lobos blancos merodea los puestos de recolección.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 4,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Organizar una batida (pierden un día los cazadores).",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 70,
+       "then": [
+        {
+         "k": "res",
+         "r": "crudo",
+         "v": 40
+        },
+        {
+         "k": "hope",
+         "v": 2
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "lobos"
+        },
+        {
+         "k": "res",
+         "r": "crudo",
+         "v": 20
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Encender fogatas y esperar.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -30
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_tormenta_chica",
+   "title": "Ventarrón",
+   "text": "Un ventarrón arranca techos de lona.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 2,
+   "day_max": 40,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Reparar ya con madera (25).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -25
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 25
+      }
+     ]
+    },
+    {
+     "text": "Que se arreglen como puedan.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 0
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_bebe",
+   "title": "Nace un bebé",
+   "text": "En medio del frío, nace un niño en la ciudad. La gente se emociona.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 6,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Celebrarlo con una ración extra para todos.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -30
+      },
+      {
+       "k": "hope",
+       "v": 5
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 30
+      }
+     ]
+    },
+    {
+     "text": "Un aplauso y a trabajar.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_viejo_sabio",
+   "title": "El viejo del mapa",
+   "text": "Un anciano dice conocer un depósito de carbón bajo la nieve, al norte.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 3,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Mandar 5 obreros a buscarlo.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 60,
+       "then": [
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": 120
+        },
+        {
+         "k": "hope",
+         "v": 1
+        }
+       ],
+       "else": [
+        {
+         "k": "disc",
+         "v": 2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Son delirios de viejo.",
+     "effects": []
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_robo_comida",
+   "title": "Robo en la cocina",
+   "text": "Faltan raciones. Alguien está robando.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 5,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [
+    {
+     "k": "res_min",
+     "r": "raciones",
+     "v": 20
+    }
+   ],
+   "choices": [
+    {
+     "text": "Investigar y castigar.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "hope",
+       "v": -1
+      },
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -10
+      }
+     ]
+    },
+    {
+     "text": "Poner guardia en la cocina.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -5
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_derrumbe",
+   "title": "Derrumbe en la pila",
+   "text": "Una pila de chatarra se desmoronó sobre los recolectores.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 6,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Rescatar a los atrapados con todo.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 75,
+       "then": [
+        {
+         "k": "hope",
+         "v": 2
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "accidente"
+        }
+       ]
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Seguir trabajando, no hay tiempo.",
+     "effects": [
+      {
+       "k": "kill",
+       "v": 2,
+       "cause": "accidente"
+      },
+      {
+       "k": "disc",
+       "v": 4
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_alcohol",
+   "title": "Destilería clandestina",
+   "text": "Unos obreros destilan licor de raíces en secreto.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 8,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Clausurarla.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "text": "Hacer la vista gorda.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -3
+      },
+      {
+       "k": "sick",
+       "v": 2,
+       "grave": 0
+      }
+     ]
+    },
+    {
+     "text": "Legalizarla y racionarla.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -2
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "res",
+       "r": "crudo",
+       "v": -15
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_rebeldes",
+   "title": "Asamblea de descontentos",
+   "text": "Un grupo exige que se los deje partir hacia el sur con provisiones.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 9,
+   "conds": [
+    {
+     "k": "disc_min",
+     "v": 40
+    }
+   ],
+   "choices": [
+    {
+     "text": "Dejarlos ir con 40 raciones.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -40
+      },
+      {
+       "k": "leave",
+       "v": 8
+      },
+      {
+       "k": "disc",
+       "v": -6
+      },
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "flag",
+       "v": "partieron"
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "Convencerlos de quedarse.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 50,
+       "then": [
+        {
+         "k": "disc",
+         "v": -3
+        },
+        {
+         "k": "hope",
+         "v": 2
+        }
+       ],
+       "else": [
+        {
+         "k": "disc",
+         "v": 6
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Encerrar a los cabecillas.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -4
+      },
+      {
+       "k": "hope",
+       "v": -4
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_nino_hielo",
+   "title": "Una niña en el hielo",
+   "text": "Una niña cayó en una grieta helada cerca del límite de la ciudad.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 5,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "children_min",
+     "v": 3
+    }
+   ],
+   "choices": [
+    {
+     "text": "Arriesgar a tres obreros para sacarla.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 70,
+       "then": [
+        {
+         "k": "hope",
+         "v": 5
+        },
+        {
+         "k": "flag",
+         "v": "nino_salvado"
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "accidente"
+        },
+        {
+         "k": "hope",
+         "v": -2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Es demasiado peligroso.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -5
+      },
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_comerciante",
+   "title": "El mercader del trineo",
+   "text": "Un mercader con un trineo tirado por perros ofrece metal a cambio de comida.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 6,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Cambiar 40 crudo por 30 metal.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "crudo",
+       "v": -40
+      },
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 30
+      },
+      {
+       "k": "flag",
+       "v": "mercader_amigo"
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "crudo",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "Cambiar 50 madera por 35 carbón... no, por 25 metal.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -50
+      },
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 25
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 50
+      }
+     ]
+    },
+    {
+     "text": "No comerciamos con extraños.",
+     "effects": []
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_mercader_vuelve",
+   "title": "El mercader regresa",
+   "text": "El mercader del trineo volvió, como prometió.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 20,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "mercader_amigo"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Cambiar 30 crudo por 1 núcleo de vapor.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "crudo",
+       "v": -30
+      },
+      {
+       "k": "res",
+       "r": "nucleos",
+       "v": 1
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "crudo",
+       "v": 30
+      }
+     ]
+    },
+    {
+     "text": "Cambiar 40 madera por 30 metal.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -40
+      },
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 30
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "Hoy no.",
+     "effects": []
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_grieta_generador",
+   "title": "Grieta en la caldera",
+   "text": "Los ingenieros oyen un chasquido metálico en el generador.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Reparar con 30 de metal.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "metal",
+       "v": -30
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "metal",
+       "v": 30
+      }
+     ]
+    },
+    {
+     "text": "Soldar con lo que haya (más estrés).",
+     "effects": [
+      {
+       "k": "stress",
+       "v": 15
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_canciones",
+   "title": "Canciones junto al fuego",
+   "text": "Alguien empezó a cantar junto al generador. Pronto cantaban todos.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 3,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Que canten.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_suicidio",
+   "title": "Desesperación",
+   "text": "Un hombre se adentró en la nieve y no volvió. La gente está conmocionada.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 12,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [
+    {
+     "k": "hope_max",
+     "v": 35
+    }
+   ],
+   "choices": [
+    {
+     "text": "Velatorio colectivo.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "No hablar del tema.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_profeta_falso",
+   "title": "El predicador",
+   "text": "Un predicador anuncia que el fin está cerca y que hay que entregarse al frío.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 9,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Expulsarlo.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 2
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Dejarlo hablar.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -4
+      }
+     ]
+    },
+    {
+     "text": "Ofrecerle un lugar en la capilla.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ],
+     "req": [
+      {
+       "k": "path",
+       "v": "fe"
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_sabotaje",
+   "title": "Sabotaje",
+   "text": "Alguien rompió las correas del taller.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 12,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "disc_min",
+     "v": 35
+    }
+   ],
+   "choices": [
+    {
+     "text": "Reparar (20 madera, 10 metal).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -20
+      },
+      {
+       "k": "res",
+       "r": "metal",
+       "v": -10
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 20
+      },
+      {
+       "k": "res_min",
+       "r": "metal",
+       "v": 10
+      }
+     ]
+    },
+    {
+     "text": "Buscar al culpable.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 2
+      },
+      {
+       "k": "rand",
+       "pct": 50,
+       "then": [
+        {
+         "k": "disc",
+         "v": -4
+        }
+       ],
+       "else": [
+        {
+         "k": "hope",
+         "v": -2
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_frio_noche",
+   "title": "Noche de escarcha",
+   "text": "Esta noche el frío fue peor de lo pronosticado. Muchos amanecieron enfermos.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 6,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Repartir mantas (15 madera).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -15
+      },
+      {
+       "k": "sick",
+       "v": 2,
+       "grave": 0
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 15
+      }
+     ]
+    },
+    {
+     "text": "Aguantar.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 6,
+       "grave": 0
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_huerfanos",
+   "title": "Huérfanos",
+   "text": "Varios niños quedaron sin familia tras las últimas muertes.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 8,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "deaths_min",
+     "v": 5
+    },
+    {
+     "k": "children_min",
+     "v": 3
+    }
+   ],
+   "choices": [
+    {
+     "text": "Repartirlos entre las familias.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Ponerlos a trabajar.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ],
+     "req": [
+      {
+       "k": "law",
+       "v": "ley_manos"
+      }
+     ]
+    },
+    {
+     "text": "Llevarlos al refugio infantil.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 4
+      }
+     ],
+     "req": [
+      {
+       "k": "building",
+       "type": "refugio_inf",
+       "min": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_hallazgo_cajones",
+   "title": "Cajones bajo la nieve",
+   "text": "Unos niños encontraron cajones de madera enterrados.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 2,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "¡Recogerlos!",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": 40
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_motin_ingenieros",
+   "title": "Huelga de ingenieros",
+   "text": "Los ingenieros se niegan a trabajar si no hay mejoras en sus viviendas.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 14,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "engineers_min",
+     "v": 8
+    }
+   ],
+   "choices": [
+    {
+     "text": "Prometer casas (necesita investigación de casas).",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -2
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ],
+     "req": [
+      {
+       "k": "research",
+       "v": "viv_casas"
+      }
+     ]
+    },
+    {
+     "text": "Amenazarlos.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 5
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    },
+    {
+     "text": "Ceder 40 madera para sus barracones.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -40
+      },
+      {
+       "k": "disc",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 40
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_epidemia",
+   "title": "Tos negra",
+   "text": "Una tos oscura se extiende por la ciudad.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 16,
+   "day_max": 60,
+   "weight": 7,
+   "conds": [
+    {
+     "k": "pop_min",
+     "v": 60
+    }
+   ],
+   "choices": [
+    {
+     "text": "Aislar a los enfermos y quemar sus mantas (20 madera).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -20
+      },
+      {
+       "k": "sick",
+       "v": 4,
+       "grave": 0
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Confiar en los médicos.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 10,
+       "grave": 0
+      },
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ventisca_caza",
+   "title": "Ventisca de caza",
+   "text": "Una ventisca atrapó a los cazadores en el páramo.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [
+    {
+     "k": "building",
+     "type": "cazadores",
+     "min": 1
+    }
+   ],
+   "choices": [
+    {
+     "text": "Salir a buscarlos.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 60,
+       "then": [
+        {
+         "k": "hope",
+         "v": 2
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "frio"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Esperar a que vuelvan solos.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 50,
+       "then": [],
+       "else": [
+        {
+         "k": "kill",
+         "v": 2,
+         "cause": "frio"
+        },
+        {
+         "k": "hope",
+         "v": -3
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_banda_saqueadores",
+   "title": "Saqueadores",
+   "text": "Una banda armada exige carbón a cambio de no atacar los puestos alejados.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 15,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Pagar 60 de carbón.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -60
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "carbon",
+       "v": 60
+      }
+     ]
+    },
+    {
+     "text": "Resistir.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 55,
+       "then": [
+        {
+         "k": "hope",
+         "v": 4
+        },
+        {
+         "k": "disc",
+         "v": -2
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 2,
+         "cause": "accidente"
+        },
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": -40
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ruido_hielo",
+   "title": "El hielo canta",
+   "text": "De noche se oyen crujidos que nadie sabe explicar. Los niños no duermen.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 20,
+   "day_max": 60,
+   "weight": 5,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Explicar que es el hielo asentándose.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Doblar las guardias.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -10
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_amor",
+   "title": "Una boda",
+   "text": "Dos jóvenes piden casarse frente al generador.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Celebrar una boda con 20 raciones.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -20
+      },
+      {
+       "k": "hope",
+       "v": 4
+      },
+      {
+       "k": "disc",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Una ceremonia sencilla.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_nostalgia",
+   "title": "Recuerdos del sur",
+   "text": "La gente habla del sur, de cuando había sol. Algunos quieren partir.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 25,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Hablarles del futuro de la ciudad.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 60,
+       "then": [
+        {
+         "k": "hope",
+         "v": 3
+        }
+       ],
+       "else": [
+        {
+         "k": "hope",
+         "v": -2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Prohibir esas conversaciones.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_cadaveres",
+   "title": "Cuerpos sin enterrar",
+   "text": "Los cuerpos se acumulan. La gente exige un lugar para los muertos.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 4,
+   "day_max": 60,
+   "weight": 12,
+   "conds": [
+    {
+     "k": "bodies_min",
+     "v": 3
+    }
+   ],
+   "choices": [
+    {
+     "text": "Prometer un lugar digno.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Que esperen.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 4
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_herrero",
+   "title": "El herrero ciego",
+   "text": "Un herrero que perdió la vista dice que puede enseñar a templar herramientas al tacto.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 12,
+   "day_max": 60,
+   "weight": 5,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Aceptarlo en el taller.",
+     "effects": [
+      {
+       "k": "perm_mod",
+       "key": "prod_metal_pct",
+       "v": 10
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "No hay lugar para él.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_fuga",
+   "title": "Fuga con provisiones",
+   "text": "Una familia escapó de noche llevándose comida y carbón.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 18,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [
+    {
+     "k": "hope_max",
+     "v": 40
+    }
+   ],
+   "choices": [
+    {
+     "text": "Perseguirlos.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 50,
+       "then": [
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": 20
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "frio"
+        }
+       ]
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Dejarlos ir.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -40
+      },
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -20
+      },
+      {
+       "k": "flag",
+       "v": "traidores"
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_fiesta_luz",
+   "title": "Fiesta de la luz",
+   "text": "Se cumple un mes del invierno eterno. Algunos proponen una fiesta.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 28,
+   "day_max": 32,
+   "weight": 20,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Fiesta con 30 raciones.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -30
+      },
+      {
+       "k": "hope",
+       "v": 5
+      },
+      {
+       "k": "disc",
+       "v": -3
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 30
+      }
+     ]
+    },
+    {
+     "text": "No es momento de fiestas.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_inventor",
+   "title": "El inventor",
+   "text": "Un ingeniero propone un mecanismo para recuperar calor del humo.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 15,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Financiarlo (40 metal).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "metal",
+       "v": -40
+      },
+      {
+       "k": "perm_mod",
+       "key": "gen_coal_pct",
+       "v": -5
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "metal",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "No hay metal para experimentos.",
+     "effects": []
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_accidente_rec",
+   "title": "Accidente de trabajo",
+   "text": "Un obrero se lastimó en el trabajo.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 4,
+   "day_max": 60,
+   "weight": 5,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Atenderlo.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 1,
+       "grave": 0
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 6
+  },
+  {
+   "id": "ev_refugiados_puerta",
+   "title": "Refugiados en la puerta",
+   "text": "Un grupo de sobrevivientes llega a la puerta pidiendo entrar.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 5,
+   "day_max": 50,
+   "weight": 9,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Recibirlos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 5,
+       "i": 0,
+       "n": 2,
+       "sick": 1,
+       "hours": 2
+      },
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "Recibir solo a los sanos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 4,
+       "i": 0,
+       "n": 0,
+       "sick": 0,
+       "hours": 2
+      },
+      {
+       "k": "disc",
+       "v": 1
+      },
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "Cerrar la puerta.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -4
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 7
+  },
+  {
+   "id": "ev_ingenieros_puerta",
+   "title": "Viajeros con planos",
+   "text": "Llegan viajeros con cajas de planos y herramientas: son ingenieros.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 8,
+   "day_max": 50,
+   "weight": 6,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Bienvenidos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 1,
+       "i": 3,
+       "n": 0,
+       "sick": 0,
+       "hours": 2
+      },
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "No podemos alimentar más bocas.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 12
+  },
+  {
+   "id": "ev_presion_baja",
+   "title": "Presión del generador",
+   "text": "Los manómetros oscilan. Los ingenieros recomiendan bajar la potencia unas horas.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [
+    {
+     "k": "gen_over",
+     "v": 1
+    }
+   ],
+   "choices": [
+    {
+     "text": "Purgar las válvulas (−10 de estrés, 20 carbón).",
+     "effects": [
+      {
+       "k": "stress",
+       "v": -10
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -20
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "carbon",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Ignorarlo.",
+     "effects": [
+      {
+       "k": "stress",
+       "v": 5
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 8
+  },
+  {
+   "id": "ev_enfermos_quejas",
+   "title": "Quejas desde los catres",
+   "text": "Los enfermos sin atención se quejan del abandono.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 6,
+   "day_max": 60,
+   "weight": 6,
+   "conds": [
+    {
+     "k": "sick_min",
+     "v": 12
+    }
+   ],
+   "choices": [
+    {
+     "text": "Prometer más médicos.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Hacer callar las quejas.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 2
+      },
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 8
+  },
+  {
+   "id": "ev_caza_abundante",
+   "title": "Manada de renos",
+   "text": "Los vigías vieron una manada de renos cerca del valle.",
+   "trigger": "daily",
+   "unique": false,
+   "day_min": 3,
+   "day_max": 50,
+   "weight": 5,
+   "conds": [
+    {
+     "k": "wave",
+     "v": 0
+    }
+   ],
+   "choices": [
+    {
+     "text": "Que la caza se prepare.",
+     "effects": [
+      {
+       "k": "hunt_zone",
+       "v": 150
+      }
+     ]
+    }
+   ],
+   "default": 0,
+   "cooldown_days": 10
+  },
+  {
+   "id": "ev_ley_ninos",
+   "title": "Madres en la puerta del taller",
+   "text": "Las madres protestan porque sus hijos trabajan en la mina.",
+   "trigger": "law:ley_manos",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Prometer que solo harán tareas ligeras.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "Las reglas son las reglas.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_serrin",
+   "title": "Pan amargo",
+   "text": "El pan de serrín provoca dolores de estómago.",
+   "trigger": "law:ley_serrin",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Agregar raíces para mejorar el sabor (20 crudo).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "crudo",
+       "v": -20
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "crudo",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Que se acostumbren.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 0
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_fosa",
+   "title": "La fosa",
+   "text": "Algunos se niegan a echar a sus muertos en la fosa.",
+   "trigger": "law:ley_fosa",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Permitir pequeñas ceremonias.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "No hay tiempo para ceremonias.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_orden",
+   "title": "El Consejo",
+   "text": "La gente se pregunta qué significa este nuevo Orden.",
+   "trigger": "law:ord_patrulla",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Discurso: el orden nos mantiene vivos.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "Desfile de los guardias.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -2
+      },
+      {
+       "k": "hope",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_fe",
+   "title": "La primera llama",
+   "text": "Los fieles encienden una llama sagrada frente al generador.",
+   "trigger": "law:fe_circulo",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Bendecir la llama.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "text": "Que no interrumpa el trabajo.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_purga",
+   "title": "La noche de la purga",
+   "text": "Los disidentes fueron sacados de sus casas. Nadie dice nada.",
+   "trigger": "law:ord_nuevo_orden",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Silencio.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ley_comunion",
+   "title": "La comunión",
+   "text": "Los herejes fueron dejados fuera del muro. Los fieles cantan.",
+   "trigger": "law:fe_comunion",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Que se cumpla la voluntad del Fuego.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ola1",
+   "title": "La Primera Helada",
+   "text": "El primer golpe del frío. Todos miran al generador.",
+   "trigger": "wave:1",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Resistir.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ola3",
+   "title": "La Noche Larga",
+   "text": "El sol no aparece. Algunos creen que nunca volverá.",
+   "trigger": "wave:3",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Mantener las luces encendidas toda la noche (40 carbón).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -40
+      },
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "carbon",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "Ahorrar carbón.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ola5",
+   "title": "La Gran Ventisca",
+   "text": "La tormenta final golpea la ciudad. Es ahora o nunca.",
+   "trigger": "wave:5",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Discurso: ¡sobreviviremos!",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 5
+      }
+     ]
+    },
+    {
+     "text": "Doble guardia en el generador.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_aldea",
+   "title": "La aldea",
+   "text": "En una de las casas encontramos a un leñador con su familia, muy débiles.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Traerlos a la ciudad.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 2,
+       "i": 0,
+       "n": 1,
+       "sick": 1,
+       "hours": 12
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Dejarles comida y seguir.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -10
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_convoy",
+   "title": "El convoy",
+   "text": "Los camiones guardan un cofre de herramientas y un diario.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Llevar las herramientas.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Leer el diario: habla de una mina.",
+     "effects": [
+      {
+       "k": "reveal",
+       "v": "loc_mina_vieja"
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_refugio",
+   "title": "El refugio",
+   "text": "El líder del refugio desconfía: dice que solo vendrán si les garantizamos calor.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Prometer calor (+esperanza si cumplimos).",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 3,
+       "i": 1,
+       "n": 0,
+       "sick": 0,
+       "hours": 24
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Ofrecer 20 raciones por su ayuda.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -20
+      },
+      {
+       "k": "refugees",
+       "o": 4,
+       "i": 1,
+       "n": 1,
+       "sick": 0,
+       "hours": 24
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 20
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_ermita",
+   "title": "La ermita",
+   "text": "Un sacerdote cuida a seis niños. Pide que los salvemos a todos.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Traer a todos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 1,
+       "i": 0,
+       "n": 3,
+       "sick": 0,
+       "hours": 24
+      },
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "text": "Solo a los niños.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 0,
+       "i": 0,
+       "n": 3,
+       "sick": 0,
+       "hours": 24
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_cuartel",
+   "title": "El cuartel",
+   "text": "Un sargento con sus hombres custodia el arsenal y desconfía.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Ofrecerles un lugar en la guardia.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 5,
+       "i": 0,
+       "n": 0,
+       "sick": 0,
+       "hours": 24
+      },
+      {
+       "k": "disc",
+       "v": -2
+      }
+     ]
+    },
+    {
+     "text": "Tomar el arsenal por la fuerza.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 60,
+       "then": [
+        {
+         "k": "res",
+         "r": "metal",
+         "v": 50
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 2,
+         "cause": "accidente"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_fabrica",
+   "title": "La fábrica",
+   "text": "En el sótano hay una caldera intacta. Desarmarla llevaría tiempo.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Desarmarla (más metal).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 40
+      }
+     ]
+    },
+    {
+     "text": "Buscar planos en la oficina.",
+     "effects": [
+      {
+       "k": "perm_mod",
+       "key": "research_pct",
+       "v": 10
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_hospital",
+   "title": "El hospital",
+   "text": "Hay medicinas, pero también enfermos contagiosos.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Traer medicinas y enfermos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 2,
+       "i": 1,
+       "n": 0,
+       "sick": 3,
+       "hours": 24
+      },
+      {
+       "k": "perm_mod",
+       "key": "cure_pct",
+       "v": 10
+      }
+     ]
+    },
+    {
+     "text": "Solo las medicinas.",
+     "effects": [
+      {
+       "k": "perm_mod",
+       "key": "cure_pct",
+       "v": 10
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_tren",
+   "title": "El tren",
+   "text": "Los vagones están llenos de carbón, pero el tren es inestable.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Cargar todo lo posible.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 70,
+       "then": [
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": 120
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "accidente"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Cargar con cuidado.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": 50
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_torre",
+   "title": "La señal",
+   "text": "La radio repite unas coordenadas: hay más sobrevivientes en el norte.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Anotar las coordenadas.",
+     "effects": [
+      {
+       "k": "reveal",
+       "v": "loc_colonia"
+      },
+      {
+       "k": "reveal",
+       "v": "loc_ciudad_hundida"
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_presa",
+   "title": "La presa",
+   "text": "Las turbinas podrían tener núcleos de repuesto.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Bajar a las turbinas.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 65,
+       "then": [
+        {
+         "k": "res",
+         "r": "nucleos",
+         "v": 1
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 1,
+         "cause": "accidente"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "No arriesgar.",
+     "effects": []
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_ciudad",
+   "title": "La ciudad hundida",
+   "text": "Cientos de casas bajo el hielo y un grupo de sobrevivientes armados.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Negociar su llegada.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 6,
+       "i": 1,
+       "n": 2,
+       "sick": 0,
+       "hours": 36
+      },
+      {
+       "k": "hope",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "text": "Saquear los depósitos.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "metal",
+       "v": 40
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": 80
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_observatorio",
+   "title": "El observatorio",
+   "text": "Los astrónomos dicen que el frío durará años. Tienen telescopios y lentes.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Traer a los astrónomos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 0,
+       "i": 2,
+       "n": 0,
+       "sick": 0,
+       "hours": 36
+      },
+      {
+       "k": "perm_mod",
+       "key": "research_pct",
+       "v": 5
+      }
+     ]
+    },
+    {
+     "text": "Traer solo las lentes (para invernaderos).",
+     "effects": [
+      {
+       "k": "perm_mod",
+       "key": "greenhouse_pct",
+       "v": 15
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_loc_colonia",
+   "title": "La colonia",
+   "text": "La colonia del norte está a punto de caer. Piden asilo para todos.",
+   "trigger": "location",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Aceptarlos a todos.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 8,
+       "i": 2,
+       "n": 4,
+       "sick": 2,
+       "hours": 48
+      },
+      {
+       "k": "hope",
+       "v": 4
+      }
+     ]
+    },
+    {
+     "text": "Solo a los trabajadores.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 8,
+       "i": 0,
+       "n": 0,
+       "sick": 0,
+       "hours": 48
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  }
+ ]
+}

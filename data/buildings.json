@@ -1,0 +1,1072 @@
+{
+ "list": [
+  {
+   "id": "carpa",
+   "name": "Carpa de lona",
+   "desc": "Refugio mínimo de lona encerada. Mejor que dormir en la nieve.",
+   "cat": "vivienda",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 10
+   },
+   "build_h": 3,
+   "kind": "housing",
+   "housing": 10,
+   "insul": 0,
+   "upgrade_to": "barracon",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "barracon",
+   "name": "Barracón de tablas",
+   "desc": "Tablas dobles rellenas de serrín. Diez camas y un poco más de abrigo.",
+   "cat": "vivienda",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25,
+    "metal": 5
+   },
+   "build_h": 8,
+   "kind": "housing",
+   "housing": 10,
+   "insul": 10,
+   "upgrade_to": "casa_piedra",
+   "req_research": "viv_barracones",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "casa_piedra",
+   "name": "Casa de piedra",
+   "desc": "Muros gruesos y estufa de ladrillo. El hogar que todos sueñan.",
+   "cat": "vivienda",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 15
+   },
+   "build_h": 12,
+   "kind": "housing",
+   "housing": 10,
+   "insul": 20,
+   "req_research": "viv_casas",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "puesto_rec",
+   "name": "Puesto de recolección",
+   "desc": "Base para juntar a mano carbón, madera y chatarra de las pilas cercanas (radio 6). Rinde la mitad que un edificio especializado.",
+   "cat": "recursos",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 10
+   },
+   "build_h": 2,
+   "kind": "gather",
+   "radius": 6,
+   "rates_m": {
+    "carbon": 500,
+    "madera": 300,
+    "metal": 200
+   },
+   "outdoor": true,
+   "insul": -10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "child_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ]
+  },
+  {
+   "id": "extractor",
+   "name": "Extractor de carbón",
+   "desc": "Martinete a vapor que golpea la veta de carbón. Va sobre una veta.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "site": "veta_carbon",
+   "cost": {
+    "madera": 30,
+    "metal": 10
+   },
+   "build_h": 12,
+   "kind": "extract",
+   "res": "carbon",
+   "rate_m": 1000,
+   "outdoor": true,
+   "insul": -10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "child_ok": true,
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_extractor"
+  },
+  {
+   "id": "aserradero",
+   "name": "Aserradero del bosque helado",
+   "desc": "Sierras que cortan los árboles congelados. Va sobre un bosque.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "site": "bosque",
+   "cost": {
+    "madera": 20,
+    "metal": 10
+   },
+   "build_h": 10,
+   "kind": "extract",
+   "res": "madera",
+   "rate_m": 600,
+   "outdoor": true,
+   "insul": -10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "child_ok": true,
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_aserradero"
+  },
+  {
+   "id": "mina_hierro",
+   "name": "Mina de hierro",
+   "desc": "Galería poco profunda que arranca mineral de hierro. Va sobre una veta de metal.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "site": "veta_metal",
+   "cost": {
+    "madera": 40,
+    "metal": 10
+   },
+   "build_h": 12,
+   "kind": "extract",
+   "res": "metal",
+   "rate_m": 400,
+   "outdoor": true,
+   "insul": -10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_mina_hierro"
+  },
+  {
+   "id": "horno_carbon",
+   "name": "Horno de carbonización",
+   "desc": "Convierte madera en carbón. Útil cuando las vetas se agotan.",
+   "cat": "recursos",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 10
+   },
+   "build_h": 10,
+   "kind": "convert",
+   "in": "madera",
+   "out": "carbon",
+   "in_m": 1000,
+   "out_m": 1600,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_horno"
+  },
+  {
+   "id": "perforadora",
+   "name": "Perforadora de hielo",
+   "desc": "Taladra los muros de hielo para liberar la madera atrapada. Va sobre un muro de hielo.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "site": "muro_hielo",
+   "cost": {
+    "madera": 30,
+    "metal": 20
+   },
+   "build_h": 14,
+   "kind": "extract",
+   "res": "madera",
+   "rate_m": 900,
+   "outdoor": true,
+   "insul": -10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_perforadora"
+  },
+  {
+   "id": "mina_profunda",
+   "name": "Pozo profundo",
+   "desc": "Mina vertical hacia la veta madre de carbón. Requiere un núcleo de vapor.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "site": "veta_profunda",
+   "cost": {
+    "madera": 60,
+    "metal": 40,
+    "nucleos": 1
+   },
+   "build_h": 20,
+   "kind": "extract",
+   "res": "carbon",
+   "rate_m": 1400,
+   "insul": 10,
+   "staff": {
+    "max": 15,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_pozo"
+  },
+  {
+   "id": "fundicion",
+   "name": "Fundición",
+   "desc": "Ingenieros que funden carbón y escoria para obtener metal.",
+   "cat": "recursos",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 40,
+    "metal": 20
+   },
+   "build_h": 14,
+   "kind": "convert",
+   "in": "carbon",
+   "out": "metal",
+   "in_m": 2000,
+   "out_m": 600,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "rec_fundicion"
+  },
+  {
+   "id": "cazadores",
+   "name": "Cabaña de cazadores",
+   "desc": "Los cazadores salen al amanecer y vuelven al anochecer con carne cruda. Las zonas de caza se agotan.",
+   "cat": "comida",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 20
+   },
+   "build_h": 6,
+   "kind": "hunt",
+   "insul": 0,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros"
+    ]
+   },
+   "shifts": [
+    0,
+    1
+   ]
+  },
+  {
+   "id": "cocina",
+   "name": "Cocina comunal",
+   "desc": "Convierte comida cruda en raciones (1 cruda = 2 raciones).",
+   "cat": "comida",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25
+   },
+   "build_h": 6,
+   "kind": "cook",
+   "in_m": 1000,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "child_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ]
+  },
+  {
+   "id": "invernadero",
+   "name": "Invernadero",
+   "desc": "Cultiva hortalizas bajo vidrio. Necesita estar al menos Frío y quema carbón para mantenerse.",
+   "cat": "comida",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 15
+   },
+   "build_h": 12,
+   "kind": "greenhouse",
+   "rate_m": 250,
+   "min_lvl": 2,
+   "coal_m": 1000,
+   "self_heat": 10,
+   "insul": 10,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "child_ok": true,
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "com_invernadero"
+  },
+  {
+   "id": "invernadero_ind",
+   "name": "Invernadero industrial",
+   "desc": "Lámparas de vapor y riego automático. Rinde casi el doble.",
+   "cat": "comida",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 40,
+    "metal": 30,
+    "nucleos": 1
+   },
+   "build_h": 16,
+   "kind": "greenhouse",
+   "rate_m": 450,
+   "min_lvl": 2,
+   "coal_m": 1500,
+   "self_heat": 20,
+   "insul": 20,
+   "staff": {
+    "max": 10,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "auto_ok": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "req_research": "com_invernadero_ind"
+  },
+  {
+   "id": "puesto_medico",
+   "name": "Puesto médico",
+   "desc": "Seis camillas y vendas hervidas. Trata enfermos leves y, con menos éxito, graves.",
+   "cat": "salud",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 20
+   },
+   "build_h": 6,
+   "kind": "medical",
+   "tier": "basic",
+   "beds": 6,
+   "insul": 10,
+   "staff": {
+    "max": 4,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "apprentice": true,
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "enfermeria",
+   "name": "Enfermería avanzada",
+   "desc": "Quirófano y médicos ingenieros. Cura graves mucho mejor.",
+   "cat": "salud",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 40,
+    "metal": 25
+   },
+   "build_h": 14,
+   "kind": "medical",
+   "tier": "adv",
+   "beds": 10,
+   "insul": 20,
+   "staff": {
+    "max": 6,
+    "types": [
+     "ingenieros"
+    ]
+   },
+   "apprentice": true,
+   "req_research": "sal_enfermeria",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "casa_cuidados",
+   "name": "Casa de cuidados",
+   "desc": "Cuidado lento pero seguro de los enfermos graves. Casi nadie muere aquí.",
+   "cat": "salud",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25,
+    "metal": 5
+   },
+   "build_h": 8,
+   "kind": "medical",
+   "tier": "care",
+   "beds": 15,
+   "insul": 20,
+   "staff": {
+    "max": 4,
+    "types": [
+     "obreros"
+    ]
+   },
+   "child_ok": true,
+   "req_law": "ley_cuidados",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "cementerio",
+   "name": "Campo del reposo",
+   "desc": "Tumbas con nombre bajo la nieve. Da paz a los vivos.",
+   "cat": "salud",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 15
+   },
+   "build_h": 6,
+   "kind": "burial",
+   "graves": 40,
+   "outdoor": true,
+   "req_law": "ley_cementerio",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "fosa",
+   "name": "Fosa de nieve",
+   "desc": "Una zanja helada donde se apilan los muertos. Barata y sombría.",
+   "cat": "salud",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 5
+   },
+   "build_h": 3,
+   "kind": "burial",
+   "graves": 60,
+   "outdoor": true,
+   "req_law": "ley_fosa",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "estacion_vapor",
+   "name": "Estación de vapor",
+   "desc": "Caldera auxiliar que calienta un radio de 5 casillas. Quema 2 de carbón por hora.",
+   "cat": "calor",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 20
+   },
+   "build_h": 10,
+   "kind": "station",
+   "radius": 5,
+   "coal_m": 2000,
+   "insul": 10,
+   "req_research": "cal_estaciones",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "taller",
+   "name": "Taller de ingenios",
+   "desc": "Mesa de planos y tornos. Los ingenieros investigan aquí.",
+   "cat": "investigacion",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30
+   },
+   "build_h": 8,
+   "kind": "research",
+   "rp_m": 1000,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "ingenieros"
+    ]
+   },
+   "apprentice": true,
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "limit": 4
+  },
+  {
+   "id": "deposito",
+   "name": "Depósito",
+   "desc": "Galpón para madera, metal y comida.",
+   "cat": "almacen",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 20
+   },
+   "build_h": 4,
+   "kind": "storage",
+   "storage": {
+    "madera": 250,
+    "metal": 150,
+    "crudo": 150,
+    "raciones": 150
+   },
+   "insul": 0,
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "carbonera",
+   "name": "Carbonera",
+   "desc": "Silo techado para el carbón.",
+   "cat": "almacen",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 15,
+    "metal": 5
+   },
+   "build_h": 4,
+   "kind": "storage",
+   "storage": {
+    "carbon": 800
+   },
+   "insul": 0,
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "faro",
+   "name": "Faro de exploradores",
+   "desc": "Base de un equipo de 5 exploradores que recorre el páramo.",
+   "cat": "exploracion",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 10
+   },
+   "build_h": 8,
+   "kind": "scouts",
+   "insul": 0,
+   "limit": 2,
+   "req_research": "exp_faro",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "fabrica_aut",
+   "name": "Fábrica de autómatas",
+   "desc": "Ensambla autómatas a vapor (1 núcleo, 30 metal, 10 madera cada uno).",
+   "cat": "exploracion",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 50,
+    "metal": 50
+   },
+   "build_h": 20,
+   "kind": "factory",
+   "work_m": 150000,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "ingenieros"
+    ]
+   },
+   "shifts": [
+    0,
+    1,
+    2
+   ],
+   "limit": 1,
+   "req_research": "aut_fabrica"
+  },
+  {
+   "id": "taberna",
+   "name": "Taberna de la escarcha",
+   "desc": "Licor de raíces y canciones. Baja el descontento.",
+   "cat": "sociedad",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25,
+    "metal": 5
+   },
+   "build_h": 6,
+   "kind": "social",
+   "disc_day_m": -2500,
+   "insul": 10,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "ley_taberna",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "banos",
+   "name": "Baños de vapor",
+   "desc": "Agua caliente para todos. Menos enfermedad y menos rencor.",
+   "cat": "sociedad",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 10
+   },
+   "build_h": 8,
+   "kind": "social",
+   "disc_day_m": -1000,
+   "hope_day_m": 500,
+   "insul": 20,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "ley_banos",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "refugio_inf",
+   "name": "Refugio infantil",
+   "desc": "Los niños pasan el día aquí, abrigados y a salvo (15 lugares).",
+   "cat": "sociedad",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 20
+   },
+   "build_h": 6,
+   "kind": "shelter",
+   "children": 15,
+   "insul": 20,
+   "req_law": "ley_refugios",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "guardia",
+   "name": "Puesto de guardia",
+   "desc": "Vigilantes que mantienen la calma. Baja el descontento.",
+   "cat": "orden",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 20,
+    "metal": 10
+   },
+   "build_h": 6,
+   "kind": "social",
+   "disc_day_m": -3000,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "ord_patrulla",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "proclamas",
+   "name": "Centro de proclamas",
+   "desc": "Altavoces y carteles. Sube la esperanza a fuerza de repetirla.",
+   "cat": "orden",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25,
+    "metal": 10
+   },
+   "build_h": 8,
+   "kind": "social",
+   "hope_day_m": 2500,
+   "insul": 10,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros",
+     "ingenieros"
+    ]
+   },
+   "req_law": "ord_proclamas",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "prision",
+   "name": "Celdas de reflexión",
+   "desc": "Donde terminan los que agitan. Baja mucho el descontento.",
+   "cat": "orden",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 40,
+    "metal": 20
+   },
+   "build_h": 12,
+   "kind": "social",
+   "disc_day_m": -4000,
+   "hope_day_m": -500,
+   "insul": 10,
+   "staff": {
+    "max": 5,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "ord_celdas",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "torre_vigia",
+   "name": "Torre del ojo",
+   "desc": "Nada escapa a su mirada. Orden absoluto en su radio.",
+   "cat": "orden",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 30
+   },
+   "build_h": 10,
+   "kind": "social",
+   "disc_day_m": -3500,
+   "hope_day_m": 1000,
+   "insul": 10,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "ord_ojo",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "capilla",
+   "name": "Capilla de la brasa",
+   "desc": "Un altar alrededor de una brasa que nunca se apaga. Sube la esperanza.",
+   "cat": "fe",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25
+   },
+   "build_h": 6,
+   "kind": "social",
+   "hope_day_m": 3000,
+   "insul": 10,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "fe_circulo",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "casa_sanacion",
+   "name": "Casa de sanación",
+   "desc": "Los sanadores de la brasa atienden enfermos con rezos y caldo caliente.",
+   "cat": "fe",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 25,
+    "metal": 5
+   },
+   "build_h": 8,
+   "kind": "medical",
+   "tier": "basic",
+   "beds": 8,
+   "insul": 20,
+   "staff": {
+    "max": 4,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "fe_sanadores",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "templo",
+   "name": "Templo del fuego eterno",
+   "desc": "Gran nave de piedra con vitrales de hielo. Mucha esperanza.",
+   "cat": "fe",
+   "size": [
+    3,
+    3
+   ],
+   "cost": {
+    "madera": 50,
+    "metal": 30
+   },
+   "build_h": 16,
+   "kind": "social",
+   "hope_day_m": 5000,
+   "disc_day_m": -1000,
+   "insul": 20,
+   "staff": {
+    "max": 5,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "fe_templo",
+   "shifts": [
+    0
+   ]
+  },
+  {
+   "id": "santuario",
+   "name": "Santuario de vigilia",
+   "desc": "Los fieles velan día y noche. Calma y fe.",
+   "cat": "fe",
+   "size": [
+    2,
+    2
+   ],
+   "cost": {
+    "madera": 30,
+    "metal": 15
+   },
+   "build_h": 10,
+   "kind": "social",
+   "hope_day_m": 2000,
+   "disc_day_m": -2000,
+   "insul": 10,
+   "staff": {
+    "max": 3,
+    "types": [
+     "obreros"
+    ]
+   },
+   "req_law": "fe_santuario",
+   "shifts": [
+    0
+   ]
+  }
+ ]
+}

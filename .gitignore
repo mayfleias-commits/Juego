@@ -1,0 +1,21 @@
+# Godot
+.godot/
+*.import.bak
+export_presets.local.cfg
+# Builds y resultados
+build/
+dist/
+*.apk
+*.aab
+*.exe
+*.pck
+*.zip
+bench_out/
+user_data/
+# Secretos (clave de firma Android): NUNCA subir
+secrets/
+*.keystore
+*.jks
+# Varios
+__pycache__/
+*.tmp

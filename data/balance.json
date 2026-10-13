@@ -1,0 +1,109 @@
+{
+  "_doc": "Constantes de balance. Solo enteros. Sufijo _m = milésimas (punto fijo x1000). _pcm = por cien mil (por hora salvo que se indique). Ver data/LEEME.md",
+  "days": 60,
+  "start": {
+    "hour": 7,
+    "res": {"carbon": 250, "madera": 120, "metal": 40, "nucleos": 1, "crudo": 80, "raciones": 120},
+    "pop": {"obreros": 40, "ingenieros": 12, "ninos": 15},
+    "hope": 60,
+    "disc": 15,
+    "buildings": []
+  },
+  "map": {
+    "size": 48,
+    "radius": 22,
+    "sites": [
+      {"kind": "veta_carbon", "n": 2, "amt": [3000, 4000], "r": [11, 19]},
+      {"kind": "veta_profunda", "n": 1, "amt": [7000, 9000], "r": [14, 20]},
+      {"kind": "bosque", "n": 2, "amt": [1800, 2400], "r": [12, 20]},
+      {"kind": "muro_hielo", "n": 2, "amt": [1500, 2000], "r": [14, 20]},
+      {"kind": "veta_metal", "n": 2, "amt": [1000, 1400], "r": [12, 20]}
+    ],
+    "piles": [
+      {"kind": "carbon", "look": "pila_carbon", "n": 6, "amt": [250, 400], "r": [6, 13]},
+      {"kind": "madera", "look": "cajones", "n": 3, "amt": [150, 250], "r": [6, 14]},
+      {"kind": "madera", "look": "arboles", "n": 2, "amt": [200, 300], "r": [9, 16]},
+      {"kind": "metal", "look": "chatarra", "n": 4, "amt": [100, 180], "r": [7, 15]}
+    ]
+  },
+  "gen": {
+    "max_level_base": 2,
+    "radius": [6, 9, 12, 15],
+    "heat": [0, 10, 20, 30, 40],
+    "over_heat": 10,
+    "warm_hours": 3,
+    "coal_m": [0, 6000, 9000, 13000, 18000],
+    "radius_coal_pct": [100, 120, 140, 160],
+    "over_coal_pct": 150,
+    "stress_up_m": 1200,
+    "stress_down_m": 250,
+    "ignite_coal_m": 30000
+  },
+  "heat": {
+    "thresholds": [-30, -20, -10, 0],
+    "station_heat": 20,
+    "heater_heat": 10,
+    "heater_coal_m": 100,
+    "warm_rate": 8,
+    "cool_rate": 5,
+    "homeless_mod": -5
+  },
+  "prod": {
+    "outdoor_curve": [[-90, 0], [-80, 200], [-60, 450], [-40, 750], [-20, 1000]],
+    "level_mult": [400, 700, 900, 1000, 1050]
+  },
+  "build": {"min_speed_m": 300, "refund_pct": 50},
+  "staff": {"travel_base": 1, "travel_far_tiles": 14, "child_eff_m": 500},
+  "auto": {"eq_m": 6000, "coal_m": 400, "maint_metal_m": 1000, "cost": {"nucleos": 1, "metal": 30, "madera": 10}, "max_per_building": 1},
+  "storage": {"base": {"carbon": 600, "madera": 300, "metal": 150, "nucleos": 20, "crudo": 200, "raciones": 300}},
+  "food": {
+    "meal_hours": [7, 19],
+    "portion_m": 500,
+    "raw_sick_pcm": 3000,
+    "hunger_hope_m": 1500,
+    "hunger_disc_m": 2000,
+    "starve_after": 3,
+    "starve_pcm": 4000,
+    "cook_ratio_m": 2000,
+    "greenhouse_level_m": [0, 0, 500, 1000, 1100],
+    "hunt_min_temp": -42,
+    "hunt_trip_m": 3000,
+    "hunt_ext_pct": 140,
+    "zones": [{"max": 900, "regen": 5}, {"max": 700, "regen": 4}, {"max": 1100, "regen": 6}, {"max": 600, "regen": 3}]
+  },
+  "health": {
+    "sick_pcm": [1200, 350, 100, 30, 8],
+    "grave_frac_pct": [40, 15, 5, 0, 0],
+    "shelter_sick_pct": 40,
+    "untreated_light_worsen": 1200,
+    "untreated_light_heal": 300,
+    "untreated_grave_death": 1200,
+    "basic_light_heal": 4000,
+    "adv_light_heal": 6000,
+    "basic_grave_heal": 1500,
+    "basic_grave_death": 350,
+    "adv_grave_heal": 3000,
+    "adv_grave_death": 100,
+    "care_grave_heal": 700,
+    "care_grave_death": 50
+  },
+  "society": {
+    "death_hope_m": 600, "death_disc_m": 200,
+    "body_hope_day_m": 200, "body_disc_day_m": 100,
+    "arrival_hope_m": 1000, "research_hope_m": 300,
+    "homeless_disc_day_m": 6000, "homeless_hope_day_m": 4000,
+    "cold_disc_day_m": 5000, "cold_hope_day_m": 3000,
+    "sick_hope_day_m": 4000, "sick_disc_day_m": 1000,
+    "ext_disc_bh_m": 40, "cont_disc_bh_m": 80,
+    "gen_off_temp": -10, "gen_off_disc_h_m": 400, "gen_off_hope_h_m": 200,
+    "good_hope_day_m": 1500, "good_disc_day_m": 1500, "strain_hope_day_m": 500,
+    "social_pop_ref": 100,
+    "wave_survived_hope_m": 6000
+  },
+  "shift": {"cont_death_pcm": 1000},
+  "laws": {"cooldown_h": 30},
+  "events": {"roll_pct": 45, "roll_hours": [9, 16], "timeout_h": 12},
+  "requests": {"first_h": 72, "offer_hour": 10, "offer_hours": 8, "gap_h": 60, "gap_rand_h": 36, "accept_hope_m": 1000, "decline_disc_m": 2000},
+  "explore": {"hours_per_dist": 4, "team_size": 5, "food_m": 10000, "survivor_extra_h": 12},
+  "stars": {"surv_2": 60, "surv_3": 80, "hope_4": 45, "disc_4": 50, "surv_5": 85, "pop_5": 100}
+}

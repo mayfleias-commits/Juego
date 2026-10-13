@@ -1,0 +1,14 @@
+{
+  "_doc": "Temperatura media diaria: baja gradual de base_start a base_end, ruido ±noise por día y semilla. diurnal = variación por hora. Las oleadas reemplazan la media de sus días (±2 °C por semilla). El mínimo horario de cada oleada = mínimo del perfil + mínimo diurno (-6).",
+  "base_start": -14,
+  "base_end": -40,
+  "noise": 3,
+  "diurnal": [-5, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -4, -4],
+  "waves": [
+    {"id": 1, "name": "La Primera Helada", "start": 8, "announce": 3, "profile": [-28, -39, -33]},
+    {"id": 2, "name": "El Aliento Blanco", "start": 18, "announce": 3, "profile": [-38, -46, -49, -40]},
+    {"id": 3, "name": "La Noche Larga", "start": 29, "announce": 3, "profile": [-44, -52, -59, -56, -46]},
+    {"id": 4, "name": "El Colmillo", "start": 41, "announce": 3, "profile": [-52, -62, -69, -66, -56]},
+    {"id": 5, "name": "La Gran Ventisca", "start": 52, "announce": 3, "profile": [-56, -66, -76, -84, -84, -80, -66]}
+  ]
+}

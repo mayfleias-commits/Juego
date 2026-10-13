@@ -1,0 +1,845 @@
+{
+ "list": [
+  {
+   "id": "ley_jornada",
+   "name": "Jornada prolongada",
+   "cat": "adaptacion",
+   "group": "turnos",
+   "desc": "Permite turnos hasta las 22 h en edificios que lo admitan. Más producción, más descontento mientras se usa.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "shift_max",
+     "v": 1
+    },
+    {
+     "k": "disc",
+     "v": 3
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_turno_continuo",
+   "name": "Turno sin fin",
+   "cat": "adaptacion",
+   "group": "turnos",
+   "desc": "Permite turnos de 24 horas. Hay quien no despierta del cansancio.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "shift_max",
+     "v": 1
+    },
+    {
+     "k": "disc",
+     "v": 5
+    },
+    {
+     "k": "hope",
+     "v": -3
+    }
+   ],
+   "req": [
+    "ley_jornada"
+   ],
+   "excl": []
+  },
+  {
+   "id": "ley_manos",
+   "name": "Manos pequeñas",
+   "cat": "adaptacion",
+   "group": "ninos",
+   "desc": "Los niños trabajan en recolección, cocinas y extracción (rinden la mitad).",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "child_labor",
+     "v": 1
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": 300
+    },
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 2
+    },
+    {
+     "k": "flag",
+     "v": "trabajo_infantil"
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_refugios"
+   ]
+  },
+  {
+   "id": "ley_jornada_inf",
+   "name": "Jornada infantil completa",
+   "cat": "adaptacion",
+   "group": "ninos",
+   "desc": "Los niños trabajan en cualquier lugar salvo la medicina y rinden más.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "child_all",
+     "v": 1
+    },
+    {
+     "k": "mod",
+     "key": "child_eff_m",
+     "v": 250
+    },
+    {
+     "k": "hope",
+     "v": -4
+    },
+    {
+     "k": "disc",
+     "v": 2
+    }
+   ],
+   "req": [
+    "ley_manos"
+   ],
+   "excl": []
+  },
+  {
+   "id": "ley_refugios",
+   "name": "Refugios infantiles",
+   "cat": "adaptacion",
+   "group": "ninos",
+   "desc": "Los niños pasan el día en refugios abrigados: se enferman mucho menos.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_manos"
+   ]
+  },
+  {
+   "id": "ley_aprendices",
+   "name": "Aprendices",
+   "cat": "adaptacion",
+   "group": "ninos",
+   "desc": "Los niños ayudan a ingenieros y médicos (talleres y puestos médicos).",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "child_apprentice",
+     "v": 1
+    },
+    {
+     "k": "hope",
+     "v": 1
+    }
+   ],
+   "req": [
+    "ley_refugios"
+   ],
+   "excl": []
+  },
+  {
+   "id": "ley_caldo",
+   "name": "Caldo estirado",
+   "cat": "adaptacion",
+   "group": "comida",
+   "desc": "Cada porción de comida cruda rinde 2,5 raciones, pero el caldo aguado enferma más.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "cook_ratio_m",
+     "v": 500
+    },
+    {
+     "k": "mod",
+     "key": "sick_pct",
+     "v": 10
+    },
+    {
+     "k": "disc",
+     "v": 1
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_serrin"
+   ]
+  },
+  {
+   "id": "ley_serrin",
+   "name": "Harina de serrín",
+   "cat": "adaptacion",
+   "group": "comida",
+   "desc": "Se mezcla serrín en el pan: 3 raciones por porción cruda. Nadie lo agradece.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "cook_ratio_m",
+     "v": 1000
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": 400
+    },
+    {
+     "k": "disc",
+     "v": 3
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_caldo"
+   ]
+  },
+  {
+   "id": "ley_racionamiento",
+   "name": "Racionamiento estricto",
+   "cat": "adaptacion",
+   "group": "comida",
+   "desc": "Porciones 20% más chicas. Se estira la comida a costa del ánimo.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "portion_m",
+     "v": -100
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": 300
+    },
+    {
+     "k": "hope",
+     "v": -2
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_camillas",
+   "name": "Camillas extra",
+   "cat": "adaptacion",
+   "group": "medicina",
+   "desc": "+50% de camas en los edificios médicos, con peor atención.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "beds_pct",
+     "v": 50
+    },
+    {
+     "k": "mod",
+     "key": "cure_pct",
+     "v": -10
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_cuidados",
+   "name": "Cuidados prolongados",
+   "cat": "adaptacion",
+   "group": "medicina",
+   "desc": "Permite la casa de cuidados para enfermos graves.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_convalecencia",
+   "name": "Convalecencia en casa",
+   "cat": "adaptacion",
+   "group": "medicina",
+   "desc": "Los enfermos leves se recuperan en sus casas con ayuda de la familia.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "home_heal_pcm",
+     "v": 600
+    },
+    {
+     "k": "disc",
+     "v": 1
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_cementerio",
+   "name": "Campo del reposo",
+   "cat": "adaptacion",
+   "group": "muertos",
+   "desc": "Permite el cementerio. Enterrar con nombre da consuelo.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_fosa"
+   ]
+  },
+  {
+   "id": "ley_fosa",
+   "name": "Fosa de nieve",
+   "cat": "adaptacion",
+   "group": "muertos",
+   "desc": "Permite la fosa de nieve: barata y amplia, pero lúgubre.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": -2
+    },
+    {
+     "k": "disc",
+     "v": 1
+    }
+   ],
+   "req": [],
+   "excl": [
+    "ley_cementerio"
+   ]
+  },
+  {
+   "id": "ley_ultimo_fuego",
+   "name": "Ritual del último fuego",
+   "cat": "adaptacion",
+   "group": "muertos",
+   "desc": "Cada funeral se despide junto a la brasa. Las muertes duelen menos.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "death_hope_pct",
+     "v": -40
+    },
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [
+    "ley_cementerio"
+   ],
+   "excl": []
+  },
+  {
+   "id": "ley_abono",
+   "name": "Abono de los caídos",
+   "cat": "adaptacion",
+   "group": "muertos",
+   "desc": "Los cuerpos de la fosa abonan los invernaderos. Rinde, pero pesa.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "greenhouse_pct",
+     "v": 20
+    },
+    {
+     "k": "hope",
+     "v": -3
+    },
+    {
+     "k": "disc",
+     "v": 3
+    },
+    {
+     "k": "flag",
+     "v": "abono"
+    }
+   ],
+   "req": [
+    "ley_fosa"
+   ],
+   "excl": []
+  },
+  {
+   "id": "ley_taberna",
+   "name": "Licencia de taberna",
+   "cat": "adaptacion",
+   "group": "sociedad",
+   "desc": "Permite tabernas para olvidar las penas.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -1
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ley_banos",
+   "name": "Baños públicos",
+   "cat": "adaptacion",
+   "group": "sociedad",
+   "desc": "Permite baños de vapor. Menos enfermedades en toda la ciudad.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "sick_pct",
+     "v": -10
+    }
+   ],
+   "req": [],
+   "excl": []
+  },
+  {
+   "id": "ord_patrulla",
+   "name": "Patrulla vecinal",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Primer paso de la Senda del Orden. Permite puestos de guardia.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "req": [],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_proclamas",
+   "name": "Voz del Consejo",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Permite centros de proclamas que levantan la esperanza.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 1
+    }
+   ],
+   "req": [
+    "ord_patrulla"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_celdas",
+   "name": "Celdas de reflexión",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Permite la prisión para los agitadores.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -3
+    }
+   ],
+   "req": [
+    "ord_proclamas"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_toque",
+   "name": "Toque de queda",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Nadie en la calle después del ocaso. Menos disturbios, menos alegría.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": -800
+    },
+    {
+     "k": "mod",
+     "key": "hope_day_m",
+     "v": -300
+    }
+   ],
+   "req": [
+    "ord_celdas"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_ojo",
+   "name": "Ojo vigilante",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Permite la torre del ojo.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "req": [
+    "ord_toque"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_juramento",
+   "name": "Juramento de lealtad",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Todos juran ante el Consejo. Lealtad a cambio de seguridad.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -10
+    },
+    {
+     "k": "hope",
+     "v": 5
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": -500
+    }
+   ],
+   "req": [
+    "ord_ojo"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_brigadas",
+   "name": "Brigadas de castigo",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "Los holgazanes trabajan bajo vigilancia: +10% de producción.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "prod_all_pct",
+     "v": 10
+    },
+    {
+     "k": "mod",
+     "key": "hope_day_m",
+     "v": -500
+    },
+    {
+     "k": "disc",
+     "v": 2
+    }
+   ],
+   "req": [
+    "ord_juramento"
+   ],
+   "excl": [],
+   "path": "orden"
+  },
+  {
+   "id": "ord_mano_hierro",
+   "name": "Mano de hierro",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "(EXTREMA) El Consejo gobierna sin preguntar. El descontento se apaga por la fuerza.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -40
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": -1500
+    },
+    {
+     "k": "hope",
+     "v": -10
+    },
+    {
+     "k": "flag",
+     "v": "extremo"
+    },
+    {
+     "k": "flag",
+     "v": "mano_hierro"
+    }
+   ],
+   "req": [
+    "ord_brigadas"
+   ],
+   "excl": [],
+   "path": "orden",
+   "extreme": true
+  },
+  {
+   "id": "ord_nuevo_orden",
+   "name": "El Nuevo Orden",
+   "cat": "proposito",
+   "group": "orden",
+   "desc": "(EXTREMA) Una sola voz, una sola ciudad. Los disidentes desaparecen.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 30
+    },
+    {
+     "k": "disc",
+     "v": -30
+    },
+    {
+     "k": "kill",
+     "v": 3,
+     "cause": "purga"
+    },
+    {
+     "k": "flag",
+     "v": "extremo"
+    },
+    {
+     "k": "flag",
+     "v": "nuevo_orden"
+    }
+   ],
+   "req": [
+    "ord_mano_hierro"
+   ],
+   "excl": [],
+   "path": "orden",
+   "extreme": true
+  },
+  {
+   "id": "fe_circulo",
+   "name": "Círculo de la llama",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Primer paso de la Senda de la Fe. Permite capillas.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_sanadores",
+   "name": "Sanadores de la brasa",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Permite casas de sanación atendidas por los fieles.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 1
+    }
+   ],
+   "req": [
+    "fe_circulo"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_vigilias",
+   "name": "Vigilias nocturnas",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Oraciones al calor de la brasa cada noche. Más esperanza, algo más de frío.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "hope_day_m",
+     "v": 500
+    },
+    {
+     "k": "mod",
+     "key": "sick_pct",
+     "v": 5
+    }
+   ],
+   "req": [
+    "fe_sanadores"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_templo",
+   "name": "Templo del fuego eterno",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Permite el gran templo.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 2
+    }
+   ],
+   "req": [
+    "fe_vigilias"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_santuario",
+   "name": "Santuarios de vigilia",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Permite santuarios que calman y consuelan.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -2
+    }
+   ],
+   "req": [
+    "fe_templo"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_custodios",
+   "name": "Custodios de la llama",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "Fieles armados mantienen la paz en nombre del Fuego.",
+   "effects": [
+    {
+     "k": "disc",
+     "v": -8
+    },
+    {
+     "k": "mod",
+     "key": "disc_day_m",
+     "v": -600
+    }
+   ],
+   "req": [
+    "fe_santuario"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_penitencia",
+   "name": "Penitencia del trabajo",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "El trabajo es oración: +8% de producción.",
+   "effects": [
+    {
+     "k": "mod",
+     "key": "prod_all_pct",
+     "v": 8
+    },
+    {
+     "k": "mod",
+     "key": "hope_day_m",
+     "v": 300
+    },
+    {
+     "k": "disc",
+     "v": 3
+    }
+   ],
+   "req": [
+    "fe_custodios"
+   ],
+   "excl": [],
+   "path": "fe"
+  },
+  {
+   "id": "fe_profeta",
+   "name": "La voz del Fuego",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "(EXTREMA) El Fuego habla por boca de su profeta. Nadie duda.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 30
+    },
+    {
+     "k": "mod",
+     "key": "hope_day_m",
+     "v": 1000
+    },
+    {
+     "k": "flag",
+     "v": "extremo"
+    },
+    {
+     "k": "flag",
+     "v": "profeta"
+    }
+   ],
+   "req": [
+    "fe_penitencia"
+   ],
+   "excl": [],
+   "path": "fe",
+   "extreme": true
+  },
+  {
+   "id": "fe_comunion",
+   "name": "Comunión absoluta",
+   "cat": "proposito",
+   "group": "fe",
+   "desc": "(EXTREMA) Una sola fe. Los herejes son entregados al frío.",
+   "effects": [
+    {
+     "k": "hope",
+     "v": 30
+    },
+    {
+     "k": "disc",
+     "v": -40
+    },
+    {
+     "k": "kill",
+     "v": 2,
+     "cause": "purga"
+    },
+    {
+     "k": "flag",
+     "v": "extremo"
+    },
+    {
+     "k": "flag",
+     "v": "comunion"
+    }
+   ],
+   "req": [
+    "fe_profeta"
+   ],
+   "excl": [],
+   "path": "fe",
+   "extreme": true
+  }
+ ]
+}

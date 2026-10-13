@@ -1,0 +1,395 @@
+{
+ "list": [
+  {
+   "id": "loc_aldea",
+   "name": "Aldea de los leñadores",
+   "desc": "Casas de troncos medio enterradas. Quizás quede alguien.",
+   "dist": 2,
+   "tier": 1,
+   "loot": {
+    "madera": 80,
+    "crudo": 30
+   },
+   "survivors": {
+    "obreros": 4,
+    "ninos": 2
+   },
+   "reveals": [
+    "loc_mina_vieja",
+    "loc_granja"
+   ],
+   "event": "ev_loc_aldea",
+   "start_known": true,
+   "pos": [
+    -2,
+    -1
+   ]
+  },
+  {
+   "id": "loc_campamento",
+   "name": "Campamento abandonado",
+   "desc": "Restos de una caravana que no llegó a ninguna parte.",
+   "dist": 3,
+   "tier": 1,
+   "loot": {
+    "carbon": 60,
+    "crudo": 40,
+    "metal": 20
+   },
+   "survivors": {},
+   "reveals": [
+    "loc_refugio",
+    "loc_aserradero"
+   ],
+   "start_known": true,
+   "pos": [
+    2,
+    -2
+   ]
+  },
+  {
+   "id": "loc_convoy",
+   "name": "Convoy congelado",
+   "desc": "Camiones atrapados en el hielo con la carga intacta.",
+   "dist": 4,
+   "tier": 1,
+   "loot": {
+    "carbon": 100,
+    "madera": 60,
+    "crudo": 50
+   },
+   "survivors": {
+    "obreros": 5
+   },
+   "reveals": [
+    "loc_ermita",
+    "loc_cuartel"
+   ],
+   "event": "ev_loc_convoy",
+   "start_known": true,
+   "pos": [
+    1,
+    3
+   ]
+  },
+  {
+   "id": "loc_mina_vieja",
+   "name": "Mina vieja de Valdeniebla",
+   "desc": "Una mina de carbón cerrada antes del invierno.",
+   "dist": 3,
+   "tier": 1,
+   "loot": {
+    "carbon": 150,
+    "metal": 30
+   },
+   "survivors": {},
+   "reveals": [
+    "loc_fabrica"
+   ],
+   "pos": [
+    -4,
+    -2
+   ]
+  },
+  {
+   "id": "loc_granja",
+   "name": "Granja de invernaderos",
+   "desc": "Vidrios rotos y raíces congeladas. Algo se puede salvar.",
+   "dist": 5,
+   "tier": 1,
+   "loot": {
+    "crudo": 120
+   },
+   "survivors": {
+    "obreros": 4,
+    "ninos": 2
+   },
+   "reveals": [
+    "loc_puerto"
+   ],
+   "pos": [
+    -5,
+    1
+   ]
+  },
+  {
+   "id": "loc_refugio",
+   "name": "Refugio de montaña",
+   "desc": "Humo saliendo de una chimenea en la ladera.",
+   "dist": 4,
+   "tier": 1,
+   "loot": {
+    "crudo": 60
+   },
+   "survivors": {
+    "obreros": 8,
+    "ingenieros": 2,
+    "ninos": 3,
+    "sick": 2
+   },
+   "reveals": [
+    "loc_hospital"
+   ],
+   "event": "ev_loc_refugio",
+   "pos": [
+    4,
+    -4
+   ]
+  },
+  {
+   "id": "loc_aserradero",
+   "name": "Aserradero del valle",
+   "desc": "Montañas de troncos cortados bajo la nieve.",
+   "dist": 4,
+   "tier": 1,
+   "loot": {
+    "madera": 150
+   },
+   "survivors": {},
+   "reveals": [],
+   "pos": [
+    5,
+    -1
+   ]
+  },
+  {
+   "id": "loc_ermita",
+   "name": "Ermita de la colina",
+   "desc": "Una pequeña iglesia con las campanas heladas.",
+   "dist": 5,
+   "tier": 1,
+   "loot": {
+    "madera": 40
+   },
+   "survivors": {
+    "obreros": 6,
+    "ninos": 6
+   },
+   "reveals": [
+    "loc_hospital"
+   ],
+   "event": "ev_loc_ermita",
+   "pos": [
+    -1,
+    5
+   ]
+  },
+  {
+   "id": "loc_cuartel",
+   "name": "Cuartel abandonado",
+   "desc": "Barracas militares con el portón soldado por el hielo.",
+   "dist": 6,
+   "tier": 2,
+   "loot": {
+    "metal": 70,
+    "madera": 40
+   },
+   "survivors": {
+    "obreros": 6
+   },
+   "reveals": [
+    "loc_puerto"
+   ],
+   "event": "ev_loc_cuartel",
+   "pos": [
+    4,
+    5
+   ]
+  },
+  {
+   "id": "loc_fabrica",
+   "name": "Fábrica de calderas",
+   "desc": "La fábrica que construyó los generadores. Quizás queden núcleos.",
+   "dist": 5,
+   "tier": 2,
+   "loot": {
+    "metal": 80,
+    "nucleos": 2
+   },
+   "survivors": {},
+   "reveals": [
+    "loc_torre_radio"
+   ],
+   "event": "ev_loc_fabrica",
+   "pos": [
+    -7,
+    -4
+   ]
+  },
+  {
+   "id": "loc_hospital",
+   "name": "Hospital de campaña",
+   "desc": "Tiendas blancas con cruces rojas casi borradas.",
+   "dist": 5,
+   "tier": 2,
+   "loot": {
+    "metal": 20
+   },
+   "survivors": {
+    "ingenieros": 3,
+    "obreros": 3,
+    "sick": 4
+   },
+   "reveals": [
+    "loc_colonia"
+   ],
+   "event": "ev_loc_hospital",
+   "pos": [
+    6,
+    -6
+   ]
+  },
+  {
+   "id": "loc_puerto",
+   "name": "Puerto helado",
+   "desc": "Barcos atrapados en un mar de hielo.",
+   "dist": 6,
+   "tier": 2,
+   "loot": {
+    "metal": 60,
+    "carbon": 120,
+    "nucleos": 1
+   },
+   "survivors": {
+    "obreros": 10,
+    "ingenieros": 3
+   },
+   "reveals": [
+    "loc_tren"
+   ],
+   "pos": [
+    -7,
+    4
+   ]
+  },
+  {
+   "id": "loc_tren",
+   "name": "Tren de mercancías",
+   "desc": "Un tren descarrilado cargado de carbón.",
+   "dist": 7,
+   "tier": 2,
+   "loot": {
+    "carbon": 200,
+    "metal": 60,
+    "nucleos": 1
+   },
+   "survivors": {},
+   "reveals": [],
+   "event": "ev_loc_tren",
+   "pos": [
+    -9,
+    1
+   ]
+  },
+  {
+   "id": "loc_torre_radio",
+   "name": "Torre de radio",
+   "desc": "La antena todavía capta algo entre la estática.",
+   "dist": 6,
+   "tier": 2,
+   "loot": {
+    "metal": 40,
+    "nucleos": 1
+   },
+   "survivors": {},
+   "reveals": [
+    "loc_presa",
+    "loc_observatorio"
+   ],
+   "event": "ev_loc_torre",
+   "pos": [
+    -3,
+    -7
+   ]
+  },
+  {
+   "id": "loc_presa",
+   "name": "Presa congelada",
+   "desc": "Una central hidroeléctrica dormida bajo el hielo.",
+   "dist": 8,
+   "tier": 2,
+   "loot": {
+    "nucleos": 2,
+    "metal": 50
+   },
+   "survivors": {},
+   "reveals": [
+    "loc_ciudad_hundida"
+   ],
+   "event": "ev_loc_presa",
+   "pos": [
+    1,
+    -9
+   ]
+  },
+  {
+   "id": "loc_ciudad_hundida",
+   "name": "Ciudad hundida",
+   "desc": "Los techos de una ciudad entera asoman en la nieve.",
+   "dist": 10,
+   "tier": 3,
+   "loot": {
+    "nucleos": 2,
+    "metal": 80,
+    "carbon": 150
+   },
+   "survivors": {
+    "obreros": 20,
+    "ingenieros": 4,
+    "ninos": 8,
+    "sick": 6
+   },
+   "reveals": [],
+   "event": "ev_loc_ciudad",
+   "req_research": "exp_profundas",
+   "pos": [
+    8,
+    -9
+   ]
+  },
+  {
+   "id": "loc_observatorio",
+   "name": "Observatorio del pico",
+   "desc": "Un domo de bronce sobre la cumbre más alta.",
+   "dist": 10,
+   "tier": 3,
+   "loot": {
+    "nucleos": 1,
+    "metal": 40
+   },
+   "survivors": {
+    "ingenieros": 6
+   },
+   "reveals": [],
+   "event": "ev_loc_observatorio",
+   "req_research": "exp_profundas",
+   "pos": [
+    -9,
+    -8
+   ]
+  },
+  {
+   "id": "loc_colonia",
+   "name": "Colonia del norte",
+   "desc": "Otra ciudad sobrevivió... o lo intentó.",
+   "dist": 9,
+   "tier": 3,
+   "loot": {
+    "crudo": 60
+   },
+   "survivors": {
+    "obreros": 25,
+    "ingenieros": 5,
+    "ninos": 10,
+    "sick": 5
+   },
+   "reveals": [],
+   "event": "ev_loc_colonia",
+   "req_research": "exp_profundas",
+   "pos": [
+    9,
+    6
+   ]
+  }
+ ]
+}

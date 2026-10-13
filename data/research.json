@@ -1,0 +1,744 @@
+{
+ "list": [
+  {
+   "id": "cal_conductos",
+   "name": "Conductos ampliados",
+   "branch": "calor",
+   "tier": 1,
+   "rp": 60,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_radius_lvl",
+     "v": 1
+    }
+   ],
+   "desc": "Amplía el radio de calor del generador."
+  },
+  {
+   "id": "cal_fieltro",
+   "name": "Burletes de fieltro",
+   "branch": "calor",
+   "tier": 1,
+   "rp": 50,
+   "cost": {
+    "madera": 15
+   },
+   "req": [],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "heat_housing",
+     "v": 5
+    }
+   ],
+   "desc": "Viviendas +5 °C."
+  },
+  {
+   "id": "cal_valvulas",
+   "name": "Válvulas de alta presión",
+   "branch": "calor",
+   "tier": 2,
+   "rp": 120,
+   "cost": {
+    "metal": 20
+   },
+   "req": [
+    "cal_conductos"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_max_level",
+     "v": 1
+    }
+   ],
+   "desc": "Habilita la potencia 3 del generador."
+  },
+  {
+   "id": "cal_estaciones",
+   "name": "Estaciones de vapor",
+   "branch": "calor",
+   "tier": 2,
+   "rp": 140,
+   "cost": {
+    "metal": 20
+   },
+   "req": [
+    "cal_conductos"
+   ],
+   "effects": [],
+   "desc": "Permite construir estaciones de vapor auxiliares."
+  },
+  {
+   "id": "cal_calefactores",
+   "name": "Calefactores domésticos",
+   "branch": "calor",
+   "tier": 2,
+   "rp": 120,
+   "cost": {
+    "madera": 30,
+    "metal": 10
+   },
+   "req": [
+    "cal_fieltro"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "heaters",
+     "v": 1
+    }
+   ],
+   "desc": "Estufas en cada vivienda: +10 °C a cambio de carbón."
+  },
+  {
+   "id": "cal_red",
+   "name": "Red de conductos mayor",
+   "branch": "calor",
+   "tier": 3,
+   "rp": 220,
+   "cost": {
+    "metal": 40
+   },
+   "req": [
+    "cal_valvulas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_radius_lvl",
+     "v": 1
+    }
+   ],
+   "desc": "Segundo aumento del radio de calor."
+  },
+  {
+   "id": "cal_paneles",
+   "name": "Paneles aislantes",
+   "branch": "calor",
+   "tier": 3,
+   "rp": 250,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "cal_calefactores"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "heat_housing",
+     "v": 10
+    },
+    {
+     "k": "mod",
+     "key": "heat_work",
+     "v": 10
+    }
+   ],
+   "desc": "Viviendas y lugares de trabajo +10 °C."
+  },
+  {
+   "id": "cal_combustion",
+   "name": "Combustión eficiente",
+   "branch": "calor",
+   "tier": 3,
+   "rp": 260,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "cal_valvulas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_coal_pct",
+     "v": -15
+    }
+   ],
+   "desc": "El generador consume 15% menos carbón."
+  },
+  {
+   "id": "cal_sobrepresion",
+   "name": "Núcleo sobrepresionado",
+   "branch": "calor",
+   "tier": 4,
+   "rp": 400,
+   "cost": {
+    "metal": 50,
+    "nucleos": 1
+   },
+   "req": [
+    "cal_red"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_max_level",
+     "v": 1
+    }
+   ],
+   "desc": "Habilita la potencia 4 del generador."
+  },
+  {
+   "id": "cal_anillo",
+   "name": "Anillo térmico",
+   "branch": "calor",
+   "tier": 4,
+   "rp": 420,
+   "cost": {
+    "metal": 60
+   },
+   "req": [
+    "cal_red"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "gen_radius_lvl",
+     "v": 1
+    }
+   ],
+   "desc": "Radio de calor máximo."
+  },
+  {
+   "id": "cal_calderas",
+   "name": "Calderas reforzadas",
+   "branch": "calor",
+   "tier": 4,
+   "rp": 380,
+   "cost": {
+    "metal": 40
+   },
+   "req": [
+    "cal_estaciones",
+    "cal_paneles"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "station_heat",
+     "v": 10
+    }
+   ],
+   "desc": "Estaciones de vapor +10 °C."
+  },
+  {
+   "id": "rec_extractor",
+   "name": "Martinete de vapor",
+   "branch": "recursos",
+   "tier": 1,
+   "rp": 50,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite el extractor de carbón sobre vetas."
+  },
+  {
+   "id": "rec_aserradero",
+   "name": "Sierras de cinta",
+   "branch": "recursos",
+   "tier": 1,
+   "rp": 50,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite el aserradero sobre bosques helados."
+  },
+  {
+   "id": "rec_mina_hierro",
+   "name": "Barrenos de hierro",
+   "branch": "recursos",
+   "tier": 1,
+   "rp": 70,
+   "cost": {
+    "madera": 30
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite la mina de hierro sobre vetas de metal."
+  },
+  {
+   "id": "rec_horno",
+   "name": "Carbonización",
+   "branch": "recursos",
+   "tier": 2,
+   "rp": 110,
+   "cost": {
+    "madera": 30
+   },
+   "req": [
+    "rec_aserradero"
+   ],
+   "effects": [],
+   "desc": "Permite el horno que convierte madera en carbón."
+  },
+  {
+   "id": "rec_perforadora",
+   "name": "Taladros térmicos",
+   "branch": "recursos",
+   "tier": 2,
+   "rp": 140,
+   "cost": {
+    "madera": 30,
+    "metal": 15
+   },
+   "req": [
+    "rec_aserradero"
+   ],
+   "effects": [],
+   "desc": "Permite la perforadora de muros de hielo."
+  },
+  {
+   "id": "rec_fundicion",
+   "name": "Altos hornos",
+   "branch": "recursos",
+   "tier": 2,
+   "rp": 160,
+   "cost": {
+    "metal": 20
+   },
+   "req": [
+    "rec_mina_hierro"
+   ],
+   "effects": [],
+   "desc": "Permite la fundición (carbón a metal)."
+  },
+  {
+   "id": "rec_pozo",
+   "name": "Pozo profundo",
+   "branch": "recursos",
+   "tier": 3,
+   "rp": 260,
+   "cost": {
+    "metal": 50
+   },
+   "req": [
+    "rec_extractor",
+    "rec_fundicion"
+   ],
+   "effects": [],
+   "desc": "Permite el pozo sobre la veta profunda."
+  },
+  {
+   "id": "rec_herramientas",
+   "name": "Herramientas templadas",
+   "branch": "recursos",
+   "tier": 3,
+   "rp": 240,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "rec_extractor"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "prod_carbon_pct",
+     "v": 15
+    },
+    {
+     "k": "mod",
+     "key": "prod_madera_pct",
+     "v": 15
+    },
+    {
+     "k": "mod",
+     "key": "prod_metal_pct",
+     "v": 15
+    }
+   ],
+   "desc": "Edificios de extracción +15%."
+  },
+  {
+   "id": "rec_maquinaria",
+   "name": "Maquinaria a vapor",
+   "branch": "recursos",
+   "tier": 4,
+   "rp": 420,
+   "cost": {
+    "metal": 50
+   },
+   "req": [
+    "rec_herramientas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "prod_carbon_pct",
+     "v": 15
+    },
+    {
+     "k": "mod",
+     "key": "prod_madera_pct",
+     "v": 15
+    },
+    {
+     "k": "mod",
+     "key": "prod_metal_pct",
+     "v": 15
+    }
+   ],
+   "desc": "Edificios de extracción +15% adicional."
+  },
+  {
+   "id": "rec_logistica",
+   "name": "Logística de turnos",
+   "branch": "recursos",
+   "tier": 4,
+   "rp": 380,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "rec_herramientas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "prod_all_pct",
+     "v": 5
+    }
+   ],
+   "desc": "Toda la producción +5%."
+  },
+  {
+   "id": "viv_barracones",
+   "name": "Barracones",
+   "branch": "comida_salud",
+   "tier": 1,
+   "rp": 60,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite barracones (+10 °C de aislamiento)."
+  },
+  {
+   "id": "com_invernadero",
+   "name": "Invernaderos",
+   "branch": "comida_salud",
+   "tier": 1,
+   "rp": 80,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite invernaderos."
+  },
+  {
+   "id": "sal_higiene",
+   "name": "Higiene básica",
+   "branch": "comida_salud",
+   "tier": 1,
+   "rp": 60,
+   "cost": {
+    "madera": 10
+   },
+   "req": [],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "cure_pct",
+     "v": 15
+    }
+   ],
+   "desc": "Curación +15%."
+  },
+  {
+   "id": "viv_casas",
+   "name": "Casas de piedra",
+   "branch": "comida_salud",
+   "tier": 2,
+   "rp": 160,
+   "cost": {
+    "madera": 30,
+    "metal": 20
+   },
+   "req": [
+    "viv_barracones"
+   ],
+   "effects": [],
+   "desc": "Permite casas (+20 °C de aislamiento)."
+  },
+  {
+   "id": "sal_enfermeria",
+   "name": "Enfermería avanzada",
+   "branch": "comida_salud",
+   "tier": 2,
+   "rp": 140,
+   "cost": {
+    "madera": 20,
+    "metal": 20
+   },
+   "req": [
+    "sal_higiene"
+   ],
+   "effects": [],
+   "desc": "Permite la enfermería avanzada."
+  },
+  {
+   "id": "com_trampas",
+   "name": "Trampas de acero",
+   "branch": "comida_salud",
+   "tier": 2,
+   "rp": 120,
+   "cost": {
+    "metal": 15
+   },
+   "req": [],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "hunt_pct",
+     "v": 25
+    }
+   ],
+   "desc": "Caza +25%."
+  },
+  {
+   "id": "com_invernadero_ind",
+   "name": "Invernadero industrial",
+   "branch": "comida_salud",
+   "tier": 3,
+   "rp": 260,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "com_invernadero"
+   ],
+   "effects": [],
+   "desc": "Permite el invernadero industrial."
+  },
+  {
+   "id": "sal_antisepticos",
+   "name": "Antisépticos",
+   "branch": "comida_salud",
+   "tier": 3,
+   "rp": 240,
+   "cost": {
+    "metal": 20
+   },
+   "req": [
+    "sal_enfermeria"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "cure_pct",
+     "v": 30
+    },
+    {
+     "k": "mod",
+     "key": "sick_pct",
+     "v": -10
+    }
+   ],
+   "desc": "Curación +30%, enfermedad -10%."
+  },
+  {
+   "id": "sal_cirugia",
+   "name": "Cirugía de campaña",
+   "branch": "comida_salud",
+   "tier": 4,
+   "rp": 400,
+   "cost": {
+    "metal": 40
+   },
+   "req": [
+    "sal_antisepticos"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "death_pct",
+     "v": -50
+    }
+   ],
+   "desc": "Muertes por enfermedad -50%."
+  },
+  {
+   "id": "com_cocina_vapor",
+   "name": "Cocinas a vapor",
+   "branch": "comida_salud",
+   "tier": 4,
+   "rp": 380,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "com_trampas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "cook_pct",
+     "v": 50
+    }
+   ],
+   "desc": "Cocinas +50% de velocidad."
+  },
+  {
+   "id": "exp_faro",
+   "name": "Faros de exploración",
+   "branch": "exploracion",
+   "tier": 1,
+   "rp": 50,
+   "cost": {
+    "madera": 20
+   },
+   "req": [],
+   "effects": [],
+   "desc": "Permite el faro de exploradores."
+  },
+  {
+   "id": "exp_trineos",
+   "name": "Trineos de vapor",
+   "branch": "exploracion",
+   "tier": 2,
+   "rp": 120,
+   "cost": {
+    "madera": 20,
+    "metal": 15
+   },
+   "req": [
+    "exp_faro"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "travel_pct",
+     "v": -30
+    }
+   ],
+   "desc": "Viajes 30% más cortos."
+  },
+  {
+   "id": "exp_cartografia",
+   "name": "Cartografía del páramo",
+   "branch": "exploracion",
+   "tier": 2,
+   "rp": 130,
+   "cost": {
+    "metal": 10
+   },
+   "req": [
+    "exp_faro"
+   ],
+   "effects": [
+    {
+     "k": "reveal",
+     "v": "loc_torre_radio"
+    },
+    {
+     "k": "reveal",
+     "v": "loc_tren"
+    },
+    {
+     "k": "reveal",
+     "v": "loc_presa"
+    }
+   ],
+   "desc": "Revela ubicaciones lejanas."
+  },
+  {
+   "id": "exp_profundas",
+   "name": "Expediciones profundas",
+   "branch": "exploracion",
+   "tier": 3,
+   "rp": 240,
+   "cost": {
+    "metal": 20
+   },
+   "req": [
+    "exp_trineos"
+   ],
+   "effects": [],
+   "desc": "Permite llegar a las ubicaciones más remotas."
+  },
+  {
+   "id": "aut_fabrica",
+   "name": "Autómatas a vapor",
+   "branch": "exploracion",
+   "tier": 3,
+   "rp": 280,
+   "cost": {
+    "metal": 40
+   },
+   "req": [
+    "exp_cartografia"
+   ],
+   "effects": [],
+   "desc": "Permite la fábrica de autómatas."
+  },
+  {
+   "id": "aut_reforzados",
+   "name": "Autómatas reforzados",
+   "branch": "exploracion",
+   "tier": 4,
+   "rp": 420,
+   "cost": {
+    "metal": 50
+   },
+   "req": [
+    "aut_fabrica"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "auto_eq_pct",
+     "v": 25
+    },
+    {
+     "k": "mod",
+     "key": "auto_coal_pct",
+     "v": -30
+    }
+   ],
+   "desc": "Autómatas +25% de trabajo y -30% de carbón."
+  },
+  {
+   "id": "exp_rutas",
+   "name": "Rutas del deshielo",
+   "branch": "exploracion",
+   "tier": 4,
+   "rp": 380,
+   "cost": {
+    "metal": 30
+   },
+   "req": [
+    "exp_profundas"
+   ],
+   "effects": [
+    {
+     "k": "mod",
+     "key": "travel_pct",
+     "v": -20
+    },
+    {
+     "k": "reveal",
+     "v": "loc_ciudad_hundida"
+    },
+    {
+     "k": "reveal",
+     "v": "loc_observatorio"
+    }
+   ],
+   "desc": "Viajes -20% y revela los confines."
+  }
+ ]
+}
