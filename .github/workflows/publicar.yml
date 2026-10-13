@@ -1,0 +1,11 @@
+name: Publicar release
+on:
+  push:
+    branches: [release-assets]
+permissions:
+  contents: write
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Prueba del mecanismo de publicación"
