@@ -82,9 +82,9 @@
    "kind": "gather",
    "radius": 6,
    "rates_m": {
-    "carbon": 500,
-    "madera": 300,
-    "metal": 200
+    "carbon": 1000,
+    "madera": 500,
+    "metal": 300
    },
    "outdoor": true,
    "insul": -10,
@@ -119,7 +119,7 @@
    "build_h": 12,
    "kind": "extract",
    "res": "carbon",
-   "rate_m": 1000,
+   "rate_m": 2000,
    "outdoor": true,
    "insul": -10,
    "staff": {
@@ -155,7 +155,7 @@
    "build_h": 10,
    "kind": "extract",
    "res": "madera",
-   "rate_m": 600,
+   "rate_m": 1000,
    "outdoor": true,
    "insul": -10,
    "staff": {
@@ -191,7 +191,7 @@
    "build_h": 12,
    "kind": "extract",
    "res": "metal",
-   "rate_m": 400,
+   "rate_m": 600,
    "outdoor": true,
    "insul": -10,
    "staff": {
@@ -261,7 +261,7 @@
    "build_h": 14,
    "kind": "extract",
    "res": "madera",
-   "rate_m": 900,
+   "rate_m": 1400,
    "outdoor": true,
    "insul": -10,
    "staff": {
@@ -297,7 +297,7 @@
    "build_h": 20,
    "kind": "extract",
    "res": "carbon",
-   "rate_m": 1400,
+   "rate_m": 2800,
    "insul": 10,
    "staff": {
     "max": 15,
@@ -377,7 +377,7 @@
   {
    "id": "cocina",
    "name": "Cocina comunal",
-   "desc": "Convierte comida cruda en raciones (1 cruda = 2 raciones).",
+   "desc": "Convierte comida cruda en raciones (1 cruda = 2 raciones). Cada cocinero procesa 2 por hora.",
    "cat": "comida",
    "size": [
     2,
@@ -388,7 +388,7 @@
    },
    "build_h": 6,
    "kind": "cook",
-   "in_m": 1000,
+   "in_m": 2000,
    "insul": 10,
    "staff": {
     "max": 5,

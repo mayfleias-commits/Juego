@@ -262,6 +262,10 @@ func law_check(id: String) -> String:
 		return "no se cumplen las condiciones"
 	return ""
 
+func cooldown_ok_range() -> bool:
+	var cd: int = B["laws"]["cooldown_h"]
+	return cd >= 24 and cd <= 36
+
 func enact_law(id: String) -> bool:
 	if law_check(id) != "":
 		return false

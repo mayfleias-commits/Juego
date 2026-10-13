@@ -9,8 +9,8 @@
 | Fase | Descripción | Estado |
 |---|---|---|
 | 0 | Instalación, esqueleto, datos, PROGRESO.md | ✅ Terminada |
-| 1 | Núcleo de simulación + tests headless (`tools/run_tests.sh`) | 🔄 En curso |
-| 2 | Banco de balance con bots (`tools/balance.sh`) + BALANCE.md | ⏳ Pendiente |
+| 1 | Núcleo de simulación + tests headless (`tools/run_tests.sh`) | ✅ Terminada (19 grupos, 1250 comprobaciones) |
+| 2 | Banco de balance con bots (`tools/balance.sh`) + BALANCE.md | 🔄 En curso |
 | 3 | Mundo 3D, render y presets | ⏳ Pendiente |
 | 4 | Interfaz mouse + táctil | ⏳ Pendiente |
 | 5 | Exploración, eventos, sendas, finales (UI y contenido) | ⏳ Pendiente |

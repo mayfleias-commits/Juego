@@ -205,7 +205,7 @@ func _hunt(b: Dictionary, d: Dictionary, h: int) -> void:
 		return
 	if int(b.get("trip", 0)) > 0 and h == int(b.get("trip_ret", 18)):
 		var n: int = b["trip"]
-		var y: int = n * int(F["hunt_trip_m"]) / FX.ONE * int(b["trip_m"]) / FX.ONE
+		var y: int = n * int(F["hunt_trip_m"]) * int(b["trip_m"]) / FX.ONE
 		y = y * maxi(0, 100 + mod("hunt_pct") + mod("prod_all_pct")) / 100
 		if int(b["trip_ret"]) == 22:
 			y = y * int(F["hunt_ext_pct"]) / 100
