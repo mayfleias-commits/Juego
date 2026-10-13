@@ -11,8 +11,8 @@
     "crudo": 30
    },
    "survivors": {
-    "obreros": 4,
-    "ninos": 2
+    "obreros": 2,
+    "ninos": 1
    },
    "reveals": [
     "loc_mina_vieja",
@@ -59,7 +59,7 @@
     "crudo": 50
    },
    "survivors": {
-    "obreros": 5
+    "obreros": 3
    },
    "reveals": [
     "loc_ermita",
@@ -101,8 +101,8 @@
     "crudo": 120
    },
    "survivors": {
-    "obreros": 4,
-    "ninos": 2
+    "obreros": 2,
+    "ninos": 1
    },
    "reveals": [
     "loc_puerto"
@@ -122,9 +122,9 @@
     "crudo": 60
    },
    "survivors": {
-    "obreros": 8,
-    "ingenieros": 2,
-    "ninos": 3,
+    "obreros": 5,
+    "ingenieros": 1,
+    "ninos": 2,
     "sick": 2
    },
    "reveals": [
@@ -162,8 +162,8 @@
     "madera": 40
    },
    "survivors": {
-    "obreros": 6,
-    "ninos": 6
+    "obreros": 4,
+    "ninos": 4
    },
    "reveals": [
     "loc_hospital"
@@ -185,7 +185,7 @@
     "madera": 40
    },
    "survivors": {
-    "obreros": 6
+    "obreros": 4
    },
    "reveals": [
     "loc_puerto"
@@ -226,8 +226,8 @@
     "metal": 20
    },
    "survivors": {
-    "ingenieros": 3,
-    "obreros": 3,
+    "ingenieros": 2,
+    "obreros": 2,
     "sick": 4
    },
    "reveals": [
@@ -251,8 +251,8 @@
     "nucleos": 1
    },
    "survivors": {
-    "obreros": 10,
-    "ingenieros": 3
+    "obreros": 6,
+    "ingenieros": 2
    },
    "reveals": [
     "loc_tren"
@@ -334,9 +334,9 @@
     "carbon": 150
    },
    "survivors": {
-    "obreros": 20,
-    "ingenieros": 4,
-    "ninos": 8,
+    "obreros": 12,
+    "ingenieros": 2,
+    "ninos": 5,
     "sick": 6
    },
    "reveals": [],
@@ -358,7 +358,7 @@
     "metal": 40
    },
    "survivors": {
-    "ingenieros": 6
+    "ingenieros": 4
    },
    "reveals": [],
    "event": "ev_loc_observatorio",
@@ -378,9 +378,9 @@
     "crudo": 60
    },
    "survivors": {
-    "obreros": 25,
-    "ingenieros": 5,
-    "ninos": 10,
+    "obreros": 15,
+    "ingenieros": 3,
+    "ninos": 6,
     "sick": 5
    },
    "reveals": [],

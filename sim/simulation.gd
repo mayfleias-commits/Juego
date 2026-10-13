@@ -33,6 +33,7 @@ func new_game(seed: int) -> void:
 		"autos_total": 0, "autos_free": 0,
 		"log": [], "reports": [], "day_acc": {},
 		"stars": 0, "epilogue": [],
+		"death_log": [], "mood": {}, "social_h": 0, "social_d": 0,
 	}
 	for r in RES:
 		var v: int = int(S["res"][r]) * FX.ONE
@@ -170,15 +171,16 @@ func compute_stars() -> int:
 	var alive := total_pop()
 	var dead: int = st["dead"]
 	var surv := alive * 100 / maxi(1, alive + dead)
-	var s := 1
 	var SB: Dictionary = B["stars"]
-	if surv >= int(SB["surv_2"]):
+	var s := 1
+	if surv >= int(SB["surv_pct"]):
 		s += 1
-	if surv >= int(SB["surv_3"]):
+	if alive >= int(SB["pop_end"]):
 		s += 1
-	if st["hope"] >= int(SB["hope_4"]) * FX.ONE and st["disc"] <= int(SB["disc_4"]) * FX.ONE:
+	if st["hope"] >= int(SB["hope_min"]) * FX.ONE and st["disc"] <= int(SB["disc_max"]) * FX.ONE:
 		s += 1
-	if flag("extremo") == 0 and surv >= int(SB["surv_5"]) and alive >= int(SB["pop_5"]):
+	# Gobierno humano: sin leyes extremas ni trabajo infantil y casi sin muertes.
+	if flag("extremo") == 0 and flag("trabajo_infantil") == 0 and surv >= int(SB["humane_surv_pct"]):
 		s += 1
 	return clampi(s, 1, 5)
 

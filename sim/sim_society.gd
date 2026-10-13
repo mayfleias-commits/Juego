@@ -5,56 +5,101 @@ extends SimEconomy
 ## eventos, pedidos y ubicaciones de exploración.
 
 # ---------------------------------------------------------------- ánimo por hora
+## La esperanza y el descontento se acercan cada hora a un objetivo que depende de
+## las condiciones actuales. Eventos, leyes y muertes además dan golpes inmediatos.
 func mood_update() -> void:
-	var S: Dictionary = B["society"]
+	var M: Dictionary = B["mood"]
 	var pop := present_pop()
 	if pop <= 0:
 		return
+	var hp := {}
+	var dp := {}
+	var d := day()
+	hp["base"] = int(M["base_hope"]) * FX.ONE - d * FX.ONE / int(M["hope_per_day_div"])
+	dp["base"] = int(M["base_disc"]) * FX.ONE + d * FX.ONE / int(M["disc_per_day_div"])
 	var homeless: int = st.get("homeless", 0)
 	if homeless > 0:
 		var f := homeless * FX.ONE / pop
-		add_disc(int(S["homeless_disc_day_m"]) * f / FX.ONE / 24, "sin_techo")
-		add_hope(-int(S["homeless_hope_day_m"]) * f / FX.ONE / 24, "sin_techo")
+		hp["sin_techo"] = -int(M["homeless_hope_pts"]) * f
+		dp["sin_techo"] = int(M["homeless_disc_pts"]) * f
 	var dist: Array = st.get("home_dist", [0, 0, 0, 0, FX.ONE, 0])
-	var cold: int = int(dist[0]) * 2 + int(dist[1])
+	var w: Array = M["cold_weights"]
+	var cold := 0
+	for l in LEVELS:
+		cold += int(dist[l]) * int(w[l]) / 100
 	if cold > 0:
-		add_disc(int(S["cold_disc_day_m"]) * cold / FX.ONE / 24, "frio")
-		add_hope(-int(S["cold_hope_day_m"]) * cold / FX.ONE / 24, "frio")
+		hp["frio"] = -int(M["cold_hope_pts"]) * cold
+		dp["frio"] = int(M["cold_disc_pts"]) * cold
+	var hungry: int = st["hungry"]
+	if hungry > 0:
+		var fh := mini(FX.ONE, hungry * FX.ONE / pop)
+		hp["hambre"] = -int(M["hunger_hope_pts"]) * fh
+		dp["hambre"] = int(M["hunger_disc_pts"]) * fh
 	var untreated := maxi(0, total_sick() - int(st.get("treated", 0)))
 	if untreated > 0:
 		var fs := untreated * FX.ONE / pop
-		add_hope(-int(S["sick_hope_day_m"]) * fs / FX.ONE / 24, "enfermos")
-		add_disc(int(S["sick_disc_day_m"]) * fs / FX.ONE / 24, "enfermos")
-	# Turnos largos
-	var h := hour()
-	var ext := 0
-	var cont := 0
+		hp["enfermos"] = -int(M["sick_hope_pts"]) * fs
+		dp["enfermos"] = int(M["sick_disc_pts"]) * fs
+	var bodies: int = mini(int(st["bodies"]), int(M["bodies_cap"]))
+	if bodies > 0:
+		hp["cuerpos"] = -bodies * int(M["bodies_hope_each_m"])
+		dp["cuerpos"] = bodies * int(M["bodies_disc_each_m"])
+	# Muertes recientes
+	var dl: Array = st["death_log"]
+	var win: int = st["tick"] - int(M["recent_death_hours"])
+	while dl.size() > 0 and int(dl[0][0]) < win:
+		dl.remove_at(0)
+	var recent := 0
+	for e in dl:
+		recent += int(e[1])
+	if recent > 0:
+		var fr := recent * FX.ONE / pop
+		var cap: int = int(M["recent_death_cap"]) * FX.ONE
+		hp["muertes"] = -mini(cap, int(M["recent_death_hope_pts"]) * fr)
+		dp["muertes"] = mini(cap, int(M["recent_death_disc_pts"]) * fr)
+	if in_wave():
+		hp["oleada"] = -int(M["wave_hope"]) * FX.ONE
+		dp["oleada"] = int(M["wave_disc"]) * FX.ONE
+	# Turnos largos (edificios con personal en turno prolongado o continuo)
+	var sh := 0
 	for b in st["buildings"]:
-		if b["o"] + b["i"] + b["n"] == 0 or not building_works(b):
-			continue
-		var sh: int = b["shift"]
-		if sh == 1 and h >= 18 and h < 22:
-			ext += 1
-		elif sh == 2 and (h >= 18 or h < 8):
-			cont += 1
-	if ext > 0:
-		add_disc(int(S["ext_disc_bh_m"]) * ext, "turnos")
-	if cont > 0:
-		add_disc(int(S["cont_disc_bh_m"]) * cont, "turnos")
-	# Generador apagado mientras la gente está en casa
-	if st["gen"]["on"] == 0 and outdoor() < int(S["gen_off_temp"]):
-		add_disc(int(S["gen_off_disc_h_m"]), "generador")
-		add_hope(-int(S["gen_off_hope_h_m"]), "generador")
-	# Leyes y efectos permanentes
-	add_hope(mod("hope_day_m") / 24, "leyes")
-	add_disc(mod("disc_day_m") / 24, "leyes")
-	# Buen gobierno: si no falta nada, el ánimo mejora despacio.
-	if homeless == 0 and int(st["hungry"]) == 0 and cold == 0 and untreated * 20 <= pop and int(st["bodies"]) == 0:
-		add_hope(int(S["good_hope_day_m"]) / 24, "bienestar")
-		add_disc(-int(S["good_disc_day_m"]) / 24, "bienestar")
-	else:
-		# Desgaste natural del invierno cuando algo falla.
-		add_hope(-int(S["strain_hope_day_m"]) / 24, "penurias")
+		var s2: int = b["shift"]
+		if s2 > 0 and b["o"] + b["i"] + b["n"] > 0 and b["state"] == 1 and b["on"] == 1:
+			sh += int(M["shift_ext_disc"]) if s2 == 1 else int(M["shift_cont_disc"])
+	if sh > 0:
+		dp["turnos"] = mini(sh, int(M["shift_cap"])) * FX.ONE
+	if st["gen"]["on"] == 0 and outdoor() < int(M["gen_off_temp"]):
+		hp["generador"] = -int(M["gen_off_hope"]) * FX.ONE
+		dp["generador"] = int(M["gen_off_disc"]) * FX.ONE
+	var sc: int = int(M["social_cap"]) * FX.ONE
+	if int(st.get("social_h", 0)) != 0:
+		hp["edificios"] = clampi(int(st["social_h"]), -sc, sc)
+	if int(st.get("social_d", 0)) != 0:
+		dp["edificios"] = clampi(int(st["social_d"]), -sc, sc)
+	if mod("hope_t_m") != 0:
+		hp["leyes"] = mod("hope_t_m")
+	if mod("disc_t_m") != 0:
+		dp["leyes"] = mod("disc_t_m")
+	if homeless == 0 and hungry == 0 and cold == 0 and untreated * 20 <= pop and int(st["bodies"]) == 0:
+		hp["bienestar"] = int(M["good_hope"]) * FX.ONE
+		dp["bienestar"] = -int(M["good_disc"]) * FX.ONE
+	var th := 0
+	for k in hp:
+		th += int(hp[k])
+	var td := 0
+	for k in dp:
+		td += int(dp[k])
+	var lo: int = int(M["target_min"]) * FX.ONE
+	var hi: int = int(M["target_max"]) * FX.ONE
+	th = clampi(th, lo, hi)
+	td = clampi(td, lo, hi)
+	st["mood"] = {"ht": th, "dt": td, "hp": hp, "dp": dp}
+	var rd: int = M["relax_div"]
+	# Paso hacia el objetivo (sin pasar los límites 0..100 salvo para perder).
+	var nh: int = st["hope"] + (th - int(st["hope"])) / rd
+	var nd: int = st["disc"] + (td - int(st["disc"])) / rd
+	st["hope"] = clampi(nh, 0, 100 * FX.ONE)
+	st["disc"] = clampi(nd, 0, 100 * FX.ONE)
 
 ## Fatiga por turno continuo: se evalúa una vez al día.
 func fatigue_update() -> void:

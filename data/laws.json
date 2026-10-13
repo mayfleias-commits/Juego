@@ -60,8 +60,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": 300
+     "key": "disc_t_m",
+     "v": 3000
     },
     {
      "k": "hope",
@@ -192,8 +192,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": 400
+     "key": "disc_t_m",
+     "v": 4000
     },
     {
      "k": "disc",
@@ -219,8 +219,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": 300
+     "key": "disc_t_m",
+     "v": 3000
     },
     {
      "k": "hope",
@@ -468,13 +468,13 @@
    "effects": [
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": -800
+     "key": "disc_t_m",
+     "v": -8000
     },
     {
      "k": "mod",
-     "key": "hope_day_m",
-     "v": -300
+     "key": "hope_t_m",
+     "v": -3000
     }
    ],
    "req": [
@@ -518,8 +518,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": -500
+     "key": "disc_t_m",
+     "v": -5000
     }
    ],
    "req": [
@@ -542,8 +542,8 @@
     },
     {
      "k": "mod",
-     "key": "hope_day_m",
-     "v": -500
+     "key": "hope_t_m",
+     "v": -5000
     },
     {
      "k": "disc",
@@ -569,8 +569,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": -1500
+     "key": "disc_t_m",
+     "v": -15000
     },
     {
      "k": "hope",
@@ -671,8 +671,8 @@
    "effects": [
     {
      "k": "mod",
-     "key": "hope_day_m",
-     "v": 500
+     "key": "hope_t_m",
+     "v": 5000
     },
     {
      "k": "mod",
@@ -735,8 +735,8 @@
     },
     {
      "k": "mod",
-     "key": "disc_day_m",
-     "v": -600
+     "key": "disc_t_m",
+     "v": -6000
     }
    ],
    "req": [
@@ -759,8 +759,8 @@
     },
     {
      "k": "mod",
-     "key": "hope_day_m",
-     "v": 300
+     "key": "hope_t_m",
+     "v": 3000
     },
     {
      "k": "disc",
@@ -786,8 +786,8 @@
     },
     {
      "k": "mod",
-     "key": "hope_day_m",
-     "v": 1000
+     "key": "hope_t_m",
+     "v": 10000
     },
     {
      "k": "flag",

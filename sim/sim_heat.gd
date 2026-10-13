@@ -191,23 +191,41 @@ func heat_update() -> void:
 	var hh := mod("heat_housing")
 	var hw := mod("heat_work")
 	var warm_rate: int = B["heat"]["warm_rate"]
+	var cool_base: int = B["heat"]["cool_rate"]
+	var gh := gen_heat()
+	var gr := gen_radius()
+	var r2 := 4 * gr * gr
+	var has_st := not stations.is_empty()
+	var defs: Dictionary = db["buildings"]
+	var th: Array = B["heat"]["thresholds"]
+	var t0: int = th[0]
+	var t1: int = th[1]
+	var t2: int = th[2]
+	var t3: int = th[3]
 	for b in st["buildings"]:
-		var d: Dictionary = bdef(b["type"])
-		var target: int = out + int(d.get("insul", 0)) + zone_heat_at(b["cx2"], b["cy2"])
-		if int(d.get("housing", 0)) > 0:
+		var d: Dictionary = defs[b["type"]]
+		var insul: int = d.get("insul", 0)
+		var cx: int = b["cx2"]
+		var cy: int = b["cy2"]
+		var dx := cx - mcenter2
+		var dy := cy - mcenter2
+		var z := gh if dx * dx + dy * dy <= r2 else 0
+		if has_st:
+			z = maxi(z, station_heat_at(cx, cy))
+		var target: int = out + insul + z
+		if d.has("housing"):
 			target += hh + heaters
 		elif not d.get("outdoor", false):
 			target += hw
-		if d.get("kind", "") == "greenhouse" and b["on"] == 1 and b["state"] == 1:
-			target += int(d.get("self_heat", 0))
+		if d.has("self_heat") and b["on"] == 1 and b["state"] == 1:
+			target += int(d["self_heat"])
 		var t: int = b["temp"]
 		if target > t:
 			t = mini(target, t + warm_rate)
 		else:
-			var cool: int = maxi(2, int(B["heat"]["cool_rate"]) - int(d.get("insul", 0)) / 10)
-			t = maxi(target, t - cool)
+			t = maxi(target, t - maxi(2, cool_base - insul / 10))
 		b["temp"] = t
-		b["lvl"] = level_of(t)
+		b["lvl"] = (1 if t >= t0 else 0) + (1 if t >= t1 else 0) + (1 if t >= t2 else 0) + (1 if t >= t3 else 0)
 
 ## Nivel de calor de la gente sin techo.
 func homeless_level() -> int:

@@ -6,9 +6,7 @@
    "branch": "calor",
    "tier": 1,
    "rp": 60,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [
     {
@@ -25,9 +23,7 @@
    "branch": "calor",
    "tier": 1,
    "rp": 50,
-   "cost": {
-    "madera": 15
-   },
+   "cost": {},
    "req": [],
    "effects": [
     {
@@ -45,7 +41,7 @@
    "tier": 2,
    "rp": 120,
    "cost": {
-    "metal": 20
+    "metal": 10
    },
    "req": [
     "cal_conductos"
@@ -66,7 +62,7 @@
    "tier": 2,
    "rp": 140,
    "cost": {
-    "metal": 20
+    "metal": 10
    },
    "req": [
     "cal_conductos"
@@ -81,8 +77,8 @@
    "tier": 2,
    "rp": 120,
    "cost": {
-    "madera": 30,
-    "metal": 10
+    "madera": 15,
+    "metal": 5
    },
    "req": [
     "cal_fieltro"
@@ -103,7 +99,7 @@
    "tier": 3,
    "rp": 220,
    "cost": {
-    "metal": 40
+    "metal": 60
    },
    "req": [
     "cal_valvulas"
@@ -124,7 +120,7 @@
    "tier": 3,
    "rp": 250,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "cal_calefactores"
@@ -133,15 +129,15 @@
     {
      "k": "mod",
      "key": "heat_housing",
-     "v": 10
+     "v": 8
     },
     {
      "k": "mod",
      "key": "heat_work",
-     "v": 10
+     "v": 8
     }
    ],
-   "desc": "Viviendas y lugares de trabajo +10 °C."
+   "desc": "Viviendas y lugares de trabajo +8 °C."
   },
   {
    "id": "cal_combustion",
@@ -150,7 +146,7 @@
    "tier": 3,
    "rp": 260,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "cal_valvulas"
@@ -171,7 +167,7 @@
    "tier": 4,
    "rp": 400,
    "cost": {
-    "metal": 50,
+    "metal": 75,
     "nucleos": 1
    },
    "req": [
@@ -193,7 +189,7 @@
    "tier": 4,
    "rp": 420,
    "cost": {
-    "metal": 60
+    "metal": 90
    },
    "req": [
     "cal_red"
@@ -214,7 +210,7 @@
    "tier": 4,
    "rp": 380,
    "cost": {
-    "metal": 40
+    "metal": 60
    },
    "req": [
     "cal_estaciones",
@@ -235,9 +231,7 @@
    "branch": "recursos",
    "tier": 1,
    "rp": 50,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite el extractor de carbón sobre vetas."
@@ -248,9 +242,7 @@
    "branch": "recursos",
    "tier": 1,
    "rp": 50,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite el aserradero sobre bosques helados."
@@ -261,9 +253,7 @@
    "branch": "recursos",
    "tier": 1,
    "rp": 70,
-   "cost": {
-    "madera": 30
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite la mina de hierro sobre vetas de metal."
@@ -275,7 +265,7 @@
    "tier": 2,
    "rp": 110,
    "cost": {
-    "madera": 30
+    "madera": 15
    },
    "req": [
     "rec_aserradero"
@@ -290,8 +280,8 @@
    "tier": 2,
    "rp": 140,
    "cost": {
-    "madera": 30,
-    "metal": 15
+    "madera": 15,
+    "metal": 7
    },
    "req": [
     "rec_aserradero"
@@ -306,7 +296,7 @@
    "tier": 2,
    "rp": 160,
    "cost": {
-    "metal": 20
+    "metal": 10
    },
    "req": [
     "rec_mina_hierro"
@@ -321,7 +311,7 @@
    "tier": 3,
    "rp": 260,
    "cost": {
-    "metal": 50
+    "metal": 75
    },
    "req": [
     "rec_extractor",
@@ -337,7 +327,7 @@
    "tier": 3,
    "rp": 240,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "rec_extractor"
@@ -368,7 +358,7 @@
    "tier": 4,
    "rp": 420,
    "cost": {
-    "metal": 50
+    "metal": 75
    },
    "req": [
     "rec_herramientas"
@@ -399,7 +389,7 @@
    "tier": 4,
    "rp": 380,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "rec_herramientas"
@@ -419,9 +409,7 @@
    "branch": "comida_salud",
    "tier": 1,
    "rp": 60,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite barracones (+10 °C de aislamiento)."
@@ -432,9 +420,7 @@
    "branch": "comida_salud",
    "tier": 1,
    "rp": 80,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite invernaderos."
@@ -445,9 +431,7 @@
    "branch": "comida_salud",
    "tier": 1,
    "rp": 60,
-   "cost": {
-    "madera": 10
-   },
+   "cost": {},
    "req": [],
    "effects": [
     {
@@ -465,8 +449,8 @@
    "tier": 2,
    "rp": 160,
    "cost": {
-    "madera": 30,
-    "metal": 20
+    "madera": 15,
+    "metal": 10
    },
    "req": [
     "viv_barracones"
@@ -481,8 +465,8 @@
    "tier": 2,
    "rp": 140,
    "cost": {
-    "madera": 20,
-    "metal": 20
+    "madera": 10,
+    "metal": 10
    },
    "req": [
     "sal_higiene"
@@ -497,7 +481,7 @@
    "tier": 2,
    "rp": 120,
    "cost": {
-    "metal": 15
+    "metal": 7
    },
    "req": [],
    "effects": [
@@ -516,7 +500,7 @@
    "tier": 3,
    "rp": 260,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "com_invernadero"
@@ -531,7 +515,7 @@
    "tier": 3,
    "rp": 240,
    "cost": {
-    "metal": 20
+    "metal": 30
    },
    "req": [
     "sal_enfermeria"
@@ -557,7 +541,7 @@
    "tier": 4,
    "rp": 400,
    "cost": {
-    "metal": 40
+    "metal": 60
    },
    "req": [
     "sal_antisepticos"
@@ -578,7 +562,7 @@
    "tier": 4,
    "rp": 380,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "com_trampas"
@@ -598,9 +582,7 @@
    "branch": "exploracion",
    "tier": 1,
    "rp": 50,
-   "cost": {
-    "madera": 20
-   },
+   "cost": {},
    "req": [],
    "effects": [],
    "desc": "Permite el faro de exploradores."
@@ -612,8 +594,8 @@
    "tier": 2,
    "rp": 120,
    "cost": {
-    "madera": 20,
-    "metal": 15
+    "madera": 10,
+    "metal": 7
    },
    "req": [
     "exp_faro"
@@ -634,7 +616,7 @@
    "tier": 2,
    "rp": 130,
    "cost": {
-    "metal": 10
+    "metal": 5
    },
    "req": [
     "exp_faro"
@@ -662,7 +644,7 @@
    "tier": 3,
    "rp": 240,
    "cost": {
-    "metal": 20
+    "metal": 30
    },
    "req": [
     "exp_trineos"
@@ -677,7 +659,7 @@
    "tier": 3,
    "rp": 280,
    "cost": {
-    "metal": 40
+    "metal": 60
    },
    "req": [
     "exp_cartografia"
@@ -692,7 +674,7 @@
    "tier": 4,
    "rp": 420,
    "cost": {
-    "metal": 50
+    "metal": 75
    },
    "req": [
     "aut_fabrica"
@@ -718,7 +700,7 @@
    "tier": 4,
    "rp": 380,
    "cost": {
-    "metal": 30
+    "metal": 45
    },
    "req": [
     "exp_profundas"

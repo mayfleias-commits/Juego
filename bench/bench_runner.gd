@@ -16,6 +16,8 @@ static func make_bot(name: String) -> BotBase:
 	push_error("bot desconocido: " + name)
 	return BotPassive.new()
 
+static var verbose_full := false
+
 static func run_game(bot_name: String, seed: int, verbose: bool = false) -> Dictionary:
 	var sim := Simulation.new()
 	sim.new_game(seed)
@@ -31,7 +33,17 @@ static func run_game(bot_name: String, seed: int, verbose: bool = false) -> Dict
 		guard += 1
 		if verbose and sim.hour() == 0:
 			print("d%d pop %d hope %d disc %d coal %d wood %d metal %d food %d/%d sick %d dead %d homeless %d lvl %d b %d" % [sim.day(), sim.total_pop(), sim.st["hope"] / 1000, sim.st["disc"] / 1000, sim.res("carbon") / 1000, sim.res("madera") / 1000, sim.res("metal") / 1000, sim.res("crudo") / 1000, sim.res("raciones") / 1000, sim.total_sick(), sim.st["dead"], sim.st["homeless"], sim.st["gen"]["level"], sim.st["buildings"].size()])
-			print("   ", dump_buildings(sim), " idle ", sim.st.get("idle", {}), " R ", sim.st["research"]["cur"])
+			if verbose_full:
+				print("   ", dump_buildings(sim), " idle ", sim.st.get("idle", {}), " R ", sim.st["research"]["cur"])
+			var m: Dictionary = sim.st.get("mood", {})
+			if not m.is_empty():
+				var hp := ""
+				for k in m["hp"]:
+					hp += "%s:%d " % [k, int(m["hp"][k]) / 1000]
+				var dp := ""
+				for k in m["dp"]:
+					dp += "%s:%d " % [k, int(m["dp"][k]) / 1000]
+				print("    H→%d [%s]  D→%d [%s] temp %d" % [int(m["ht"]) / 1000, hp, int(m["dt"]) / 1000, dp, sim.outdoor()])
 	var r := {
 		"bot": bot_name, "seed": seed, "status": sim.st["status"], "reason": sim.st["end_reason"],
 		"day": sim.day(), "pop": sim.total_pop(), "dead": sim.st["dead"], "stars": sim.st["stars"],

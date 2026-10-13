@@ -105,8 +105,8 @@ func test_guardar_cargar_continuar() -> void:
 	eq(s2.state_hash(), h1, "cargar y continuar da el mismo resultado (el azar se guarda)")
 
 func _last_plan_at(t: int) -> int:
-	# El bot planifica en ticks pares: el último plan antes de t fue en t-2.
-	return t - 2
+	# El bot planifica cada 3 ticks desde el 0: el último plan antes de t.
+	return ((t - 1) / 3) * 3
 
 func test_estado_solo_enteros() -> void:
 	var s := _run_scripted(5, 24 * 5)

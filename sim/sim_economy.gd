@@ -76,11 +76,15 @@ func autos_update() -> void:
 func production_update() -> void:
 	var h := hour()
 	var social_seen := {}
+	st["social_h"] = 0
+	st["social_d"] = 0
 	for b in st["buildings"]:
 		if not building_works(b):
 			continue
 		var d: Dictionary = bdef(b["type"])
 		var kind: String = d.get("kind", "")
+		if d.has("hope_t_m") and kind != "social":
+			_social(b, d, social_seen)
 		if kind == "" or kind == "housing" or kind == "storage" or kind == "medical" or kind == "burial" or kind == "shelter" or kind == "station" or kind == "scouts":
 			continue
 		var human := 0
@@ -271,13 +275,9 @@ func _social(b: Dictionary, d: Dictionary, seen: Dictionary) -> void:
 	if mx > 0:
 		ratio = mini(FX.ONE, (b["o"] + b["i"] + b["n"]) * FX.ONE / mx)
 	# Rendimientos decrecientes: el k-ésimo edificio igual rinde 1, 1/2, 1/4...
-	var dim := FX.ONE >> mini(k, 10)
-	var pop_scale := mini(FX.ONE, maxi(200, present_pop() * FX.ONE / maxi(1, int(B["society"]["social_pop_ref"]))))
-	var f := ratio * dim / FX.ONE * pop_scale / FX.ONE
-	var hope: int = int(d.get("hope_day_m", 0)) * f / FX.ONE / 24
-	var disc: int = int(d.get("disc_day_m", 0)) * f / FX.ONE / 24
-	add_hope(hope, t)
-	add_disc(disc, t)
+	var f := (ratio >> mini(k, 10))
+	st["social_h"] = int(st.get("social_h", 0)) + int(d.get("hope_t_m", 0)) * f / FX.ONE
+	st["social_d"] = int(st.get("social_d", 0)) + int(d.get("disc_t_m", 0)) * f / FX.ONE
 
 func _factory(b: Dictionary, d: Dictionary, eq: int) -> void:
 	if int(b.get("queue", 0)) <= 0:

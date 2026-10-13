@@ -31,13 +31,13 @@
     2
    ],
    "cost": {
-    "madera": 25,
-    "metal": 5
+    "madera": 30,
+    "metal": 8
    },
    "build_h": 8,
    "kind": "housing",
    "housing": 10,
-   "insul": 10,
+   "insul": 8,
    "upgrade_to": "casa_piedra",
    "req_research": "viv_barracones",
    "shifts": [
@@ -54,13 +54,13 @@
     2
    ],
    "cost": {
-    "madera": 30,
-    "metal": 15
+    "madera": 40,
+    "metal": 25
    },
    "build_h": 12,
    "kind": "housing",
    "housing": 10,
-   "insul": 20,
+   "insul": 15,
    "req_research": "viv_casas",
    "shifts": [
     0
@@ -255,8 +255,8 @@
    ],
    "site": "muro_hielo",
    "cost": {
-    "madera": 30,
-    "metal": 20
+    "madera": 40,
+    "metal": 30
    },
    "build_h": 14,
    "kind": "extract",
@@ -291,7 +291,7 @@
    "site": "veta_profunda",
    "cost": {
     "madera": 60,
-    "metal": 40,
+    "metal": 60,
     "nucleos": 1
    },
    "build_h": 20,
@@ -325,7 +325,7 @@
    ],
    "cost": {
     "madera": 40,
-    "metal": 20
+    "metal": 40
    },
    "build_h": 14,
    "kind": "convert",
@@ -414,8 +414,8 @@
     3
    ],
    "cost": {
-    "madera": 30,
-    "metal": 15
+    "madera": 40,
+    "metal": 25
    },
    "build_h": 12,
    "kind": "greenhouse",
@@ -450,8 +450,8 @@
     3
    ],
    "cost": {
-    "madera": 40,
-    "metal": 30,
+    "madera": 50,
+    "metal": 50,
     "nucleos": 1
    },
    "build_h": 16,
@@ -516,7 +516,7 @@
    ],
    "cost": {
     "madera": 40,
-    "metal": 25
+    "metal": 40
    },
    "build_h": 14,
    "kind": "medical",
@@ -618,7 +618,7 @@
    ],
    "cost": {
     "madera": 30,
-    "metal": 20
+    "metal": 35
    },
    "build_h": 10,
    "kind": "station",
@@ -741,11 +741,11 @@
    ],
    "cost": {
     "madera": 50,
-    "metal": 50
+    "metal": 80
    },
    "build_h": 20,
    "kind": "factory",
-   "work_m": 150000,
+   "work_m": 100000,
    "insul": 10,
    "staff": {
     "max": 5,
@@ -776,7 +776,6 @@
    },
    "build_h": 6,
    "kind": "social",
-   "disc_day_m": -2500,
    "insul": 10,
    "staff": {
     "max": 3,
@@ -787,7 +786,8 @@
    "req_law": "ley_taberna",
    "shifts": [
     0
-   ]
+   ],
+   "disc_t_m": -8000
   },
   {
    "id": "banos",
@@ -804,8 +804,6 @@
    },
    "build_h": 8,
    "kind": "social",
-   "disc_day_m": -1000,
-   "hope_day_m": 500,
    "insul": 20,
    "staff": {
     "max": 3,
@@ -816,7 +814,9 @@
    "req_law": "ley_banos",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 3000,
+   "disc_t_m": -4000
   },
   {
    "id": "refugio_inf",
@@ -854,7 +854,6 @@
    },
    "build_h": 6,
    "kind": "social",
-   "disc_day_m": -3000,
    "insul": 10,
    "staff": {
     "max": 5,
@@ -865,7 +864,8 @@
    "req_law": "ord_patrulla",
    "shifts": [
     0
-   ]
+   ],
+   "disc_t_m": -10000
   },
   {
    "id": "proclamas",
@@ -882,7 +882,6 @@
    },
    "build_h": 8,
    "kind": "social",
-   "hope_day_m": 2500,
    "insul": 10,
    "staff": {
     "max": 3,
@@ -894,7 +893,8 @@
    "req_law": "ord_proclamas",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 8000
   },
   {
    "id": "prision",
@@ -911,8 +911,6 @@
    },
    "build_h": 12,
    "kind": "social",
-   "disc_day_m": -4000,
-   "hope_day_m": -500,
    "insul": 10,
    "staff": {
     "max": 5,
@@ -923,7 +921,9 @@
    "req_law": "ord_celdas",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": -3000,
+   "disc_t_m": -14000
   },
   {
    "id": "torre_vigia",
@@ -935,13 +935,11 @@
     2
    ],
    "cost": {
-    "madera": 30,
-    "metal": 30
+    "madera": 40,
+    "metal": 40
    },
    "build_h": 10,
    "kind": "social",
-   "disc_day_m": -3500,
-   "hope_day_m": 1000,
    "insul": 10,
    "staff": {
     "max": 3,
@@ -952,7 +950,9 @@
    "req_law": "ord_ojo",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 4000,
+   "disc_t_m": -10000
   },
   {
    "id": "capilla",
@@ -968,7 +968,6 @@
    },
    "build_h": 6,
    "kind": "social",
-   "hope_day_m": 3000,
    "insul": 10,
    "staff": {
     "max": 3,
@@ -979,7 +978,8 @@
    "req_law": "fe_circulo",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 9000
   },
   {
    "id": "casa_sanacion",
@@ -1008,7 +1008,8 @@
    "req_law": "fe_sanadores",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 2000
   },
   {
    "id": "templo",
@@ -1020,13 +1021,11 @@
     3
    ],
    "cost": {
-    "madera": 50,
-    "metal": 30
+    "madera": 60,
+    "metal": 40
    },
    "build_h": 16,
    "kind": "social",
-   "hope_day_m": 5000,
-   "disc_day_m": -1000,
    "insul": 20,
    "staff": {
     "max": 5,
@@ -1037,7 +1036,9 @@
    "req_law": "fe_templo",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 16000,
+   "disc_t_m": -3000
   },
   {
    "id": "santuario",
@@ -1054,8 +1055,6 @@
    },
    "build_h": 10,
    "kind": "social",
-   "hope_day_m": 2000,
-   "disc_day_m": -2000,
    "insul": 10,
    "staff": {
     "max": 3,
@@ -1066,7 +1065,9 @@
    "req_law": "fe_santuario",
    "shifts": [
     0
-   ]
+   ],
+   "hope_t_m": 5000,
+   "disc_t_m": -6000
   }
  ]
 }

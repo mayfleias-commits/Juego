@@ -97,31 +97,38 @@ func building_works(b: Dictionary) -> bool:
 	return b["state"] == 1 and b["on"] == 1
 
 ## Llena los puestos según lo deseado por el jugador y la gente sana disponible.
+const SKEYS := ["o", "i", "n"]
+const DKEYS := ["do", "di", "dn"]
+
 func staff_fill() -> void:
-	var avail := {}
-	for c in CLASSES:
-		avail[c] = maxi(0, healthy(c))
+	var av := [maxi(0, healthy("obreros")), maxi(0, healthy("ingenieros")), maxi(0, healthy("ninos"))]
 	var arr: Array = st["buildings"]
+	var t: int = st["tick"]
 	for pass_i in 2:
 		for b in arr:
 			if int(b["prio"]) != (1 - pass_i):
 				continue
-			var ok := building_works(b)
-			for c in CLASSES:
-				var key: String = c.substr(0, 1) # o, i, n
-				var want: int = b["d" + key] if ok else 0
-				var take: int = mini(want, avail[c])
+			var ok: bool = b["state"] == 1 and b["on"] == 1
+			if not ok and b["o"] + b["i"] + b["n"] == 0:
+				continue
+			for k in 3:
+				var key: String = SKEYS[k]
+				var want: int = b[DKEYS[k]] if ok else 0
 				var have: int = b[key]
+				if want == 0 and have == 0:
+					continue
+				var take: int = mini(want, av[k])
 				if take < have:
 					_bat_remove(b, have - take)
 				elif take > have:
 					var bat: Array = b["bat"]
 					bat.append(take - have)
-					bat.append(st["tick"] + travel_hours(b))
+					bat.append(t + travel_hours(b))
 				b[key] = take
-				avail[c] -= take
-			_bat_compact(b)
-	st["idle"] = avail
+				av[k] -= take
+			if (b["bat"] as Array).size() > 2:
+				_bat_compact(b)
+	st["idle"] = {"obreros": av[0], "ingenieros": av[1], "ninos": av[2]}
 
 func assigned_total(c: String) -> int:
 	var key := c.substr(0, 1)
@@ -287,6 +294,7 @@ func _register_deaths(c: String, n: int, cause: String) -> void:
 	dc[cause] = dc.get(cause, 0) + n
 	st["bodies"] += n
 	st["day_acc"]["deaths"] = st["day_acc"].get("deaths", 0) + n
+	st["death_log"].append([st["tick"], n])
 	var per: int = int(B["society"]["death_hope_m"]) * maxi(0, 100 + mod("death_hope_pct")) / 100
 	add_hope(-per * n, "muertes")
 	add_disc(int(B["society"]["death_disc_m"]) * n, "muertes")
@@ -328,38 +336,39 @@ func compute_exposure() -> Dictionary:
 		ex[c] = [0, 0, 0, 0, 0]
 		at_work[c] = 0
 	var out_l := level_of(outdoor())
-	for b in st["buildings"]:
-		var tot: int = b["o"] + b["i"] + b["n"]
-		if tot == 0:
-			continue
-		var d: Dictionary = bdef(b["type"])
-		var always: bool = d.get("kind", "") == "medical" or d.get("kind", "") == "social"
-		if not always and not shift_active(b, h):
-			continue
-		if d.get("kind", "") == "hunt":
-			continue # los cazadores se cuentan en su salida
-		var arrived := bat_arrived(b)
-		var lvl: int = b["lvl"]
-		for c in CLASSES:
-			var k: int = b[c.substr(0, 1)]
-			if k == 0:
-				continue
-			var arr_k := k * arrived / tot
-			ex[c][lvl] += arr_k * FX.ONE
-			ex[c][out_l] += (k - arr_k) * FX.ONE
-			at_work[c] += k
-	# Cazadores fuera
-	for hb in st["buildings"]:
-		if bdef(hb["type"]).get("kind", "") == "hunt" and int(hb.get("trip", 0)) > 0:
-			ex["obreros"][out_l] += int(hb["trip"]) * FX.ONE
-			at_work["obreros"] += int(hb["trip"])
-	# Niños en refugios
+	var defs: Dictionary = db["buildings"]
 	var shelter_cap := 0
 	var shelter_lvl := 4
 	for b in st["buildings"]:
-		if building_works(b) and bdef(b["type"]).get("kind", "") == "shelter":
-			shelter_cap += int(bdef(b["type"])["children"])
+		var d: Dictionary = defs[b["type"]]
+		var kind: String = d.get("kind", "")
+		if kind == "shelter" and b["state"] == 1 and b["on"] == 1:
+			shelter_cap += int(d["children"])
 			shelter_lvl = mini(shelter_lvl, int(b["lvl"]))
+			continue
+		if kind == "hunt":
+			# los cazadores se cuentan solo mientras están fuera
+			if int(b.get("trip", 0)) > 0:
+				ex["obreros"][out_l] += int(b["trip"]) * FX.ONE
+				at_work["obreros"] += int(b["trip"])
+			continue
+		var tot: int = b["o"] + b["i"] + b["n"]
+		if tot == 0:
+			continue
+		var always: bool = kind == "medical" or kind == "social"
+		if not always and not shift_active(b, h):
+			continue
+		var arrived := bat_arrived(b)
+		var lvl: int = b["lvl"]
+		for k in 3:
+			var n: int = b[SKEYS[k]]
+			if n == 0:
+				continue
+			var c: String = CLASSES[k]
+			var arr_k := n * arrived / tot
+			ex[c][lvl] += arr_k * FX.ONE
+			ex[c][out_l] += (n - arr_k) * FX.ONE
+			at_work[c] += n
 	# En casa
 	var need := 0
 	var home := {}
@@ -423,6 +432,8 @@ func meal() -> void:
 
 # ---------------------------------------------------------------- cuerpos
 func bodies_update() -> void:
+	if int(st["bodies"]) <= 0:
+		return
 	var capacity := 0
 	for b in st["buildings"]:
 		if b["state"] == 1 and bdef(b["type"]).get("kind", "") == "burial":
@@ -432,10 +443,6 @@ func bodies_update() -> void:
 	if mv > 0:
 		st["bodies"] -= mv
 		st["buried"] += mv
-	var bodies: int = st["bodies"]
-	if bodies > 0:
-		add_hope(-int(B["society"]["body_hope_day_m"]) * bodies / 24, "cuerpos")
-		add_disc(int(B["society"]["body_disc_day_m"]) * bodies / 24, "cuerpos")
 
 # ---------------------------------------------------------------- llegadas
 func arrivals_update() -> void:

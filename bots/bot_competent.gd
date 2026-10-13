@@ -5,16 +5,38 @@ extends BotBase
 ## evita las extremas salvo emergencia. Sirve de referencia para el balance.
 
 var research_order := [
-	"rec_extractor", "viv_barracones", "cal_conductos", "rec_aserradero", "sal_higiene",
-	"exp_faro", "rec_mina_hierro", "cal_fieltro", "cal_valvulas", "viv_casas",
-	"com_invernadero", "cal_calefactores", "sal_enfermeria", "com_trampas", "cal_combustion",
+	"rec_extractor", "viv_barracones", "cal_conductos", "rec_aserradero", "com_invernadero",
+	"sal_higiene", "exp_faro", "rec_mina_hierro", "cal_fieltro", "cal_valvulas", "viv_casas",
+	"cal_calefactores", "sal_enfermeria", "com_trampas", "cal_combustion",
 	"cal_red", "rec_herramientas", "cal_paneles", "rec_fundicion", "rec_perforadora",
-	"exp_trineos", "rec_pozo", "cal_sobrepresion", "exp_cartografia", "sal_antisepticos",
-	"cal_anillo", "com_invernadero_ind", "aut_fabrica", "rec_horno", "exp_profundas",
+	"exp_trineos", "rec_pozo", "cal_sobrepresion", "exp_cartografia", "aut_fabrica", "sal_antisepticos",
+	"cal_anillo", "com_invernadero_ind", "rec_horno", "exp_profundas",
 	"cal_estaciones", "rec_maquinaria", "sal_cirugia", "cal_calderas", "aut_reforzados",
 	"com_cocina_vapor", "rec_logistica", "exp_rutas",
 ]
 var path := "fe"
+var reserved := {}
+var _last_cost := {}
+
+## ¿Alcanza el costo sin tocar lo reservado para deseos críticos?
+var CORE_RESERVE := 2
+
+func affordable(cost: Dictionary) -> bool:
+	for r in cost:
+		if r == "nucleos":
+			if res_units("nucleos") < int(cost[r]) + CORE_RESERVE:
+				return false
+			continue
+		if res_units(r) - int(reserved.get(r, 0)) < int(cost[r]):
+			return false
+	return true
+
+## Devuelve 2 (bloqueado) y anota el costo para reservarlo, o 0 si falta un núcleo (no reservable).
+func _blocked(cost: Dictionary) -> int:
+	if int(cost.get("nucleos", 0)) + CORE_RESERVE > res_units("nucleos"):
+		return 0
+	_last_cost = cost
+	return 2
 var last_plan := -99
 var weights := {"carbon": 3, "madera": 4, "metal": 8, "nucleos": 400, "crudo": 5, "raciones": 3}
 
@@ -22,11 +44,12 @@ func _init() -> void:
 	name = "competente"
 
 func act() -> void:
+	CORE_RESERVE = 2 if int(sim.st["obtained"]["nucleos"]) >= 9 * FX.ONE else 1
 	_events()
 	_requests()
 	_generator()
 	var t := sim.tick()
-	if t - last_plan >= 2:
+	if t - last_plan >= 3:
 		last_plan = t
 		_cleanup()
 		_plan_builds()
@@ -63,8 +86,21 @@ func housing_count() -> int:
 			n += 1
 	return n
 
-## Producción diaria potencial (unidades) de un recurso con todo el personal posible.
+var _pot_cache := {}
+var _pot_tick := -1
+
+## Producción diaria potencial (unidades) de un recurso con el personal actual.
 func potential(r: String) -> int:
+	if _pot_tick != sim.tick():
+		_pot_tick = sim.tick()
+		_pot_cache = {}
+	if _pot_cache.has(r):
+		return _pot_cache[r]
+	var v := _potential(r)
+	_pot_cache[r] = v
+	return v
+
+func _potential(r: String) -> int:
 	var total := 0
 	var om := sim.outdoor_mult(sim.temp_at(sim.day(), 12))
 	for b in sim.st["buildings"]:
@@ -83,8 +119,12 @@ func potential(r: String) -> int:
 
 func _post_target(b: Dictionary) -> String:
 	var f: String = b.get("focus", "auto")
+	for nid in b["nodes"]:
+		var n0: Dictionary = sim.st["nodes"][nid]
+		if n0["amt"] > 0 and (f == "auto" or n0["kind"] == f):
+			return n0["kind"]
 	if f != "auto":
-		return f
+		return ""
 	for nid in b["nodes"]:
 		var n: Dictionary = sim.st["nodes"][nid]
 		if n["amt"] > 0:
@@ -106,6 +146,12 @@ func hunt_stock_pct() -> int:
 		m += int(z["max"])
 	return s * 100 / maxi(1, m)
 
+func _wave_len() -> int:
+	var w := sim.wave_next(sim.day())
+	if w.is_empty():
+		return 0
+	return (w["profile"] as Array).size()
+
 func days_to_wave() -> int:
 	var w := sim.wave_next(sim.day())
 	if w.is_empty():
@@ -125,6 +171,56 @@ func staff_slots(kinds: Array) -> int:
 		if d.get("kind", "") in kinds:
 			n += sim.staff_max(d)
 	return n
+
+## Carbón total que queda (stock + pilas + yacimientos) frente a lo que falta de partida.
+func coal_reserve() -> int:
+	var t := res_units("carbon") + node_left("carbon")
+	for st2 in sim.st["sites"]:
+		if st2["kind"] in ["veta_carbon", "veta_profunda"]:
+			t += int(st2["amt"]) / FX.ONE
+	return t
+
+## Carbón que conviene tener almacenado al empezar la próxima oleada.
+func wave_coal_target() -> int:
+	var w := sim.wave_next(sim.day() - 1)
+	var cur := sim.wave_on(sim.day())
+	if not cur.is_empty():
+		w = cur
+	if w.is_empty():
+		return 0
+	var ins := _min_house_insul() + (int(sim.B["heat"]["heater_heat"]) if sim.mod("heaters") > 0 else 0)
+	var mx := sim.gen_max_level()
+	var total := 0
+	var start: int = w["start"]
+	var prof: Array = w["profile"]
+	for i in prof.size():
+		var d: int = start + i
+		if d < sim.day():
+			continue
+		var tmin := 999
+		for h in 24:
+			tmin = mini(tmin, sim.temp_at(d, h))
+		var need := -20 - (tmin + ins)
+		var lvl := clampi((need + 7) / 8, 1, mx)
+		var over := 1 if need > int(sim.B["gen"]["heat"][mx]) else 0
+		total += sim.gen_coal_per_hour(lvl, over) * 24 / FX.ONE
+	# Lo que siguen produciendo los edificios de interior (pozo profundo, hornos).
+	var indoor := 0
+	for b in sim.st["buildings"]:
+		if b["type"] in ["mina_profunda", "horno_carbon"]:
+			indoor += 1
+	return maxi(0, total * 110 / 100 - indoor * 150 * prof.size())
+
+var _frugal_tick := -1
+var _frugal := false
+
+func frugal() -> bool:
+	if _frugal_tick == sim.tick():
+		return _frugal
+	_frugal_tick = sim.tick()
+	var days_left: int = int(sim.B["days"]) - sim.day() + 1
+	_frugal = coal_reserve() < days_left * coal_need_day() * 13 / 10
+	return _frugal
 
 # ================================================================ generador
 func _min_house_insul() -> int:
@@ -161,10 +257,12 @@ func _generator() -> void:
 	var heaters_on := int(g["heaters"]) == 1
 	var extra := int(sim.B["heat"]["heater_heat"]) if heaters_on else 0
 	var coal_days := coal * 24 / maxi(1, sim.gen_coal_per_hour() * 24) # en horas
-	var target := -10 if coal_days > 36 else -20
+	var saving := days_to_wave() <= 8 and not sim.in_wave() and res_units("carbon") < wave_coal_target()
+	var target := -10 if (coal_days > 36 and not frugal() and not saving) else -20
 	var need := target - (tmin + ins + extra)
 	var mx := sim.gen_max_level()
-	var lvl := clampi((need + 9) / 10, 1, mx)
+	var step: int = maxi(1, int(sim.B["gen"]["heat"][1]))
+	var lvl := clampi((need + step - 1) / step, 1, mx)
 	# No vaciar el depósito: si queda poco carbón, bajar potencia.
 	while lvl > 1 and coal < sim.gen_coal_per_hour(lvl, 0) * 8:
 		lvl -= 1
@@ -184,12 +282,24 @@ func _generator() -> void:
 
 # ================================================================ construcción
 func _cleanup() -> void:
-	# Demoler puestos sin pilas y extractores de yacimientos agotados (recupera 50%).
+	# Reorientar puestos cuyo recurso se agotó; demoler los que ya no tienen pilas
+	# y los extractores de yacimientos agotados (recupera 50%).
 	for b in sim.st["buildings"].duplicate():
 		var d: Dictionary = sim.bdef(b["type"])
 		var k: String = d.get("kind", "")
 		if k == "gather" and b["state"] == 1 and _post_target(b) == "":
-			cmd({"c": "demolish", "bid": b["id"]})
+			var best := ""
+			var ba := 0
+			for nid in b["nodes"]:
+				var n: Dictionary = sim.st["nodes"][nid]
+				var val: int = int(n["amt"]) * (3 if n["kind"] != "carbon" else 1)
+				if n["amt"] > 0 and val > ba:
+					ba = val
+					best = n["kind"]
+			if best != "":
+				cmd({"c": "focus", "bid": b["id"], "v": best})
+			else:
+				cmd({"c": "demolish", "bid": b["id"]})
 		elif k == "extract" and b["state"] == 1 and int(sim.st["sites"][b["site"]]["amt"]) <= 0:
 			cmd({"c": "demolish", "bid": b["id"]})
 
@@ -198,16 +308,20 @@ func _cleanup() -> void:
 ## detiene la planificación para no gastar en cosas menos importantes.
 func _plan_builds() -> void:
 	var wishes := [
-		["coal", true], ["wood", true], ["cook", true], ["food", true], ["housing_half", true],
+		["coal", true], ["wood", true], ["metal_min", true], ["cook", true], ["food", true], ["housing_half", true],
 		["workshop1", true], ["medical1", true], ["burial", true], ["housing", true],
-		["food2", false], ["medical", false], ["metal", false], ["workshops", false],
-		["storage", false], ["faro", false], ["shelter", false], ["social", false],
-		["factory", false], ["upgrades", false], ["coal_buffer", false], ["wood2", false],
+		["food2", false], ["medical", false], ["metal", false], ["factory", false], ["workshops", false],
+		["end_reserve", false], ["storage", false], ["faro", false], ["shelter", false], ["social", false],
+		["upgrades", false], ["coal_buffer", false], ["kiln_surplus", false], ["wood2", false], ["late_spend", false],
 	]
+	reserved = {}
 	for w in wishes:
+		_last_cost = {}
 		var r := _wish(w[0])
 		if r == 2 and w[1]:
-			return
+			# Reservar lo que falta para el deseo crítico y seguir con los demás.
+			for k in _last_cost:
+				reserved[k] = int(reserved.get(k, 0)) + int(_last_cost[k])
 
 func _wish(id: String) -> int:
 	var P := pop()
@@ -216,6 +330,9 @@ func _wish(id: String) -> int:
 		"coal":
 			if potential("carbon") < coal_need_day() * 115 / 100 + 15:
 				return _add_producer("carbon")
+		"kiln_surplus":
+			if res_units("madera") > 350 and sim.is_unlocked("horno_carbon") and buildings_of(["horno_carbon"]).size() < 3:
+				return _build("horno_carbon", c, c)
 		"coal_buffer":
 			if potential("carbon") < coal_need_day() * 140 / 100 + 30 and days_to_wave() <= 6:
 				return _add_producer("carbon")
@@ -226,7 +343,10 @@ func _wish(id: String) -> int:
 			if potential("madera") < 70 + P / 3:
 				return _add_producer("madera")
 		"metal":
-			if potential("metal") < 20 + P / 10:
+			if potential("metal") < 30 + P / 6:
+				return _add_producer("metal")
+		"metal_min":
+			if potential("metal") < 12 and sim.day() >= 2:
 				return _add_producer("metal")
 		"cook":
 			if buildings_of(["cocina"]).size() < maxi(1, (P + 60) / 100):
@@ -238,8 +358,16 @@ func _wish(id: String) -> int:
 			var hp := hunt_stock_pct()
 			var food_cap := hunters * 60 * mini(100, hp * 2) / 100 + greenh * 45 + greenh2 * 85
 			var need := P + 8 if id == "food" else P + 25
+			# Antes de una oleada (sin caza) hace falta producir de más para acumular.
+			var dw := days_to_wave()
+			if dw <= 6:
+				var wl := _wave_len()
+				var stock := res_units("raciones") + res_units("crudo") * 2
+				var gap := P * (wl + 1) - stock
+				if gap > 0:
+					need += gap / maxi(1, dw)
 			if food_cap < need and (_labor_ok(6) or id == "food"):
-				if hp > 35 and hunters < 4:
+				if hp > 35 and hunters < 4 and (hunters < 2 or days_to_wave() > 4):
 					return _build("cazadores", c + 6, c - 6)
 				if sim.is_unlocked("invernadero_ind") and res_units("nucleos") >= 2:
 					return _build("invernadero_ind", c, c)
@@ -299,7 +427,7 @@ func _wish(id: String) -> int:
 			for r in ["carbon", "madera", "metal", "raciones"]:
 				if sim.res(r) * 100 / maxi(1, sim.cap(r)) > 85:
 					return _build("carbonera" if r == "carbon" else "deposito", c - 8, c + 8)
-			if days_to_wave() <= 4 and sim.cap("carbon") < coal_need_day() * FX.ONE * 3:
+			if days_to_wave() <= 10 and sim.cap("carbon") / FX.ONE < wave_coal_target() + 100:
 				return _build("carbonera", c - 8, c + 8)
 		"faro":
 			if sim.is_unlocked("faro") and buildings_of(["faro"]).size() < (2 if sim.day() > 20 else 1):
@@ -310,8 +438,18 @@ func _wish(id: String) -> int:
 		"social":
 			_social_builds()
 		"factory":
-			if sim.is_unlocked("fabrica_aut") and buildings_of(["fabrica_aut"]).is_empty() and res_units("nucleos") >= 2:
+			if sim.is_unlocked("fabrica_aut") and buildings_of(["fabrica_aut"]).is_empty() and res_units("nucleos") >= 1:
 				return _build("fabrica_aut", c, c)
+		"end_reserve":
+			# Recta final: guardar una reserva de madera para emergencias.
+			if sim.day() >= 46:
+				reserved["madera"] = int(reserved.get("madera", 0)) + int(sim.st["obtained"]["madera"]) / FX.ONE * 16 / 100
+		"late_spend":
+			# Recta final: invertir excedentes en mejoras de vivienda y producción.
+			if sim.day() >= 38 and res_units("metal") > 120:
+				_upgrades()
+				if sim.is_unlocked("invernadero_ind") and res_units("nucleos") >= 2 and res_units("metal") > 150:
+					return _build("invernadero_ind", c, c)
 		"upgrades":
 			_upgrades()
 	return 0
@@ -319,12 +457,15 @@ func _wish(id: String) -> int:
 func _build(type: String, x: int, y: int) -> int:
 	if not sim.is_unlocked(type):
 		return 0
-	if not sim.can_afford(sim.bdef(type).get("cost", {})):
-		return 2
+	var cost: Dictionary = sim.bdef(type).get("cost", {})
+	if not affordable(cost):
+		return _blocked(cost)
 	return 1 if not try_build_near(type, x, y).is_empty() else 0
 
+var flex := 0 # trabajadores en puestos "extra" (baja prioridad) que se pueden mover
+
 func _labor_ok(n: int) -> bool:
-	return idle("obreros") + idle("ingenieros") >= n or sim.day() <= 2
+	return idle("obreros") + idle("ingenieros") + flex >= n or sim.day() <= 2
 
 func _beds_total() -> int:
 	var n := 0
@@ -370,7 +511,7 @@ func _add_producer(r: String) -> int:
 			if rp == 1:
 				return 1
 			blocked = blocked or rp == 2
-			if res_units("madera") > 150 and buildings_of(["horno_carbon"]).size() < 2:
+			if res_units("madera") > 120 and buildings_of(["horno_carbon"]).size() < 1 + res_units("madera") / 300:
 				return _build("horno_carbon", c, c)
 		"madera":
 			for t in ["aserradero", "perforadora"]:
@@ -391,7 +532,7 @@ func _add_producer(r: String) -> int:
 			if rp == 1:
 				return 1
 			blocked = blocked or rp == 2
-			if sim.is_unlocked("fundicion") and buildings_of(["fundicion"]).is_empty() and res_units("carbon") > 300:
+			if sim.is_unlocked("fundicion") and buildings_of(["fundicion"]).size() < 2 and res_units("carbon") > 300 and not frugal():
 				return _build("fundicion", c, c)
 	return 2 if blocked else 0
 
@@ -400,8 +541,9 @@ func _site_build(type: String) -> int:
 		return 0
 	if sim.free_sites(sim.bdef(type)["site"]).is_empty():
 		return 0
-	if not sim.can_afford(sim.bdef(type).get("cost", {})):
-		return 2
+	var cost: Dictionary = sim.bdef(type).get("cost", {})
+	if not affordable(cost):
+		return _blocked(cost)
 	return 1 if not try_build_site(type).is_empty() else 0
 
 func _build_post_for(r: String) -> int:
@@ -418,8 +560,8 @@ func _build_post_for(r: String) -> int:
 			best = n
 	if best.is_empty():
 		return 0
-	if not sim.can_afford(sim.bdef("puesto_rec")["cost"]):
-		return 2
+	if not affordable(sim.bdef("puesto_rec")["cost"]):
+		return _blocked(sim.bdef("puesto_rec")["cost"])
 	var b := try_build_near("puesto_rec", best["x"], best["y"])
 	if b.is_empty():
 		return 0
@@ -472,6 +614,18 @@ func per_worker_day(b: Dictionary) -> int:
 			return int(sim.B["food"]["hunt_trip_m"]) * om / FX.ONE / FX.ONE
 	return 0
 
+## Reserva "sana" de un recurso: ~18% de lo obtenido (con un mínimo).
+func _reserve_of(r: String) -> int:
+	var ob: int = int(sim.st["obtained"][r]) / FX.ONE
+	match r:
+		"madera":
+			return ob * 18 / 100 + 150
+		"metal":
+			return ob * 18 / 100 + 100
+		"carbon":
+			return maxi(ob * 18 / 100, wave_coal_target() + 300)
+	return 0
+
 func _res_of(b: Dictionary) -> String:
 	var d: Dictionary = sim.bdef(b["type"])
 	match d.get("kind", ""):
@@ -492,13 +646,40 @@ func _staff() -> void:
 	var needs := {
 		"crudo": (P + 6) / maxi(1, ratio) + 4,
 		"carbon": coal_need_day() * 110 / 100 + (coal_need_day() / 2 if coal_stock_days < 2 else 0),
-		"madera": 50 + P / 5,
-		"metal": 15 + P / 12,
+		"madera": maxi(0 if res_units("madera") > 600 else 15, 40 + P / 6 + (300 - res_units("madera")) / 4),
+		"metal": maxi(0 if res_units("metal") > 250 else 15, 25 + P / 6 + (150 - res_units("metal")) / 3),
 	}
-	if res_units("raciones") > P * 3:
-		needs["crudo"] = needs["crudo"] / 2
-	var ess_score := {"crudo": 96, "carbon": 95, "madera": 80, "metal": 75}
-	var extra_score := {"crudo": 40, "carbon": 55, "madera": 50, "metal": 45}
+	var food_days := (res_units("raciones") / maxi(1, ratio) + res_units("crudo")) * ratio / maxi(1, P)
+	if days_to_wave() > 6 or sim.wave_next(sim.day()).is_empty():
+		if food_days > 6:
+			needs["crudo"] = 0
+		elif food_days > 3:
+			needs["crudo"] = needs["crudo"] / 2
+	var dw := days_to_wave()
+	if dw <= 9 and not sim.in_wave():
+		var gap := wave_coal_target() - res_units("carbon")
+		if gap > 0:
+			needs["carbon"] += gap / maxi(1, dw)
+		# Comida para aguantar la oleada sin caza (en crudo equivalente).
+		var food_stock := res_units("raciones") / maxi(1, ratio) + res_units("crudo")
+		var gh_day := 0
+		for gb in buildings_of(["invernadero", "invernadero_ind"], true):
+			gh_day += int(sim.bdef(gb["type"])["rate_m"]) * 10 * (int(gb["o"]) + int(gb["i"]) + int(gb["n"])) / FX.ONE
+		var extra_days := -1 if int(sim.wave_next(sim.day()).get("id", 0)) == (sim.db["climate"]["waves"] as Array).size() else 1
+		var fgap := (P * (_wave_len() + extra_days)) / maxi(1, ratio) - food_stock - gh_day * _wave_len()
+		if fgap > 0:
+			needs["crudo"] += fgap / maxi(1, dw)
+	var ess_score := {"crudo": 96, "carbon": 95, "madera": 78, "metal": 80}
+	var extra_score := {"crudo": 40, "carbon": 55, "madera": 45, "metal": 52}
+	# Sin trabajo "extra" cuando ya sobra ese recurso.
+	if res_units("metal") > 250:
+		extra_score["metal"] = 0
+	if res_units("madera") > 600:
+		extra_score["madera"] = 0
+	if res_units("raciones") / maxi(1, ratio) + res_units("crudo") > P * 3 / maxi(1, ratio) and days_to_wave() > 6:
+		extra_score["crudo"] = 0
+	if res_units("carbon") > maxi(1200, wave_coal_target() + 400):
+		extra_score["carbon"] = 0
 	if coal_stock_days < 1:
 		ess_score["carbon"] = 98
 	if days_to_wave() <= 4:
@@ -528,24 +709,50 @@ func _staff() -> void:
 				var per: int = int(d["in_m"]) * 10 / FX.ONE
 				entries.append([97, b["id"], clampi((raw_day + per - 1) / maxi(1, per), 1, mx)])
 			"research":
-				entries.append([90 if sim.st["research"]["cur"] != "" else 0, b["id"], mx])
+				entries.append([90, b["id"], mx])
 			"social":
 				var hope: int = sim.st["hope"] / FX.ONE
 				var disc: int = sim.st["disc"] / FX.ONE
 				entries.append([85 if (hope < 50 or disc > 40) else 58, b["id"], mx])
 			"factory":
-				entries.append([70 if int(b.get("queue", 0)) > 0 else 0, b["id"], mx])
+				entries.append([92 if int(b.get("queue", 0)) > 0 else 0, b["id"], mx])
 			_:
 				var r := _res_of(b)
 				if producers.has(r):
 					producers[r].append(b)
+	var pwc := {}
+	for r in producers:
+		for b in producers[r]:
+			pwc[b["id"]] = per_worker_day(b)
+			# Los conversores (horno, fundición) gastan otro recurso: solo si sobra la entrada.
+			if sim.bdef(b["type"]).get("kind", "") == "convert":
+				var rin0: String = sim.bdef(b["type"])["in"]
+				var rout0: String = sim.bdef(b["type"])["out"]
+				if res_units(rin0) <= (250 if rin0 == "madera" else 600):
+					pwc[b["id"]] = 0
+				elif rout0 == "carbon" and res_units("carbon") > maxi(800, wave_coal_target()):
+					pwc[b["id"]] = 0
 	for r in producers:
 		var list: Array = producers[r]
-		list.sort_custom(func(a, bb): return per_worker_day(a) > per_worker_day(bb) or (per_worker_day(a) == per_worker_day(bb) and a["id"] < bb["id"]))
+		list.sort_custom(func(a, bb): return pwc[a["id"]] > pwc[bb["id"]] or (pwc[a["id"]] == pwc[bb["id"]] and a["id"] < bb["id"]))
 		var remaining: int = needs[r]
 		for b in list:
 			var mx := sim.staff_max(sim.bdef(b["type"]))
-			var pw := per_worker_day(b)
+			var pw: int = pwc[b["id"]]
+			var conv: bool = sim.bdef(b["type"]).get("kind", "") == "convert"
+			if conv:
+				# Conversores: esenciales solo si falta el producto; extra si sobra la entrada.
+				var rin: String = sim.bdef(b["type"])["in"]
+				var surplus_in := res_units(rin) > _reserve_of(rin) and res_units(r) < _reserve_of(r)
+				var real_pw := per_worker_day(b)
+				var n2 := 0
+				if pw > 0 and remaining > 0:
+					n2 = clampi((remaining + real_pw - 1) / maxi(1, real_pw), 0, mx)
+					remaining -= n2 * real_pw
+				entries.append([ess_score[r] - 20, b["id"], n2])
+				if surplus_in and mx - n2 > 0:
+					entries.append([30, b["id"], mx - n2])
+				continue
 			if pw <= 0:
 				entries.append([0, b["id"], 0])
 				continue
@@ -556,14 +763,15 @@ func _staff() -> void:
 			if remaining > 0:
 				n = clampi((remaining + pw - 1) / pw, 0, mx)
 				remaining -= n * pw
-			var conv: bool = sim.bdef(b["type"]).get("kind", "") == "convert"
-			entries.append([ess_score[r] - (20 if conv else 0), b["id"], n])
-			entries.append([extra_score[r] - (20 if conv else 0), b["id"], mx - n])
+			entries.append([ess_score[r], b["id"], n])
+			if extra_score[r] > 0:
+				entries.append([extra_score[r], b["id"], mx - n])
 	entries.sort_custom(func(a, bb): return a[0] > bb[0] or (a[0] == bb[0] and a[1] < bb[1]))
 	var pool := {}
 	for cl in Simulation.CLASSES:
 		pool[cl] = sim.healthy(cl)
 	var alloc := {}
+	var flex_now := 0
 	for e in entries:
 		if not alloc.has(e[1]):
 			alloc[e[1]] = {"o": 0, "i": 0, "n": 0}
@@ -591,6 +799,8 @@ func _staff() -> void:
 		pool["ingenieros"] -= ti
 		alloc[e[1]]["o"] += tw
 		alloc[e[1]]["i"] += ti
+		if e[0] < 60:
+			flex_now += tw + ti
 	# 3) Niños (si la ley lo permite) en huecos restantes
 	for e in entries:
 		if e[0] <= 0:
@@ -604,6 +814,7 @@ func _staff() -> void:
 		if tn > 0:
 			alloc[e[1]]["n"] += tn
 			pool["ninos"] -= tn
+	flex = flex_now + pool["obreros"] + pool["ingenieros"]
 	for bid in alloc:
 		var b := sim.building(bid)
 		var a: Dictionary = alloc[bid]
@@ -611,7 +822,7 @@ func _staff() -> void:
 			cmd({"c": "staff", "bid": bid, "o": a["o"], "i": a["i"], "n": a["n"]})
 	# Turnos prolongados en carbón si hace falta y la ley lo permite
 	if sim.shift_max_allowed() >= 1:
-		var low_coal := coal_stock_days < 2 or days_to_wave() <= 2
+		var low_coal := coal_stock_days < 2 or (days_to_wave() <= 8 and res_units("carbon") < wave_coal_target())
 		for b in sim.st["buildings"]:
 			var d2: Dictionary = sim.bdef(b["type"])
 			if b["state"] != 1 or not (1 in d2.get("shifts", [0])):
@@ -621,18 +832,43 @@ func _staff() -> void:
 				cmd({"c": "shift", "bid": b["id"], "v": want_sh})
 
 # ================================================================ investigación y leyes
+func _dynamic_order() -> Array:
+	var order: Array = []
+	var done: Array = sim.st["research"]["done"]
+	if res_units("metal") < 40 and buildings_of(["mina_hierro"]).is_empty():
+		order.append("rec_mina_hierro")
+	if frugal():
+		if res_units("madera") > 200:
+			order.append("rec_horno")
+		order.append_array(["rec_fundicion", "rec_pozo", "cal_combustion"])
+	if res_units("madera") > 400 and "rec_horno" not in done:
+		order.append("rec_horno")
+	order.append_array(research_order)
+	return order
+
 func _research() -> void:
 	if sim.st["research"]["cur"] != "":
 		return
 	if buildings_of(["taller"], true).is_empty():
 		return
-	for id in research_order:
-		if sim.research_check(id) == "":
+	var tried := 0
+	for id in _dynamic_order():
+		if id in sim.st["research"]["done"]:
+			continue
+		var why := sim.research_check(id)
+		if why == "requiere investigación previa":
+			continue
+		tried += 1
+		if tried > 3:
+			return
+		if why == "":
 			# reservar recursos de construcción básicos
 			var cost: Dictionary = sim.db["research"][id].get("cost", {})
 			if int(cost.get("madera", 0)) > 0 and res_units("madera") - int(cost["madera"]) < 20:
 				continue
 			if int(cost.get("metal", 0)) > 0 and res_units("metal") - int(cost["metal"]) < 20:
+				continue
+			if int(cost.get("nucleos", 0)) > 0 and res_units("nucleos") - int(cost["nucleos"]) < CORE_RESERVE:
 				continue
 			if cmd({"c": "research", "id": id}):
 				return
@@ -784,7 +1020,8 @@ func _explore() -> void:
 
 func _automatons() -> void:
 	for f in buildings_of(["fabrica_aut"], true):
-		if int(f.get("queue", 0)) == 0 and res_units("nucleos") >= 1 and res_units("metal") >= 60:
+		var keep := CORE_RESERVE
+		if int(f.get("queue", 0)) == 0 and res_units("nucleos") > keep and res_units("metal") >= 45:
 			cmd({"c": "auto_build", "bid": f["id"]})
 	if int(sim.st["autos_free"]) <= 0:
 		return
