@@ -139,7 +139,8 @@ def markdown():
         w = winrate(rows)
         ww = [r for r in rows if r["status"] == "won"]
         d = statistics.mean(r["dead"] for r in ww) if ww else float("nan")
-        L.append(f"| Oleada {k} | {w:.1f} % | {w - wc:+.1f} pp | {d:.1f} (competente {dead_c:.1f}) | {ok(w < wc - 5)} |")
+        ds = f"{d:.1f}" if ww else "— (no gana ninguna)"
+        L.append(f"| Oleada {k} | {w:.1f} % | {w - wc:+.1f} pp | {ds} (competente {dead_c:.1f}) | {ok(w < wc - 5)} |")
     est = load("estancado")
     if est:
         L.append("\n## 5. Sobrevivir sin desarrollarse no alcanza\n")
