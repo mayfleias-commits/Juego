@@ -36,6 +36,7 @@ func start() -> void:
 	world.camera_rig.cancelled.connect(cancel_place)
 	Session.stepped.connect(_on_stepped)
 	Session.game_over.connect(_on_game_over)
+	Session.commanded.connect(_on_commanded)
 	tutorial = Tutorial.new()
 	tutorial.screen = self
 	hud_layer.add_child(tutorial)
@@ -52,6 +53,12 @@ func reload_from_session() -> void:
 	_shown_events.clear()
 	await get_tree().process_frame
 	start()
+
+func _on_commanded() -> void:
+	world.refresh()
+	hud.refresh()
+	if hud.current_panel:
+		hud.current_panel.refresh()
 
 func _on_stepped(_notes: Array) -> void:
 	world.refresh()

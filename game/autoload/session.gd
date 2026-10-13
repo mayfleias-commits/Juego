@@ -7,6 +7,7 @@ signal day_ended(report: Dictionary)
 signal game_over(status: String, reason: String)
 signal speed_changed(speed: int)
 signal loaded
+signal commanded
 
 const SAVE_DIR := "user://partidas"
 const GAME_VERSION := "1.0.0"
@@ -58,7 +59,10 @@ func toggle_pause() -> void:
 func cmd(c: Dictionary) -> String:
 	if sim == null:
 		return "sin partida"
-	return sim.command(c)
+	var r := sim.command(c)
+	if r == "":
+		commanded.emit()
+	return r
 
 func _process(delta: float) -> void:
 	if sim == null or paused or _ended:
