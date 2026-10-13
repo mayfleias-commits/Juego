@@ -24,11 +24,17 @@ static func run_game(bot_name: String, seed: int, verbose: bool = false) -> Dict
 	var bot := make_bot(bot_name)
 	bot.setup(sim, seed)
 	var guard := 0
+	var drives := bot.has_method("drive")
 	while sim.st["status"] == "playing" and guard < 24 * 70:
-		bot.act()
-		if bot.has_method("drive"):
+		if drives and bot.name == "t04_recargar":
+			if sim.hour() != 0:
+				bot.act()
+			bot.drive()
+		elif drives:
+			bot.act()
 			bot.drive()
 		else:
+			bot.act()
 			sim.step()
 		guard += 1
 		if verbose and sim.hour() == 0:
@@ -53,7 +59,7 @@ static func run_game(bot_name: String, seed: int, verbose: bool = false) -> Dict
 		"arrived": sim.st["arrived_total"], "explored": sim.st["explored"],
 		"research": (sim.st["research"]["done"] as Array).size(), "laws": (sim.st["laws"] as Array).size(),
 		"buildings": (sim.st["buildings"] as Array).size(), "path": sim.st["path"],
-		"hash": sim.state_hash().substr(0, 16),
+		"hash": sim.state_hash().substr(0, 16), "dead_by": sim.st["dead_by"],
 	}
 	for res in Simulation.RES:
 		r["obtained"][res] = sim.st["obtained"][res] / FX.ONE

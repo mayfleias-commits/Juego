@@ -202,7 +202,8 @@ func _hunt(b: Dictionary, d: Dictionary, h: int) -> void:
 		var hunters := bat_arrived(b)
 		hunters = mini(hunters, int(b["o"]))
 		var t := outdoor()
-		if hunters > 0 and t >= int(F["hunt_min_temp"]):
+		# Durante las oleadas la caza se suspende (y con mucho frío tampoco se sale).
+		if hunters > 0 and t >= int(F["hunt_min_temp"]) and not in_wave():
 			b["trip"] = hunters
 			b["trip_m"] = outdoor_mult(t)
 			b["trip_ret"] = 22 if int(b["shift"]) >= 1 else 18

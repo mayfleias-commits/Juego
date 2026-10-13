@@ -317,7 +317,9 @@
   "adv_grave_heal": 3000,
   "adv_grave_death": 100,
   "care_grave_heal": 700,
-  "care_grave_death": 50
+  "care_grave_death": 50,
+  "frost_death_pcm": 300,
+  "frost_death_vc_pcm": 30
  },
  "society": {
   "death_hope_m": 300,
@@ -375,7 +377,7 @@
   "cold_hope_pts": 30,
   "cold_disc_pts": 35,
   "cold_weights": [
-   200,
+   300,
    100,
    30,
    0,

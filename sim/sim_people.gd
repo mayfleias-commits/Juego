@@ -231,6 +231,18 @@ func health_update(exposure: Dictionary) -> void:
 			new_sick_total += ns
 	if new_sick_total > 0:
 		st["day_acc"]["new_sick"] = st["day_acc"].get("new_sick", 0) + new_sick_total
+	# Congelamiento: quien pasa la hora en un lugar Congelante puede morir directamente.
+	var fd: int = int(H.get("frost_death_pcm", 0))
+	var fd1: int = int(H.get("frost_death_vc_pcm", 0))
+	var hcold: Dictionary = exposure.get("_home_cold", {})
+	for c in CLASSES:
+		if not hcold.has(c):
+			continue
+		var exp_dead: int = int(hcold[c][0]) * fd / 100000 + int(hcold[c][1]) * fd1 / 100000
+		if exp_dead > 0:
+			var dead := stoch(exp_dead)
+			if dead > 0:
+				kill_healthy(c, dead, "frio")
 	_treatment()
 
 func _treatment() -> void:
@@ -385,12 +397,21 @@ func compute_exposure() -> Dictionary:
 	need -= mini(need, int(st.get("treated", 0)))
 	var dist := home_distribution(need)
 	var hl := homeless_level()
+	# Exposición en casa (para el congelamiento): niveles 0 y 1 por clase.
+	var home_cold := {}
 	for c in CLASSES:
 		var n: int = home[c]
+		var hc := [0, 0]
 		for l in LEVELS:
 			ex[c][l] += n * int(dist[l])
+			if l < 2:
+				hc[l] += n * int(dist[l])
 		ex[c][hl] += n * int(dist[5])
+		if hl < 2:
+			hc[hl] += n * int(dist[5])
+		home_cold[c] = hc
 	st["home_dist"] = dist
+	ex["_home_cold"] = home_cold
 	return ex
 
 # ---------------------------------------------------------------- comida

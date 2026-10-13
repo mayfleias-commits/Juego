@@ -15,6 +15,8 @@ var research_order := [
 	"com_cocina_vapor", "rec_logistica", "exp_rutas",
 ]
 var path := "fe"
+var ignore_wave := 0 # variante: no prepararse para la oleada N (1..5)
+var stop_dev_day := 999 # variante: dejar de construir/investigar desde este día
 var reserved := {}
 var _last_cost := {}
 
@@ -49,15 +51,18 @@ func act() -> void:
 	_requests()
 	_generator()
 	var t := sim.tick()
+	var dev := sim.day() < stop_dev_day
 	if t - last_plan >= 3:
 		last_plan = t
-		_cleanup()
-		_plan_builds()
+		if dev:
+			_cleanup()
+			_plan_builds()
 		_staff()
-	_research()
-	_laws()
-	_explore()
-	_automatons()
+	if dev:
+		_research()
+		_laws()
+		_explore()
+		_automatons()
 
 # ================================================================ estimaciones
 func pop() -> int:
@@ -148,7 +153,7 @@ func hunt_stock_pct() -> int:
 
 func _wave_len() -> int:
 	var w := sim.wave_next(sim.day())
-	if w.is_empty():
+	if w.is_empty() or int(w["id"]) == ignore_wave:
 		return 0
 	return (w["profile"] as Array).size()
 
@@ -186,7 +191,7 @@ func wave_coal_target() -> int:
 	var cur := sim.wave_on(sim.day())
 	if not cur.is_empty():
 		w = cur
-	if w.is_empty():
+	if w.is_empty() or int(w["id"]) == ignore_wave:
 		return 0
 	var ins := _min_house_insul() + (int(sim.B["heat"]["heater_heat"]) if sim.mod("heaters") > 0 else 0)
 	var mx := sim.gen_max_level()
@@ -245,9 +250,26 @@ func _coldest_ahead(hours: int) -> int:
 			d += 1
 	return tmin
 
+func _ignoring_wave() -> bool:
+	if ignore_wave <= 0:
+		return false
+	var w := sim.wave_on(sim.day())
+	return not w.is_empty() and int(w["id"]) == ignore_wave
+
 func _generator() -> void:
 	var g: Dictionary = sim.st["gen"]
 	var coal := sim.res("carbon")
+	if _ignoring_wave():
+		# Variante "ignorar oleada": se sigue como un día normal.
+		if int(g["on"]) == 0 and coal >= int(sim.B["gen"]["ignite_coal_m"]) + sim.gen_coal_per_hour(1, 0) * 2:
+			cmd({"c": "gen_on", "v": 1})
+		if int(g["level"]) != 1:
+			cmd({"c": "gen_level", "v": 1})
+		if int(g["over"]) == 1:
+			cmd({"c": "gen_over", "v": 0})
+		if int(g["heaters"]) == 1:
+			cmd({"c": "heaters", "v": 0})
+		return
 	if int(g["on"]) == 0:
 		if coal >= int(sim.B["gen"]["ignite_coal_m"]) + sim.gen_coal_per_hour(1, 0) * 2:
 			cmd({"c": "gen_on", "v": 1})
@@ -542,7 +564,8 @@ func _site_build(type: String) -> int:
 	if sim.free_sites(sim.bdef(type)["site"]).is_empty():
 		return 0
 	var cost: Dictionary = sim.bdef(type).get("cost", {})
-	if not affordable(cost):
+	var wood_prod: bool = sim.bdef(type).get("res", "") == "madera"
+	if not (sim.can_afford(cost) if wood_prod else affordable(cost)):
 		return _blocked(cost)
 	return 1 if not try_build_site(type).is_empty() else 0
 
@@ -560,8 +583,9 @@ func _build_post_for(r: String) -> int:
 			best = n
 	if best.is_empty():
 		return 0
-	if not affordable(sim.bdef("puesto_rec")["cost"]):
-		return _blocked(sim.bdef("puesto_rec")["cost"])
+	var pc: Dictionary = sim.bdef("puesto_rec")["cost"]
+	if not (sim.can_afford(pc) if r == "madera" else affordable(pc)):
+		return _blocked(pc)
 	var b := try_build_near("puesto_rec", best["x"], best["y"])
 	if b.is_empty():
 		return 0
