@@ -26,6 +26,15 @@
        "k": "res",
        "r": "carbon",
        "v": -10
+      },
+      {
+       "k": "flag",
+       "v": "ladron_perdonado"
+      },
+      {
+       "k": "followup",
+       "id": "ev_ladron_deuda",
+       "hours": 72
       }
      ]
     },
@@ -39,6 +48,11 @@
       {
        "k": "hope",
        "v": -3
+      },
+      {
+       "k": "followup",
+       "id": "ev_ladron_hija",
+       "hours": 36
       }
      ]
     },
@@ -53,6 +67,104 @@
        "k": "res",
        "r": "carbon",
        "v": 5
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ladron_deuda",
+   "title": "La deuda del ladrón",
+   "text": "El obrero que perdonaron volvió de noche con un saco al hombro. Su hija ya no tiene fiebre, y él pasó días cavando en el sótano de una casa derrumbada hasta dar con carbón.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "ladron_perdonado"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Aceptarlo para el generador.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": 25
+      },
+      {
+       "k": "hope",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "text": "Que lo reparta entre las carpas más frías.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ladron_hija",
+   "title": "La hija del ladrón",
+   "text": "La hija del obrero castigado empeoró: la fiebre no baja y él no se separa de su catre. Sus compañeros esperan a ver qué hace el Consejo.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Llevarle un brasero y leña para la noche (15 de madera).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -15
+      },
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 15
+      }
+     ]
+    },
+    {
+     "text": "El castigo se cumple igual.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "hope",
+       "v": -2
       }
      ]
     }
@@ -154,6 +266,70 @@
        "k": "sick",
        "v": 2,
        "grave": 1
+      },
+      {
+       "k": "followup",
+       "id": "ev_fiebre_rebrote",
+       "hours": 48
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_fiebre_rebrote",
+   "title": "La fiebre vuelve",
+   "text": "La fiebre que nadie quiso frenar volvió con más fuerza. Ya no se queda en las carpas: tose media ciudad.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Quemar las mantas de los enfermos y aislarlos (20 de madera).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -20
+      },
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 0
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Esperar a que pase sola.",
+     "effects": [
+      {
+       "k": "sick",
+       "v": 6,
+       "grave": 0
+      },
+      {
+       "k": "sick",
+       "v": 2,
+       "grave": 1
+      },
+      {
+       "k": "hope",
+       "v": -2
       }
      ]
     }
@@ -163,7 +339,7 @@
   {
    "id": "ev_lobos",
    "title": "Lobos en el borde",
-   "text": "Una manada de lobos blancos merodea los puestos de recolección.",
+   "text": "Una manada de lobos blancos merodea las cuadrillas de acopio.",
    "trigger": "daily",
    "unique": true,
    "day_min": 4,
@@ -577,6 +753,15 @@
         {
          "k": "hope",
          "v": 2
+        },
+        {
+         "k": "flag",
+         "v": "rebelde_perdonado"
+        },
+        {
+         "k": "followup",
+         "id": "ev_rebeldes_palabra",
+         "hours": 72
         }
        ],
        "else": [
@@ -598,6 +783,174 @@
       {
        "k": "hope",
        "v": -4
+      },
+      {
+       "k": "followup",
+       "id": "ev_rebeldes_presos",
+       "hours": 48
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_rebeldes_palabra",
+   "title": "La palabra de los descontentos",
+   "text": "Los que querían partir hacia el sur cumplieron su palabra y se quedaron. Ahora su cabecilla ofrece una cuadrilla de voluntarios para los trabajos que nadie quiere hacer.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "rebelde_perdonado"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Aceptar la ayuda: que corten leña en el borde del bosque.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": 30
+      },
+      {
+       "k": "disc",
+       "v": -2
+      }
+     ]
+    },
+    {
+     "text": "No confiar en ellos y vigilarlos de cerca.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "unflag",
+       "v": "rebelde_perdonado"
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_rebeldes_presos",
+   "title": "Las familias de los presos",
+   "text": "Las familias de los cabecillas encerrados esperan en la nieve, frente a la sala del Consejo. Piden verlos aunque sea un momento.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Liberarlos con una advertencia.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "Trasladarlos a las celdas de reflexión.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -3
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "building",
+       "type": "prision",
+       "min": 1
+      }
+     ]
+    },
+    {
+     "text": "Que esperen: la ley es la ley.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -3
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_partieron_noticias",
+   "title": "Noticias del sur",
+   "text": "Uno de los que partieron hacia el sur volvió solo, con los dedos negros de escarcha. Dice que allá tampoco hay sol: solo hielo y pueblos vacíos.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 20,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "partieron"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Recibirlo y que cuente lo que vio.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 1,
+       "i": 0,
+       "n": 0,
+       "sick": 1,
+       "hours": 2
+      },
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "disc",
+       "v": -3
+      },
+      {
+       "k": "flag",
+       "v": "sur_helado"
+      }
+     ]
+    },
+    {
+     "text": "Cerrarle la puerta: eligió irse.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "disc",
+       "v": 2
       }
      ]
     }
@@ -645,6 +998,15 @@
         {
          "k": "hope",
          "v": -2
+        },
+        {
+         "k": "flag",
+         "v": "nina_perdida"
+        },
+        {
+         "k": "followup",
+         "id": "ev_nina_madre",
+         "hours": 24
         }
        ]
       }
@@ -660,11 +1022,133 @@
       {
        "k": "disc",
        "v": 3
+      },
+      {
+       "k": "flag",
+       "v": "nina_perdida"
+      },
+      {
+       "k": "followup",
+       "id": "ev_nina_madre",
+       "hours": 24
       }
      ]
     }
    ],
    "default": 0
+  },
+  {
+   "id": "ev_nina_madre",
+   "title": "La madre de la niña",
+   "text": "Desde que su hija quedó en el hielo, la madre pasa las noches frente al generador sin hablar con nadie. Quien pasa a su lado baja la vista.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "nina_perdida"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Darle un lugar en la cocina comunal, cerca del fuego.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "Pedirle que vuelva al trabajo.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_nina_rescatada",
+   "title": "Lo que vio la niña",
+   "text": "La niña que sacaron del hielo ya se recuperó. Jura que en el fondo de la grieta vio cajones con el sello de la vieja mina.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 12,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "nino_salvado"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Bajar con cuerdas a buscarlos.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 70,
+       "then": [
+        {
+         "k": "res",
+         "r": "madera",
+         "v": 30
+        },
+        {
+         "k": "res",
+         "r": "metal",
+         "v": 20
+        },
+        {
+         "k": "hope",
+         "v": 1
+        }
+       ],
+       "else": [
+        {
+         "k": "sick",
+         "v": 1,
+         "grave": 1
+        },
+        {
+         "k": "disc",
+         "v": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Tapar la grieta para siempre.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    }
+   ],
+   "default": 1
   },
   {
    "id": "ev_comerciante",
@@ -678,7 +1162,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Cambiar 40 crudo por 30 metal.",
+     "text": "Cambiar 40 de comida cruda por 30 de metal.",
      "effects": [
       {
        "k": "res",
@@ -704,7 +1188,7 @@
      ]
     },
     {
-     "text": "Cambiar 50 madera por 25 metal.",
+     "text": "Cambiar 50 de madera por 25 de metal.",
      "effects": [
       {
        "k": "res",
@@ -749,7 +1233,7 @@
    ],
    "choices": [
     {
-     "text": "Cambiar 30 crudo por 1 núcleo de vapor.",
+     "text": "Cambiar 30 de comida cruda por 50 de metal.",
      "effects": [
       {
        "k": "res",
@@ -758,8 +1242,8 @@
       },
       {
        "k": "res",
-       "r": "nucleos",
-       "v": 1
+       "r": "metal",
+       "v": 50
       }
      ],
      "req": [
@@ -771,7 +1255,7 @@
      ]
     },
     {
-     "text": "Cambiar 40 madera por 30 metal.",
+     "text": "Cambiar 40 de madera por 30 de metal.",
      "effects": [
       {
        "k": "res",
@@ -933,6 +1417,15 @@
       {
        "k": "hope",
        "v": -4
+      },
+      {
+       "k": "flag",
+       "v": "predicador_libre"
+      },
+      {
+       "k": "followup",
+       "id": "ev_predicador_seguidores",
+       "hours": 72
       }
      ]
     },
@@ -942,6 +1435,94 @@
       {
        "k": "hope",
        "v": 3
+      }
+     ],
+     "req": [
+      {
+       "k": "path",
+       "v": "fe"
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_predicador_seguidores",
+   "title": "Los que esperan al frío",
+   "text": "El predicador ya tiene seguidores. Una docena dejó de trabajar y espera sentada en el borde de la ciudad a que el frío se los lleve.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "predicador_libre"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Dispersarlos y mandarlos a trabajar.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "unflag",
+       "v": "predicador_libre"
+      }
+     ]
+    },
+    {
+     "text": "Hablarles con paciencia, uno por uno.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 60,
+       "then": [
+        {
+         "k": "hope",
+         "v": 3
+        },
+        {
+         "k": "unflag",
+         "v": "predicador_libre"
+        }
+       ],
+       "else": [
+        {
+         "k": "leave",
+         "v": 4
+        },
+        {
+         "k": "hope",
+         "v": -3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "text": "Ofrecerles un lugar en la capilla.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      },
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "unflag",
+       "v": "predicador_libre"
       }
      ],
      "req": [
@@ -971,7 +1552,7 @@
    ],
    "choices": [
     {
-     "text": "Reparar (20 madera, 10 metal).",
+     "text": "Reparar (20 de madera y 10 de metal).",
      "effects": [
       {
        "k": "res",
@@ -1037,7 +1618,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Repartir mantas (15 madera).",
+     "text": "Repartir mantas (15 de madera).",
      "effects": [
       {
        "k": "res",
@@ -1219,7 +1800,7 @@
      ]
     },
     {
-     "text": "Ceder 40 madera para sus barracones.",
+     "text": "Ceder 40 de madera para sus barracones.",
      "effects": [
       {
        "k": "res",
@@ -1259,7 +1840,7 @@
    ],
    "choices": [
     {
-     "text": "Aislar a los enfermos y quemar sus mantas (20 madera).",
+     "text": "Aislar a los enfermos y quemar sus mantas (20 de madera).",
      "effects": [
       {
        "k": "res",
@@ -1379,6 +1960,11 @@
        "k": "res",
        "r": "carbon",
        "v": -60
+      },
+      {
+       "k": "followup",
+       "id": "ev_saqueadores_mas",
+       "hours": 96
       }
      ],
      "req": [
@@ -1409,12 +1995,82 @@
         {
          "k": "kill",
          "v": 2,
-         "cause": "accidente"
+         "cause": "combate"
         },
         {
          "k": "res",
          "r": "carbon",
          "v": -40
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_saqueadores_mas",
+   "title": "Vuelven por más",
+   "text": "La banda a la que le pagamos volvió con más hombres. Esta vez exigen más carbón y se ríen de los vigías.",
+   "trigger": "followup",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [],
+   "choices": [
+    {
+     "text": "Pagar otra vez (90 de carbón).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -90
+      },
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "carbon",
+       "v": 90
+      }
+     ]
+    },
+    {
+     "text": "Ni un trozo más: defender los puestos.",
+     "effects": [
+      {
+       "k": "rand",
+       "pct": 55,
+       "then": [
+        {
+         "k": "hope",
+         "v": 4
+        },
+        {
+         "k": "disc",
+         "v": -3
+        }
+       ],
+       "else": [
+        {
+         "k": "kill",
+         "v": 2,
+         "cause": "combate"
+        },
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": -50
         }
        ]
       }
@@ -1704,6 +2360,122 @@
    "default": 0
   },
   {
+   "id": "ev_traidores_vuelven",
+   "title": "Los que huyeron",
+   "text": "Una banda de saqueadores acampa en el borde del valle. Entre ellos están los que huyeron con nuestro carbón, y conocen cada depósito de la ciudad.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 24,
+   "day_max": 60,
+   "weight": 8,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "traidores"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Reforzar los depósitos y esperarlos (20 de madera).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "madera",
+       "v": -20
+      },
+      {
+       "k": "rand",
+       "pct": 65,
+       "then": [
+        {
+         "k": "hope",
+         "v": 3
+        },
+        {
+         "k": "disc",
+         "v": -2
+        }
+       ],
+       "else": [
+        {
+         "k": "res",
+         "r": "carbon",
+         "v": -40
+        },
+        {
+         "k": "res",
+         "r": "raciones",
+         "v": -20
+        },
+        {
+         "k": "disc",
+         "v": 3
+        }
+       ]
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "madera",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Ofrecerles volver si trabajan el doble.",
+     "effects": [
+      {
+       "k": "refugees",
+       "o": 3,
+       "i": 0,
+       "n": 1,
+       "sick": 0,
+       "hours": 4
+      },
+      {
+       "k": "disc",
+       "v": 3
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "unflag",
+       "v": "traidores"
+      },
+      {
+       "k": "flag",
+       "v": "traidores_perdonados"
+      }
+     ]
+    },
+    {
+     "text": "Pagarles 50 de carbón para que se vayan.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -50
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "carbon",
+       "v": 50
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
    "id": "ev_fiesta_luz",
    "title": "Fiesta de la luz",
    "text": "Se cumple un mes del invierno eterno. Algunos proponen una fiesta.",
@@ -1763,7 +2535,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Financiarlo (40 metal).",
+     "text": "Financiarlo (40 de metal).",
      "effects": [
       {
        "k": "res",
@@ -1940,7 +2712,7 @@
    ],
    "choices": [
     {
-     "text": "Purgar las válvulas (−10 de estrés, 20 carbón).",
+     "text": "Purgar las válvulas (−10 de estrés, 20 de carbón).",
      "effects": [
       {
        "k": "stress",
@@ -2045,6 +2817,341 @@
    "cooldown_days": 10
   },
   {
+   "id": "ev_nino_derrumbe",
+   "title": "Un niño en el derrumbe",
+   "text": "Un niño quedó atrapado bajo un derrumbe mientras juntaba carbón. Lo sacaron con vida, pero los demás chicos lloran y no quieren volver al trabajo.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 8,
+   "day_max": 60,
+   "weight": 9,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "trabajo_infantil"
+    },
+    {
+     "k": "children_min",
+     "v": 3
+    }
+   ],
+   "choices": [
+    {
+     "text": "Compensar a su familia con raciones (20).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -20
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "raciones",
+       "v": 20
+      }
+     ]
+    },
+    {
+     "text": "Mañana vuelven a trabajar, como todos.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -3
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "Darles el día libre a todos los chicos.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "res",
+       "r": "carbon",
+       "v": -15
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_abono_cosecha",
+   "title": "Lo que crece en los invernaderos",
+   "text": "Corrió la voz sobre el abono de los invernaderos. Hay familias que se niegan a comer esas hortalizas, aunque pasen hambre.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 10,
+   "day_max": 60,
+   "weight": 9,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "abono"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Que el Consejo coma primero, en público.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "Tirar la cosecha de la semana (30 de comida cruda).",
+     "effects": [
+      {
+       "k": "res",
+       "r": "crudo",
+       "v": -30
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": -2
+      }
+     ],
+     "req": [
+      {
+       "k": "res_min",
+       "r": "crudo",
+       "v": 30
+      }
+     ]
+    },
+    {
+     "text": "Quien no come, no trabaja.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": 4
+      },
+      {
+       "k": "hope",
+       "v": -2
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_denuncias",
+   "title": "Denuncias bajo la puerta",
+   "text": "Desde que el Consejo gobierna con mano de hierro, cada mañana aparecen papeles bajo su puerta: vecinos que denuncian a vecinos.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 15,
+   "day_max": 60,
+   "weight": 9,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "mano_hierro"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Investigar cada denuncia.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -4
+      },
+      {
+       "k": "hope",
+       "v": -4
+      }
+     ]
+    },
+    {
+     "text": "Quemarlas sin leerlas.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 2
+      },
+      {
+       "k": "disc",
+       "v": 3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_sillas_vacias",
+   "title": "Sillas vacías",
+   "text": "En la cocina comunal sobran sillas desde la noche de la purga. Nadie las ocupa, nadie las retira y nadie pregunta por qué.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "nuevo_orden"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Retirarlas en silencio.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "disc",
+       "v": -1
+      }
+     ]
+    },
+    {
+     "text": "Que queden ahí, como advertencia.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -3
+      },
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_ayuno_fuego",
+   "title": "El ayuno del Fuego",
+   "text": "El profeta anunció que el Fuego exige un día de ayuno. Los fieles ya entregaron sus raciones; los demás esperan a ver qué decide el Consejo.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "profeta"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Que se cumpla: un día de ayuno para todos.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": 3
+      },
+      {
+       "k": "disc",
+       "v": -1
+      },
+      {
+       "k": "sick",
+       "v": 3,
+       "grave": 0
+      }
+     ]
+    },
+    {
+     "text": "Que ayune solo quien quiera.",
+     "effects": [
+      {
+       "k": "hope",
+       "v": -2
+      },
+      {
+       "k": "disc",
+       "v": 1
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
+   "id": "ev_muro_comunion",
+   "title": "Al otro lado del muro",
+   "text": "Los familiares de los que fueron entregados al frío dejan comida junto al muro cada noche. Los custodios de la llama lo saben.",
+   "trigger": "daily",
+   "unique": true,
+   "day_min": 1,
+   "day_max": 60,
+   "weight": 10,
+   "conds": [
+    {
+     "k": "flag",
+     "v": "comunion"
+    }
+   ],
+   "choices": [
+    {
+     "text": "Hacer la vista gorda.",
+     "effects": [
+      {
+       "k": "res",
+       "r": "raciones",
+       "v": -10
+      },
+      {
+       "k": "hope",
+       "v": 1
+      },
+      {
+       "k": "disc",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "text": "Castigar a quien alimente a los herejes.",
+     "effects": [
+      {
+       "k": "disc",
+       "v": -3
+      },
+      {
+       "k": "hope",
+       "v": -3
+      }
+     ]
+    }
+   ],
+   "default": 0
+  },
+  {
    "id": "ev_ley_ninos",
    "title": "Madres en la puerta del taller",
    "text": "Las madres protestan porque sus hijos trabajan en la mina.",
@@ -2092,7 +3199,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Agregar raíces para mejorar el sabor (20 crudo).",
+     "text": "Agregar raíces para mejorar el sabor (20 de comida cruda).",
      "effects": [
       {
        "k": "res",
@@ -2168,7 +3275,7 @@
   {
    "id": "ev_ley_orden",
    "title": "El Consejo",
-   "text": "La gente se pregunta qué significa este nuevo Orden.",
+   "text": "La gente se pregunta qué va a exigirles ahora el Consejo.",
    "trigger": "law:ord_patrulla",
    "unique": true,
    "day_min": 1,
@@ -2318,7 +3425,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Mantener las luces encendidas toda la noche (40 carbón).",
+     "text": "Mantener las luces encendidas toda la noche (40 de carbón).",
      "effects": [
       {
        "k": "res",
@@ -2609,7 +3716,7 @@
         {
          "k": "kill",
          "v": 2,
-         "cause": "accidente"
+         "cause": "combate"
         }
        ]
       }

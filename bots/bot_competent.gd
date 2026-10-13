@@ -972,18 +972,23 @@ func effect_value(effs: Array) -> int:
 
 func _events() -> void:
 	for p in sim.st["ev_pending"].duplicate():
-		var ev: Dictionary = sim.db["events"][p["id"]]
-		var best := -1
-		var bv := -999999
-		for i in (ev["choices"] as Array).size():
-			if not sim.choice_ok(p["id"], i):
-				continue
-			var val := effect_value(ev["choices"][i].get("effects", []))
-			if val > bv:
-				bv = val
-				best = i
+		var best := best_choice(p)
 		if best >= 0:
 			cmd({"c": "event", "inst": p["inst"], "choice": best})
+
+## Opción de un evento pendiente con mejor valor esperado (-1 si ninguna es posible).
+func best_choice(p: Dictionary) -> int:
+	var ev: Dictionary = sim.db["events"][p["id"]]
+	var best := -1
+	var bv := -999999
+	for i in (ev["choices"] as Array).size():
+		if not sim.choice_ok(p["id"], i):
+			continue
+		var val := effect_value(ev["choices"][i].get("effects", []))
+		if val > bv:
+			bv = val
+			best = i
+	return best
 
 func _requests() -> void:
 	var off: Dictionary = sim.st["req"]["offer"]

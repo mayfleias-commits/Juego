@@ -177,6 +177,9 @@ func heat_update() -> void:
 	var sheat: int = int(B["heat"]["station_heat"]) + mod("station_heat")
 	for b in st["buildings"]:
 		if b["state"] != 1 or b["on"] == 0:
+			# Apagada (o en obra) no da calor: que tampoco quede marcada como encendida.
+			if int(b.get("lit", 0)) != 0:
+				b["lit"] = 0
 			continue
 		var d: Dictionary = bdef(b["type"])
 		if d.get("kind", "") == "station":

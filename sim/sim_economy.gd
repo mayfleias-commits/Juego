@@ -60,7 +60,8 @@ func autos_update() -> void:
 		if n <= 0:
 			continue
 		any = true
-		if building_works(b) and take_res("carbon", per * n) and int(b.get("auto_stall", 0)) == 0:
+		# Un autómata parado por falta de mantenimiento no consume carbón.
+		if building_works(b) and int(b.get("auto_stall", 0)) == 0 and take_res("carbon", per * n):
 			b["auto_ok"] = 1
 		else:
 			b["auto_ok"] = 0
@@ -80,6 +81,9 @@ func production_update() -> void:
 	st["social_d"] = 0
 	for b in st["buildings"]:
 		if not building_works(b):
+			# Cabaña apagada con la partida de caza afuera: vuelven sin presa.
+			if int(b.get("trip", 0)) > 0:
+				b["trip"] = 0
 			continue
 		var d: Dictionary = bdef(b["type"])
 		var kind: String = d.get("kind", "")
@@ -90,6 +94,8 @@ func production_update() -> void:
 		var human := 0
 		if shift_active(b, h):
 			human = staff_eq(b)
+			if human > 0 and (h < 8 or h >= 18) and kind != "hunt":
+				_worked_extra(b, h)
 		var eq := human
 		if int(b["auto"]) > 0 and int(b.get("auto_ok", 0)) == 1:
 			eq += int(b["auto"]) * auto_eq()
@@ -119,6 +125,20 @@ func production_update() -> void:
 			"factory":
 				if eq > 0:
 					_factory(b, d, eq)
+
+## Registra que el personal de b trabajó esta hora fuera del turno normal (8 a 18).
+## Las penalidades de los turnos largos se calculan sobre lo efectivamente trabajado,
+## no sobre el turno elegido en un instante: cambiar el turno justo antes de que se
+## evalúen no las evita.
+func _worked_extra(b: Dictionary, h: int) -> void:
+	b["sx1"] = st["tick"]
+	if h < 8 or h >= 22:
+		# Horas que solo cubre el turno de 24 h: cuentan para la fatiga de cada clase.
+		b["sx2"] = st["tick"]
+		var a := bat_arrived3(b)
+		var fat: Array = st["fat"]
+		for k in 3:
+			fat[k] = int(fat[k]) + mini(int(a[k]), int(b[SKEYS[k]]))
 
 func _gather(b: Dictionary, d: Dictionary, eq: int) -> void:
 	var focus: String = b.get("focus", "auto")
@@ -198,8 +218,14 @@ func _greenhouse(b: Dictionary, d: Dictionary, eq: int) -> void:
 
 func _hunt(b: Dictionary, d: Dictionary, h: int) -> void:
 	var F: Dictionary = B["food"]
+	if int(b.get("trip", 0)) > 0:
+		# Los que se reasignan durante la partida de caza la abandonan (no cazan
+		# y trabajan en otro lado a la vez).
+		b["trip"] = mini(int(b["trip"]), int(b["o"]))
+		if int(b["trip"]) > 0 and h >= 18:
+			b["sx1"] = st["tick"] # afuera después de las 18: turno largo trabajado
 	if h == 8 and int(b.get("trip", 0)) == 0:
-		var hunters := bat_arrived(b)
+		var hunters: int = bat_arrived3(b)[0]
 		hunters = mini(hunters, int(b["o"]))
 		var t := outdoor()
 		# Durante las oleadas la caza se suspende (y con mucho frío tampoco se sale).
@@ -274,7 +300,8 @@ func _social(b: Dictionary, d: Dictionary, seen: Dictionary) -> void:
 	var mx := staff_max(d)
 	var ratio := FX.ONE
 	if mx > 0:
-		ratio = mini(FX.ONE, (b["o"] + b["i"] + b["n"]) * FX.ONE / mx)
+		# Solo cuenta el personal que ya llegó (el viaje también cuenta aquí).
+		ratio = mini(FX.ONE, mini(bat_arrived(b), b["o"] + b["i"] + b["n"]) * FX.ONE / mx)
 	# Rendimientos decrecientes: el k-ésimo edificio igual rinde 1, 1/2, 1/4...
 	var f := (ratio >> mini(k, 10))
 	st["social_h"] = int(st.get("social_h", 0)) + int(d.get("hope_t_m", 0)) * f / FX.ONE

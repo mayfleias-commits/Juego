@@ -26,12 +26,9 @@ static func run_game(bot_name: String, seed: int, verbose: bool = false) -> Dict
 	var guard := 0
 	var drives := bot.has_method("drive")
 	while sim.st["status"] == "playing" and guard < 24 * 70:
-		if drives and bot.name == "t04_recargar":
-			if sim.hour() != 0:
-				bot.act()
-			bot.drive()
-		elif drives:
-			bot.act()
+		if drives:
+			# Bots que manejan su propio reloj (pausa, velocidades, cuadros): avanzan
+			# con SimClock y dan sus órdenes antes de cada paso.
 			bot.drive()
 		else:
 			bot.act()

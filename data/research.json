@@ -578,14 +578,14 @@
   },
   {
    "id": "exp_faro",
-   "name": "Faros de exploración",
+   "name": "Expediciones al páramo",
    "branch": "exploracion",
    "tier": 1,
    "rp": 50,
    "cost": {},
    "req": [],
    "effects": [],
-   "desc": "Permite el faro de exploradores."
+   "desc": "Permite la torre de expediciones."
   },
   {
    "id": "exp_trineos",

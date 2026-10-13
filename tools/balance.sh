@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Banco de balance headless.
-# Uso: tools/balance.sh [semillas=500] [bots="competente pasivo aleatorio"] [procesos=nproc] [desde=1000]
-# Resultados: bench_out/<bot>.jsonl ; resumen: python3 tools/balance_report.py
+# Uso: tools/balance.sh [semillas=500] [bots=los 23] [procesos=nproc] [desde=1000]
+# Sin lista de bots (o con "") corre los 23 que pide BALANCE.md: competente, pasivo,
+# aleatorio, los 14 tramposos, las 5 variantes que ignoran una oleada y estancado.
+# Resultados: bench_out/<bot>.jsonl ; resumen: python3 tools/balance_report.py [--md]
 set -u
 cd "$(dirname "$0")/.."
+ALL_BOTS="competente pasivo aleatorio t01_demoler t02_reasignar t03_sobrecarga t04_recargar t05_velocidad t06_esperanza t07_acumular t08_pilas t09_generador_noche t10_enfermos t11_repetir t12_automatas t13_desbordes t14_plataforma ola_1 ola_2 ola_3 ola_4 ola_5 estancado"
 N="${1:-500}"
-BOTS="${2:-competente pasivo aleatorio}"
+BOTS="${2:-$ALL_BOTS}"
 J="${3:-$(nproc)}"
 FROM="${4:-1000}"
 mkdir -p bench_out

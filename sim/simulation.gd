@@ -30,7 +30,7 @@ func new_game(seed: int) -> void:
 		"teams": [], "locs": {}, "explored": 0,
 		"hunt": [], "hungry": 0, "hunger_streak": 0, "homeless": 0, "treated": 0,
 		"home_dist": [0, 0, 0, 0, FX.ONE, 0],
-		"autos_total": 0, "autos_free": 0,
+		"autos_total": 0, "autos_free": 0, "fat": [0, 0, 0],
 		"log": [], "reports": [], "day_acc": {},
 		"stars": 0, "epilogue": [],
 		"death_log": [], "mood": {}, "social_h": 0, "social_d": 0,
@@ -136,11 +136,16 @@ func _start_of_day() -> void:
 			note("oleada", text("oleada_comienza") % w["name"], {"wave": w["id"]})
 			_fire_trigger("wave:" + str(w["id"]))
 
+## Mínima que se espera en la oleada: la media diaria más fría del perfil más la
+## hora más fría del día (la misma cuenta que usa el pronóstico).
 func _wave_peak(w: Dictionary) -> int:
 	var p := 0
 	for t in w["profile"]:
 		p = mini(p, int(t))
-	return p
+	var dm := 0
+	for t in db["climate"]["diurnal"]:
+		dm = mini(dm, int(t))
+	return p + dm
 
 func _check_end() -> void:
 	if st["status"] != "playing":
@@ -266,7 +271,7 @@ func _command(c: Dictionary) -> String:
 		"focus":
 			var b4 := building(_int(c, "bid"))
 			if b4.is_empty() or bdef(b4["type"]).get("kind", "") != "gather":
-				return "no es un puesto de recolección"
+				return "no es una cuadrilla de acopio"
 			var f: String = str(c.get("v", "auto"))
 			if not (f in ["auto", "carbon", "madera", "metal"]):
 				return "recurso inválido"
@@ -375,6 +380,9 @@ func _cmd_demolish(bid: int) -> String:
 		add_res(r, int(cost[r]) * FX.ONE * pct / 100, "demolicion")
 	if int(b["auto"]) > 0:
 		st["autos_free"] += int(b["auto"])
+	if d.get("kind", "") == "burial":
+		# Los que estaban enterrados ahí ya no ocupan lugar en los demás cementerios.
+		st["buried"] = maxi(0, int(st["buried"]) - int(b.get("used", 0)))
 	if int(b["site"]) >= 0:
 		st["sites"][b["site"]]["bid"] = 0
 		fill_rect(b["x"], b["y"], b["w"], b["h"], G_SITE)
@@ -534,9 +542,49 @@ func deserialize(bytes: PackedByteArray) -> bool:
 	notes = []
 	return true
 
-func _migrate(s: Dictionary, _from: int) -> Dictionary:
-	# Punto de extensión para versiones futuras del formato de guardado.
+func _migrate(s: Dictionary, from: int) -> Dictionary:
+	if from < 2:
+		_migrate_v1(s)
 	return s
+
+## Formato 1 -> 2: lotes de personal sin clase, cementerios sin ocupación propia,
+## sin acumulador de fatiga y eventos pendientes sin semilla propia.
+func _migrate_v1(s: Dictionary) -> void:
+	var t: int = s["tick"]
+	var left: int = s.get("buried", 0)
+	for b in s["buildings"]:
+		# Lotes: los que todavía viajan se reparten en orden obreros, ingenieros, niños.
+		var old: Array = b.get("bat", [])
+		var have := [int(b["o"]), int(b["i"]), int(b["n"])]
+		var nb := []
+		var i := old.size() - 2
+		while i >= 0:
+			var n: int = old[i]
+			var at: int = old[i + 1]
+			if at > t:
+				for k in 3:
+					var m := mini(n, have[k])
+					if m > 0:
+						nb.append_array([m, at, k])
+						have[k] -= m
+						n -= m
+			i -= 2
+		for k in 3:
+			if have[k] > 0:
+				nb.append_array([have[k], 0, k])
+		b["bat"] = nb
+		if db["buildings"].has(b["type"]) and bdef(b["type"]).get("kind", "") == "burial" and not b.has("used"):
+			var u := mini(left, int(bdef(b["type"])["graves"]))
+			b["used"] = u
+			left -= u
+	s["buried"] = int(s.get("buried", 0)) - left
+	if not s.has("fat"):
+		s["fat"] = [0, 0, 0]
+	var seq := 0
+	for p in s.get("ev_pending", []):
+		if not p.has("rs"):
+			seq += 1
+			p["rs"] = SimRng.seed_state((int(s["seed"]) & SimRng.MASK) * 1000003 + int(p["inst"]) * 7919 + seq)
 
 func clone() -> Simulation:
 	var s := Simulation.new()

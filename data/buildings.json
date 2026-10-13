@@ -68,8 +68,8 @@
   },
   {
    "id": "puesto_rec",
-   "name": "Puesto de recolección",
-   "desc": "Base para juntar a mano carbón, madera y chatarra de las pilas cercanas (radio 6). Rinde la mitad que un edificio especializado.",
+   "name": "Cuadrilla de acopio",
+   "desc": "Campamento de una cuadrilla que junta a mano carbón, madera y chatarra de las pilas cercanas (radio 6). Rinde la mitad que un edificio especializado.",
    "cat": "recursos",
    "size": [
     2,
@@ -710,8 +710,8 @@
   },
   {
    "id": "faro",
-   "name": "Faro de exploradores",
-   "desc": "Base de un equipo de 5 exploradores que recorre el páramo.",
+   "name": "Torre de expediciones",
+   "desc": "Torre de vigía y base de un equipo de 5 exploradores que recorre el páramo.",
    "cat": "exploracion",
    "size": [
     2,
@@ -733,7 +733,7 @@
   {
    "id": "fabrica_aut",
    "name": "Fábrica de autómatas",
-   "desc": "Ensambla autómatas a vapor (1 núcleo, 30 metal, 10 madera cada uno).",
+   "desc": "Ensambla autómatas a vapor (1 núcleo, 30 de metal y 10 de madera cada uno).",
    "cat": "exploracion",
    "size": [
     3,
@@ -841,8 +841,8 @@
   },
   {
    "id": "guardia",
-   "name": "Puesto de guardia",
-   "desc": "Vigilantes que mantienen la calma. Baja el descontento.",
+   "name": "Cuartel de la ronda",
+   "desc": "Los vigilantes de la ronda recorren las calles y mantienen la calma. Baja el descontento.",
    "cat": "orden",
    "size": [
     2,
@@ -983,7 +983,7 @@
   },
   {
    "id": "casa_sanacion",
-   "name": "Casa de sanación",
+   "name": "Hospicio de la llama",
    "desc": "Los sanadores de la brasa atienden enfermos con rezos y caldo caliente.",
    "cat": "fe",
    "size": [

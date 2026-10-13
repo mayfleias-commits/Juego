@@ -59,41 +59,64 @@ class Demoler extends BotCompetent:
 		return {"ciclos": cycles}
 
 
-## 2) Reasignar trabajadores al final del turno (doble conteo).
-## Al terminar el turno de carbón mueve a todos a madera/metal para "trabajar dos veces",
-## y a la mañana los devuelve. La producción es por hora trabajada y el viaje cuenta.
+## 2) Reasignar trabajadores al final del turno (doble conteo). Juega como el
+## competente, pero a las 18, terminado el turno de día, manda a la gente de
+## producción a los lugares libres de los edificios con turno largo y a cubrir los
+## puestos médicos y los edificios sociales (que trabajan las 24 h) hasta llenarlos,
+## y a las 7 los devuelve a producción para "trabajar dos veces". La producción es por
+## hora trabajada y el viaje cuenta también en esos edificios: cada cambio cuesta el
+## viaje (a la intemperie) y nadie rinde en dos lugares a la vez.
 class Reasignar extends BotCompetent:
-	var saved := {}
+	var night := false
+	var nights := 0
+	var moved := 0
 	func act() -> void:
 		var h := sim.hour()
-		if h == 17 and saved.is_empty():
-			var free := 0
-			for b in sim.st["buildings"]:
-				if _res_of(b) == "carbon" and int(b["do"]) + int(b["di"]) > 0:
-					saved[b["id"]] = [int(b["do"]), int(b["di"])]
-					free += int(b["do"]) + int(b["di"])
-					cmd({"c": "staff", "bid": b["id"], "o": 0, "i": 0, "n": 0})
-			for b in sim.st["buildings"]:
-				if free <= 0:
-					break
-				if _res_of(b) in ["madera", "metal"]:
-					var mx := sim.staff_max(sim.bdef(b["type"]))
-					var add := mini(free, mx - int(b["do"]) - int(b["di"]))
-					if add > 0:
-						cmd({"c": "staff", "bid": b["id"], "o": int(b["do"]) + add, "i": b["di"], "n": b["dn"]})
-						free -= add
-			return
-		if h == 7 and not saved.is_empty():
-			for bid in saved:
-				cmd({"c": "staff", "bid": bid, "o": saved[bid][0], "i": saved[bid][1], "n": 0})
-			saved.clear()
+		if h == 18 and not night:
+			night = true
+			_night_shift()
+		elif h == 7 and night:
+			# Vuelven a producción: el competente reparte de nuevo a todos.
+			night = false
 			last_plan = -99
-		if saved.is_empty():
-			super.act()
-		else:
-			_events()
-			_requests()
-			_generator()
+		super.act()
+	func _staff() -> void:
+		if night:
+			return # de noche no se toca el reparto tramposo
+		super._staff()
+	## Terminado el turno de día, llena los médicos y sociales con la gente de producción.
+	func _night_shift() -> void:
+		var pool := {"o": 0, "i": 0}
+		for b in sim.st["buildings"]:
+			var k := kind_of(b)
+			if k in ["gather", "extract", "convert", "greenhouse", "cook", "research", "factory"] and int(b["shift"]) == 0:
+				var o: int = b["do"]
+				var i: int = b["di"]
+				if o + i > 0:
+					pool["o"] += o
+					pool["i"] += i
+					cmd({"c": "staff", "bid": b["id"], "o": 0, "i": 0, "n": b["dn"]})
+		var any := false
+		for b in sim.st["buildings"]:
+			var k := kind_of(b)
+			var night_work := k in ["medical", "social"] or (int(b["shift"]) > 0 and k != "hunt")
+			if b["state"] != 1 or b["on"] != 1 or not night_work:
+				continue
+			var d: Dictionary = sim.bdef(b["type"])
+			var types := sim.staff_types(d)
+			var room := sim.staff_max(d) - int(b["do"]) - int(b["di"]) - int(b["dn"])
+			var ao := mini(room, pool["o"]) if "obreros" in types else 0
+			var ai := mini(room - ao, pool["i"]) if "ingenieros" in types else 0
+			if ao + ai > 0:
+				pool["o"] -= ao
+				pool["i"] -= ai
+				moved += ao + ai
+				any = true
+				cmd({"c": "staff", "bid": b["id"], "o": int(b["do"]) + ao, "i": int(b["di"]) + ai, "n": b["dn"]})
+		if any:
+			nights += 1
+	func extra_metrics() -> Dictionary:
+		return {"noches": nights, "movidos": moved}
 
 
 ## 3) Prender y apagar la sobrecarga para resetear el estrés.
@@ -106,63 +129,151 @@ class Sobrecarga extends BotCompetent:
 		return {"estres_final": int(sim.st["gen"]["stress"]) / FX.ONE}
 
 
-## 4) Recargar la partida para cambiar resultados (el azar va dentro del guardado).
+## 4) Recargar la partida para cambiar resultados. Ante un evento con azar (por
+## ejemplo la presa: núcleo o un muerto) guarda, lo resuelve y mira el desenlace;
+## después recarga (partida y memoria del bot) y prueba cambiar la suerte:
+## resolverlo una hora más tarde, contestar antes el pedido pendiente o, sabiendo lo
+## que pasa, elegir otra opción. Se queda con el mejor. El azar de cada evento se fija
+## al aparecer y va en el guardado: esperar o cambiar el orden no cambia el desenlace.
 class Recargar extends BotCompetent:
 	var reloads := 0
-	var changed := 0
-	func drive() -> void:
-		if sim.hour() != 0:
-			sim.step()
-			return
+	var changed := 0 # recargas en las que esperar o cambiar el orden dio otro desenlace
+	var tries := 0
+	var other_choice := 0 # veces que se quedó con otra opción por saber el desenlace
+	func _events() -> void:
+		for p in sim.st["ev_pending"].duplicate():
+			var best := best_choice(p)
+			if best < 0:
+				continue
+			if not _has_rand(sim.db["events"][p["id"]]["choices"][best].get("effects", [])):
+				cmd({"c": "event", "inst": p["inst"], "choice": best})
+				continue
+			_try_luck(p, best)
+	func _has_rand(effs: Array) -> bool:
+		for e in effs:
+			if e["k"] == "rand":
+				return true
+		return false
+	func _try_luck(p: Dictionary, idx: int) -> void:
+		tries += 1
 		var saved := sim.serialize()
 		var snap := _snapshot()
-		var dead0: int = sim.st["dead"]
-		var h1 := _play_day()
-		if int(sim.st["dead"]) > dead0 and sim.st["status"] == "playing":
-			# Hubo muertes: recargar (partida y memoria del bot) y volver a jugar el mismo día.
-			sim.deserialize(saved)
-			_restore(snap)
-			reloads += 1
-			var h2 := _play_day()
-			if h2 != h1:
+		var n_ch: int = (sim.db["events"][p["id"]]["choices"] as Array).size()
+		# Intentos: [modo, opción]. Modo 0 = ahora, 1 = una hora después, 2 = tras el pedido.
+		var plans := [[0, idx], [1, idx], [2, idx]]
+		for j in n_ch:
+			if j != idx:
+				plans.append([0, j])
+		var vals := []
+		for k in plans.size():
+			if k > 0:
+				sim.deserialize(saved)
+				_restore(snap)
+				reloads += 1
+			vals.append(_attempt(p, plans[k][0], plans[k][1]))
+		for k in [1, 2]:
+			if typeof(vals[k]) == TYPE_ARRAY and typeof(vals[0]) == TYPE_ARRAY and _sig(vals[k]) != _sig(vals[0]):
 				changed += 1
+		var best_k := 0
+		for k in plans.size():
+			if _value(vals[k]) > _value(vals[best_k]):
+				best_k = k
+		# Rehacer el mejor intento (todo es determinista).
+		sim.deserialize(saved)
+		_restore(snap)
+		_attempt(p, plans[best_k][0], plans[best_k][1])
+		if int(plans[best_k][1]) != idx:
+			other_choice += 1
+	## Resuelve el evento según el modo y devuelve el desenlace (cambios inmediatos).
+	func _attempt(p: Dictionary, mode: int, choice: int):
+		if mode == 1:
+			sim.step()
+		elif mode == 2:
+			if (sim.st["req"]["offer"] as Dictionary).is_empty():
+				return null
+			_requests()
+		if sim.st["status"] != "playing":
+			return null
+		var before := _outcome()
+		if not cmd({"c": "event", "inst": p["inst"], "choice": choice}):
+			return null
+		var after := _outcome()
+		var d := []
+		for i in before.size():
+			d.append(int(after[i]) - int(before[i]))
+		return d
+	## Estado que pueden tocar los efectos de un evento (se compara antes y después).
+	func _outcome() -> Array:
+		var o := [int(sim.st["dead"]), sim.total_sick(), incoming_people(), int(sim.st["hope"]), int(sim.st["disc"]),
+			(sim.st["flags"] as Dictionary).size(), (sim.st["ev_sched"] as Array).size()]
+		for r in Simulation.RES:
+			o.append(sim.res(r))
+		return o
+	## Desenlace como signos de cada cambio (no lo afectan los topes de los almacenes).
+	func _sig(d: Array) -> Array:
+		var out := []
+		for x in d:
+			out.append(signi(int(x)))
+		return out
+	func _value(d) -> int:
+		if typeof(d) != TYPE_ARRAY:
+			return -(1 << 40)
+		var v: int = -150 * int(d[0]) - 20 * int(d[1]) + 20 * int(d[2]) + int(d[3]) * 40 / FX.ONE - int(d[4]) * 30 / FX.ONE
+		for i in Simulation.RES.size():
+			v += int(d[7 + i]) * int(weights.get(Simulation.RES[i], 3)) / FX.ONE
+		return v
 	func _snapshot() -> Dictionary:
 		var d := {}
 		for p in get_property_list():
-			if p["usage"] & PROPERTY_USAGE_SCRIPT_VARIABLE and not (p["name"] in ["sim", "reloads", "changed"]):
+			if p["usage"] & PROPERTY_USAGE_SCRIPT_VARIABLE and not (p["name"] in ["sim", "reloads", "changed", "tries", "other_choice"]):
 				d[p["name"]] = var_to_bytes(get(p["name"]))
 		return d
 	func _restore(d: Dictionary) -> void:
 		for k in d:
 			set(k, bytes_to_var(d[k]))
-	func _play_day() -> String:
-		act()
-		sim.step()
-		for i in 23:
-			if sim.st["status"] != "playing":
-				break
-			act()
-			sim.step()
-		return sim.state_hash()
 	func extra_metrics() -> Dictionary:
-		return {"recargas": reloads, "resultados_distintos": changed}
+		return {"intentos": tries, "recargas": reloads, "resultados_distintos": changed, "otra_opcion": other_choice}
 
 
-## 5) Pausar o acelerar para alterar resultados.
+## 5) Pausar o acelerar para alterar resultados. Avanza con el reloj real del juego
+## (hasta 3 pasos por cuadro, como en Session) alternando al azar cuadros en pausa
+## con x1, x2 y x3 y cuadros de 16 a 250 ms. Da sus órdenes en los cuadros en pausa
+## cuando le toca uno antes del paso (si no, justo antes del paso). La simulación solo
+## avanza de a pasos enteros, así que debe terminar igual que el competente.
 class Velocidad extends BotCompetent:
 	var clock: SimClock
+	var acted_tick := -1
+	var frames := 0
+	var paused := 0
+	var paused_orders := 0
+	var speed_changes := 0
+	func _act_once() -> void:
+		if acted_tick != sim.tick():
+			acted_tick = sim.tick()
+			act()
 	func drive() -> void:
 		if clock == null:
 			clock = SimClock.new()
 			clock.sim = sim
-			clock.max_steps_per_frame = 1
-		clock.speed = brnd(4) # 0 = pausa
+			clock.max_steps_per_frame = 3
+			clock.pre_step = _act_once
 		var t0 := sim.tick()
 		var guard := 0
-		while sim.tick() == t0 and guard < 50:
-			clock.speed = maxi(1, clock.speed)
-			clock.advance_ms(1000 + brnd(20000))
+		while sim.tick() == t0 and sim.st["status"] == "playing" and guard < 2000:
 			guard += 1
+			frames += 1
+			var sp := brnd(4) # 0 = pausa
+			if sp != clock.speed:
+				speed_changes += 1
+			clock.speed = sp
+			if sp == 0:
+				paused += 1
+				if acted_tick != sim.tick():
+					paused_orders += 1
+				_act_once() # órdenes con el juego en pausa
+			clock.advance_ms(16 + brnd(235))
+	func extra_metrics() -> Dictionary:
+		return {"cuadros": frames, "en_pausa": paused, "ordenes_en_pausa": paused_orders, "cambios_velocidad": speed_changes}
 
 
 ## 6) Spamear edificios baratos de esperanza y leyes.
@@ -178,21 +289,34 @@ class Esperanza extends BotCompetent:
 				cmd({"c": "law", "id": id})
 
 
-## 7) Acumular sin límite (no gasta en desarrollo, solo junta).
+## 7) Acumular sin límite. Juega como el competente (se desarrolla e investiga igual),
+## pero amplía almacenes en cuanto un recurso pasa del 60 % (depósitos y carboneras
+## de más, sin tope) y no gasta los excedentes en mejoras opcionales ni en convertir
+## madera hasta la tormenta final (día 52), cuando recién los usa.
 class Acumular extends BotCompetent:
+	var stores := 0
+	var peak := {}
+	func act() -> void:
+		super.act()
+		for r in Simulation.RES:
+			peak[r] = maxi(int(peak.get(r, 0)), sim.res(r) / FX.ONE)
 	func _wish(id: String) -> int:
-		if id in ["upgrades", "late_spend", "social", "factory", "workshops", "storage"]:
+		var hoard := sim.day() < 52
+		if hoard and id in ["upgrades", "late_spend", "kiln_surplus"]:
 			return 0
+		if id == "storage":
+			for r in ["carbon", "madera", "metal", "crudo", "raciones"]:
+				if sim.res(r) * 100 / maxi(1, sim.cap(r)) > 60:
+					var r2 := _build("carbonera" if r == "carbon" else "deposito", center() - 8, center() + 8)
+					if r2 == 1:
+						stores += 1
+					return r2
 		return super._wish(id)
-	func _research() -> void:
-		if sim.day() > 12:
-			return
-		super._research()
 	func extra_metrics() -> Dictionary:
 		var w := 0
 		for r in sim.st["wasted"]:
 			w += int(sim.st["wasted"][r]) / FX.ONE
-		return {"desperdicio": w}
+		return {"desperdicio": w, "almacenes_extra": stores, "stock_maximo": peak}
 
 
 ## 8) Explotar pilas, bosques, zonas de caza o ubicaciones infinitas.
@@ -318,16 +442,31 @@ class Desbordes extends BotCompetent:
 				push_error("RECURSO NEGATIVO: " + r)
 
 
-## 14) Diferencias PC/celular: misma semilla con cuadros de 33 ms a x3 y pausas
-## (como un celular que va a segundo plano). Debe dar idéntico al competente.
+## 14) Diferencias PC/celular: misma semilla avanzando como un celular (cuadros de
+## 33 ms a x3, hasta 3 pasos por cuadro y órdenes justo antes de cada paso) que de vez
+## en cuando pasa a segundo plano (pausa) y al volver recibe un cuadro largo.
+## Debe dar idéntico al competente.
 class Plataforma extends BotCompetent:
 	var clock: SimClock
+	var background := 0
 	func drive() -> void:
 		if clock == null:
 			clock = SimClock.new()
 			clock.sim = sim
-			clock.max_steps_per_frame = 1
+			clock.max_steps_per_frame = 3
+			clock.pre_step = act
 			clock.speed = 3
 		var t0 := sim.tick()
-		while sim.tick() == t0:
-			clock.advance_ms(33)
+		var guard := 0
+		while sim.tick() == t0 and sim.st["status"] == "playing" and guard < 2000:
+			guard += 1
+			if brnd(300) == 0:
+				background += 1
+				clock.speed = 0
+				clock.advance_ms(5000)
+				clock.speed = 3
+				clock.advance_ms(1500 + brnd(3000))
+			else:
+				clock.advance_ms(33)
+	func extra_metrics() -> Dictionary:
+		return {"segundo_plano": background}

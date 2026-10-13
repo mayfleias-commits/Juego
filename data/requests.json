@@ -187,8 +187,8 @@
   },
   {
    "id": "rq_curar",
-   "name": "Curar a los graves",
-   "text": "Que no quede ningún enfermo grave en la ciudad.",
+   "name": "Pocos enfermos",
+   "text": "Que no queden más de 2 enfermos (leves o graves) en la ciudad.",
    "goal": {
     "k": "sick_max",
     "v": 2
@@ -526,7 +526,7 @@
   {
    "id": "rq_orden",
    "name": "Más vigilancia",
-   "text": "Los vecinos piden otro puesto de guardia o torre.",
+   "text": "Los vecinos piden otro cuartel de la ronda, una torre del ojo o un centro de proclamas.",
    "goal": {
     "k": "count_delta",
     "types": [

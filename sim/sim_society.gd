@@ -60,11 +60,20 @@ func mood_update() -> void:
 	if in_wave():
 		hp["oleada"] = -int(M["wave_hope"]) * FX.ONE
 		dp["oleada"] = int(M["wave_disc"]) * FX.ONE
-	# Turnos largos (edificios con personal en turno prolongado o continuo)
+	# Turnos largos: edificios con personal en turno prolongado o continuo, o que
+	# trabajaron horas de ese turno en las últimas 24 h (cambiar el turno un rato
+	# no esquiva el descontento).
 	var sh := 0
+	var tk: int = st["tick"]
 	for b in st["buildings"]:
-		var s2: int = b["shift"]
-		if s2 > 0 and b["o"] + b["i"] + b["n"] > 0 and b["state"] == 1 and b["on"] == 1:
+		var s2: int = 0
+		if b["o"] + b["i"] + b["n"] > 0 and b["state"] == 1 and b["on"] == 1:
+			s2 = b["shift"]
+		if tk - int(b.get("sx2", -SHIFT_MEMORY_H)) < SHIFT_MEMORY_H:
+			s2 = 2
+		elif tk - int(b.get("sx1", -SHIFT_MEMORY_H)) < SHIFT_MEMORY_H:
+			s2 = maxi(s2, 1)
+		if s2 > 0:
 			sh += int(M["shift_ext_disc"]) if s2 == 1 else int(M["shift_cont_disc"])
 	if sh > 0:
 		dp["turnos"] = mini(sh, int(M["shift_cap"])) * FX.ONE
@@ -101,14 +110,25 @@ func mood_update() -> void:
 	st["hope"] = clampi(nh, 0, 100 * FX.ONE)
 	st["disc"] = clampi(nd, 0, 100 * FX.ONE)
 
-## Fatiga por turno continuo: se evalúa una vez al día.
+## Horas que el descontento por turnos largos sigue contando después de trabajarlas.
+const SHIFT_MEMORY_H := 24
+## Horas por día que solo cubre el turno de 24 h (de 22 a 8).
+const CONT_ONLY_H := 10
+
+## Fatiga por turno continuo: se tira una vez al día sobre las horas-persona que
+## cada clase trabajó de verdad en horario continuo (obreros, ingenieros y niños).
+## Un día completo en turno de 24 h equivale a cont_death_pcm por persona.
 func fatigue_update() -> void:
 	var pcm: int = B["shift"]["cont_death_pcm"]
-	for b in st["buildings"]:
-		if int(b["shift"]) == 2 and building_works(b) and b["o"] > 0:
-			var d := stoch(int(b["o"]) * pcm * FX.ONE / 100000)
-			if d > 0:
-				kill_healthy("obreros", d, "agotamiento")
+	var fat: Array = st["fat"]
+	for k in 3:
+		var wh: int = fat[k]
+		fat[k] = 0
+		if wh <= 0:
+			continue
+		var d := stoch(wh * pcm * FX.ONE / 100000 / CONT_ONLY_H)
+		if d > 0:
+			kill_healthy(CLASSES[k], d, "agotamiento")
 
 # ---------------------------------------------------------------- condiciones
 func cond_ok(c: Dictionary) -> bool:
@@ -258,7 +278,7 @@ func apply_effects(list: Array, ctx: Dictionary = {}) -> void:
 			"law_cd":
 				st["law_ready"] = maxi(int(st["law_ready"]), st["tick"]) + int(v)
 			"rand":
-				if rnd(100) < int(e.get("pct", 50)):
+				if _ctx_rnd(ctx, 100) < int(e.get("pct", 50)):
 					apply_effects(e.get("then", []), ctx)
 				else:
 					apply_effects(e.get("else", []), ctx)
@@ -280,6 +300,25 @@ func apply_effects(list: Array, ctx: Dictionary = {}) -> void:
 					n -= cl
 			_:
 				push_warning("Efecto desconocido: " + k)
+
+## Azar de los efectos 'rand'. Un evento lleva su propia semilla ("rs"), fijada al
+## aparecer y guardada con la partida: su desenlace no cambia según cuándo ni en qué
+## orden se resuelva (recargar y esperar no sirve para volver a tirar). Sin semilla,
+## usa el azar global (que también va en el guardado).
+func _ctx_rnd(ctx: Dictionary, n: int) -> int:
+	if not ctx.has("rs"):
+		return rnd(n)
+	var r: int = SimRng.step(int(ctx["rs"]))
+	ctx["rs"] = r
+	return r % maxi(1, n)
+
+## Semilla propia de una instancia de evento: depende solo de la semilla de la
+## partida, del número de instancia y del evento (no consume el azar global).
+func _event_seed(id: String, seq: int) -> int:
+	var h: int = (int(st["seed"]) & SimRng.MASK) * 1000003 + seq * 7919 + id.length() * 104729
+	for i in id.length():
+		h = (h * 31 + id.unicode_at(i)) & SimRng.MASK
+	return SimRng.seed_state(h)
 
 # ---------------------------------------------------------------- leyes
 func law_check(id: String) -> String:
@@ -371,12 +410,12 @@ func fire_event(id: String, ctx: Dictionary = {}) -> void:
 	var ev: Dictionary = db["events"][id]
 	st["ev_fired"][id] = st["tick"]
 	st["ev_seq"] += 1
-	var inst := {"inst": st["ev_seq"], "id": id, "deadline": st["tick"] + int(ev.get("timeout_h", B["events"]["timeout_h"])), "ctx": ctx}
+	var inst := {"inst": st["ev_seq"], "id": id, "deadline": st["tick"] + int(ev.get("timeout_h", B["events"]["timeout_h"])), "ctx": ctx, "rs": _event_seed(id, int(st["ev_seq"]))}
 	var choices: Array = ev.get("choices", [])
 	if choices.size() <= 1:
 		# Evento informativo: se aplica de inmediato.
 		if choices.size() == 1:
-			apply_effects(choices[0].get("effects", []), {"cause": "eventos"})
+			apply_effects(choices[0].get("effects", []), {"cause": "eventos", "rs": inst["rs"]})
 		note("evento", ev["title"], {"event": id, "info": 1})
 		return
 	st["ev_pending"].append(inst)
@@ -403,7 +442,11 @@ func resolve_event(inst_id: int, idx: int) -> bool:
 		var c: Dictionary = db["events"][p["id"]]["choices"][idx]
 		pay(c.get("cost", {}))
 		pend.remove_at(i)
-		apply_effects(c.get("effects", []), {"cause": "eventos"})
+		var ctx := {"cause": "eventos"}
+		if p.has("rs"):
+			# Misma secuencia de azar para cualquier opción y cualquier momento.
+			ctx["rs"] = int(p["rs"])
+		apply_effects(c.get("effects", []), ctx)
 		st["ev_choices"].append([p["id"], idx])
 		return true
 	return false
@@ -493,7 +536,10 @@ func requests_update() -> void:
 			pool.append(id)
 		if pool.size() > 0:
 			var id: String = pool[rnd(pool.size())]
-			R["offer"] = {"id": id, "expires": st["tick"] + int(RB["offer_hours"])}
+			# La espera hasta el próximo pedido se tira al ofrecerlo: contestar antes o
+			# después no consume azar (no sirve para cambiar lo que viene).
+			var gap: int = int(RB["gap_h"]) + rnd(int(RB["gap_rand_h"]) + 1)
+			R["offer"] = {"id": id, "expires": st["tick"] + int(RB["offer_hours"]), "gap": gap}
 			note("pedido", text("pedido_nuevo") % db["requests"][id]["name"], {"id": id})
 
 func answer_request(accept: bool) -> bool:
@@ -502,9 +548,12 @@ func answer_request(accept: bool) -> bool:
 		return false
 	var id: String = R["offer"]["id"]
 	var d: Dictionary = db["requests"][id]
+	var gap: int = int(R["offer"].get("gap", -1))
+	if gap < 0:
+		gap = int(B["requests"]["gap_h"]) + rnd(int(B["requests"]["gap_rand_h"]) + 1)
 	R["offer"] = {}
 	R["done"][id] = 1
-	R["next"] = st["tick"] + int(B["requests"]["gap_h"]) + rnd(int(B["requests"]["gap_rand_h"]) + 1)
+	R["next"] = st["tick"] + gap
 	if accept:
 		R["active"].append({"id": id, "deadline": st["tick"] + int(d["hours"]), "base": _goal_base(d["goal"])})
 		add_hope(int(B["requests"]["accept_hope_m"]), "pedidos")

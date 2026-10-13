@@ -4,7 +4,9 @@ extends RefCounted
 ## Todo el estado persistente vive en `st` (Dictionary de enteros/strings/arrays)
 ## para que guardar, cargar y comparar (hash) sea trivial y determinista.
 
-const SAVE_VERSION := 1
+## Formato del guardado (no es la versión del juego). 2: lotes de personal por clase,
+## azar propio de cada evento, ocupación por cementerio y fatiga por clase.
+const SAVE_VERSION := 2
 const RES := ["carbon", "madera", "metal", "nucleos", "crudo", "raciones"]
 const CLASSES := ["obreros", "ingenieros", "ninos"]
 const LEVELS := 5 # 0 Congelante, 1 Muy frío, 2 Frío, 3 Fresco, 4 Confortable

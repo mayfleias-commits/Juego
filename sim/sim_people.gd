@@ -17,6 +17,12 @@ func shift_max_allowed() -> int:
 	return mini(2, mod("shift_max"))
 
 # ---------------------------------------------------------------- lotes de llegada
+## Cada edificio lleva sus lotes de personal en camino o ya llegado, por clase:
+## b["bat"] = [n, tick_de_llegada, clase, n, tick, clase, ...] (clase: 0 obreros,
+## 1 ingenieros, 2 niños). Así cambiar una clase por otra no se saltea el viaje.
+const BAT_W := 3
+
+## Personas ya llegadas (todas las clases).
 func bat_arrived(b: Dictionary) -> int:
 	var bat: Array = b["bat"]
 	var t: int = st["tick"]
@@ -25,42 +31,58 @@ func bat_arrived(b: Dictionary) -> int:
 	while i < bat.size():
 		if int(bat[i + 1]) <= t:
 			n += int(bat[i])
-		i += 2
+		i += BAT_W
 	return n
 
-func _bat_remove(b: Dictionary, n: int) -> void:
+## Personas ya llegadas por clase: [obreros, ingenieros, niños].
+func bat_arrived3(b: Dictionary) -> Array:
+	var out := [0, 0, 0]
 	var bat: Array = b["bat"]
-	while n > 0 and bat.size() > 0:
-		var last := bat.size() - 2
-		var k: int = bat[last]
-		if k <= n:
-			n -= k
-			bat.remove_at(last + 1)
-			bat.remove_at(last)
-		else:
-			bat[last] = k - n
-			n = 0
+	var t: int = st["tick"]
+	var i := 0
+	while i < bat.size():
+		if int(bat[i + 1]) <= t:
+			var k: int = bat[i + 2]
+			out[k] += int(bat[i])
+		i += BAT_W
+	return out
 
-## Compacta los lotes ya llegados en uno solo.
+## Saca n personas de la clase k, empezando por los lotes más nuevos de esa clase.
+func _bat_remove(b: Dictionary, n: int, k: int) -> void:
+	var bat: Array = b["bat"]
+	var j := bat.size() - BAT_W
+	while n > 0 and j >= 0:
+		if int(bat[j + 2]) == k:
+			var c: int = bat[j]
+			if c <= n:
+				n -= c
+				bat.remove_at(j + 2)
+				bat.remove_at(j + 1)
+				bat.remove_at(j)
+			else:
+				bat[j] = c - n
+				n = 0
+		j -= BAT_W
+
+## Compacta los lotes ya llegados en uno por clase.
 func _bat_compact(b: Dictionary) -> void:
 	var bat: Array = b["bat"]
-	if bat.size() <= 2:
+	if bat.size() <= BAT_W:
 		return
 	var t: int = st["tick"]
-	var arrived := 0
+	var arrived := [0, 0, 0]
 	var rest := []
 	var i := 0
 	while i < bat.size():
 		if int(bat[i + 1]) <= t:
-			arrived += int(bat[i])
+			arrived[int(bat[i + 2])] += int(bat[i])
 		else:
-			rest.append(bat[i])
-			rest.append(bat[i + 1])
-		i += 2
+			rest.append_array([bat[i], bat[i + 1], bat[i + 2]])
+		i += BAT_W
 	var nb := []
-	if arrived > 0:
-		nb.append(arrived)
-		nb.append(0)
+	for k in 3:
+		if arrived[k] > 0:
+			nb.append_array([arrived[k], 0, k])
 	nb.append_array(rest)
 	b["bat"] = nb
 
@@ -119,14 +141,13 @@ func staff_fill() -> void:
 					continue
 				var take: int = mini(want, av[k])
 				if take < have:
-					_bat_remove(b, have - take)
+					_bat_remove(b, have - take, k)
 				elif take > have:
 					var bat: Array = b["bat"]
-					bat.append(take - have)
-					bat.append(t + travel_hours(b))
+					bat.append_array([take - have, t + travel_hours(b), k])
 				b[key] = take
 				av[k] -= take
-			if (b["bat"] as Array).size() > 2:
+			if (b["bat"] as Array).size() > BAT_W:
 				_bat_compact(b)
 	st["idle"] = {"obreros": av[0], "ingenieros": av[1], "ninos": av[2]}
 
@@ -146,12 +167,10 @@ func desired_total(c: String) -> int:
 
 ## Equivalentes-trabajador efectivos (FP) del personal humano presente.
 func staff_eq(b: Dictionary) -> int:
-	var tot: int = b["o"] + b["i"] + b["n"]
-	if tot == 0:
+	if b["o"] + b["i"] + b["n"] == 0:
 		return 0
-	var arrived := bat_arrived(b)
-	var raw: int = (b["o"] + b["i"]) * FX.ONE + b["n"] * child_eff()
-	return raw * arrived / tot
+	var a := bat_arrived3(b)
+	return (int(a[0]) + int(a[1])) * FX.ONE + int(a[2]) * child_eff()
 
 func auto_eq() -> int:
 	return int(B["auto"]["eq_m"]) * maxi(0, 100 + mod("auto_eq_pct")) / 100
@@ -200,7 +219,8 @@ func beds_by_tier() -> Dictionary:
 		if d.get("kind", "") != "medical":
 			continue
 		var mx := staff_max(d)
-		var staff: int = b["o"] + b["i"] + b["n"]
+		# Solo cuenta el personal que ya llegó (el viaje también cuenta aquí).
+		var staff: int = mini(bat_arrived(b), b["o"] + b["i"] + b["n"])
 		var eff: int = (staff * FX.ONE) / maxi(1, mx) if mx > 0 else FX.ONE
 		var nb: int = int(d["beds"]) * pct / 100 * eff / FX.ONE
 		beds[d["tier"]] += nb
@@ -359,10 +379,12 @@ func compute_exposure() -> Dictionary:
 			shelter_lvl = mini(shelter_lvl, int(b["lvl"]))
 			continue
 		if kind == "hunt":
-			# los cazadores se cuentan solo mientras están fuera
-			if int(b.get("trip", 0)) > 0:
-				ex["obreros"][out_l] += int(b["trip"]) * FX.ONE
-				at_work["obreros"] += int(b["trip"])
+			# Los cazadores se cuentan solo mientras están fuera (y solo los que siguen
+			# asignados a una cabaña que funciona: si no, la partida ya volvió).
+			var trip: int = mini(int(b.get("trip", 0)), int(b["o"]))
+			if trip > 0 and building_works(b):
+				ex["obreros"][out_l] += trip * FX.ONE
+				at_work["obreros"] += trip
 			continue
 		var tot: int = b["o"] + b["i"] + b["n"]
 		if tot == 0:
@@ -370,14 +392,14 @@ func compute_exposure() -> Dictionary:
 		var always: bool = kind == "medical" or kind == "social"
 		if not always and not shift_active(b, h):
 			continue
-		var arrived := bat_arrived(b)
+		var arrived := bat_arrived3(b)
 		var lvl: int = b["lvl"]
 		for k in 3:
 			var n: int = b[SKEYS[k]]
 			if n == 0:
 				continue
 			var c: String = CLASSES[k]
-			var arr_k := n * arrived / tot
+			var arr_k := mini(n, int(arrived[k]))
 			ex[c][lvl] += arr_k * FX.ONE
 			ex[c][out_l] += (n - arr_k) * FX.ONE
 			at_work[c] += n
@@ -452,18 +474,22 @@ func meal() -> void:
 		st["hunger_streak"] = 0
 
 # ---------------------------------------------------------------- cuerpos
+## Cada cementerio o fosa lleva su propia ocupación (b["used"]); st["buried"] es la
+## suma de los que siguen en pie (demoler uno libera su lugar, no el de los demás).
 func bodies_update() -> void:
 	if int(st["bodies"]) <= 0:
 		return
-	var capacity := 0
 	for b in st["buildings"]:
-		if b["state"] == 1 and bdef(b["type"]).get("kind", "") == "burial":
-			capacity += int(bdef(b["type"])["graves"])
-	var room := maxi(0, capacity - int(st["buried"]))
-	var mv := mini(room, int(st["bodies"]))
-	if mv > 0:
-		st["bodies"] -= mv
-		st["buried"] += mv
+		if int(st["bodies"]) <= 0:
+			break
+		if b["state"] != 1 or bdef(b["type"]).get("kind", "") != "burial":
+			continue
+		var used: int = int(b.get("used", 0))
+		var mv := mini(maxi(0, int(bdef(b["type"])["graves"]) - used), int(st["bodies"]))
+		if mv > 0:
+			b["used"] = used + mv
+			st["bodies"] -= mv
+			st["buried"] += mv
 
 # ---------------------------------------------------------------- llegadas
 func arrivals_update() -> void:

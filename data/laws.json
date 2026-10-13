@@ -412,7 +412,7 @@
    "name": "Patrulla vecinal",
    "cat": "proposito",
    "group": "orden",
-   "desc": "Primer paso de la Senda del Orden. Permite puestos de guardia.",
+   "desc": "Primer paso de la Senda del Orden. Permite cuarteles de la ronda.",
    "effects": [
     {
      "k": "disc",
@@ -594,7 +594,7 @@
   },
   {
    "id": "ord_nuevo_orden",
-   "name": "El Nuevo Orden",
+   "name": "El Puño del Consejo",
    "cat": "proposito",
    "group": "orden",
    "desc": "(EXTREMA) Una sola voz, una sola ciudad. Los disidentes desaparecen.",
@@ -649,7 +649,7 @@
    "name": "Sanadores de la brasa",
    "cat": "proposito",
    "group": "fe",
-   "desc": "Permite casas de sanación atendidas por los fieles.",
+   "desc": "Permite hospicios de la llama atendidos por los fieles.",
    "effects": [
     {
      "k": "hope",

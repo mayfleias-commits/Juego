@@ -31,6 +31,9 @@ func test_datos_integridad() -> void:
 		check((ev["choices"] as Array).size() >= 1, "evento %s sin opciones" % id)
 		for ch in ev["choices"]:
 			_check_effects(db, ch.get("effects", []), id)
+			# choice_ok() lo consulta la interfaz al dibujar: no puede tirar azar.
+			for c in ch.get("req", []):
+				check(c.get("k", "") != "rand", "condición 'rand' en una opción de %s" % id)
 	check(db["events"].size() >= 40, "hay al menos 40 eventos")
 	check(db["locations"].size() >= 15 and db["locations"].size() <= 20, "entre 15 y 20 ubicaciones")
 	var paths := {"orden": 0, "fe": 0}
@@ -172,7 +175,7 @@ func test_recoleccion_mitad_que_edificio() -> void:
 	for b in [ex, post]:
 		b["do"] = 10
 		b["o"] = 10
-		b["bat"] = [10, 0]
+		b["bat"] = [10, 0, 0]
 	s.st["res"]["carbon"] = 0
 	s.caps["carbon"] = 1 << 40
 	var before_site: int = site["amt"]
@@ -252,7 +255,7 @@ func test_pilas_finitas() -> void:
 	post["focus"] = "carbon"
 	post["o"] = 10
 	post["do"] = 10
-	post["bat"] = [10, 0]
+	post["bat"] = [10, 0, 0]
 	s.caps["carbon"] = 1 << 40
 	s.st["res"]["carbon"] = 0
 	var total := 0
@@ -444,3 +447,306 @@ func test_enfermos_no_se_mueven() -> void:
 			mb["on"] = 1
 		b._treatment()
 	check(b.total_sick() >= a.total_sick() - 3, "alternar el edificio médico no cura más rápido")
+
+# ------------------------------------------------------------ hallazgos de la auditoría
+func _with_laws(s: Simulation, ids: Array) -> void:
+	for id in ids:
+		s.st["laws"].append(id)
+	s.rebuild_mods()
+
+func _carbon_node(s: Simulation) -> Dictionary:
+	for n in s.st["nodes"]:
+		if n["kind"] == "carbon":
+			return n
+	return {}
+
+func test_aviso_oleada_anuncia_la_minima_real() -> void:
+	var s := fresh(21)
+	var targets := [-45, -55, -65, -75, -90]
+	var waves: Array = s.db["climate"]["waves"]
+	for i in waves.size():
+		var w: Dictionary = waves[i]
+		eq(s._wave_peak(w), int(targets[i]), "el aviso de la oleada %d anuncia su pico" % (i + 1))
+		var lo := 999
+		for d in range(int(w["start"]), int(w["start"]) + (w["profile"] as Array).size()):
+			for h in 24:
+				lo = mini(lo, s.temp_at(d, h))
+		check(absi(lo - s._wave_peak(w)) <= 2, "oleada %d: el aviso (%d) coincide con la mínima que se vive (%d)" % [i + 1, s._wave_peak(w), lo])
+
+func test_fatiga_de_24h_para_todas_las_clases() -> void:
+	var s := fresh(5)
+	var old_pcm: int = s.B["shift"]["cont_death_pcm"]
+	s.B["shift"]["cont_death_pcm"] = 100000 # 100 % por día completo, para medirlo exacto
+	var p := free_spot(s, "taller")
+	var t := place_done(s, "taller", p.x, p.y)
+	s.st["pop"]["ingenieros"]["h"] = 20
+	t["di"] = 5
+	t["i"] = 5
+	t["bat"] = [5, 0, 1]
+	t["shift"] = 2
+	for h in [0, 1, 2, 3, 4, 5, 6, 7, 22, 23]:
+		s.st["hour"] = h
+		s.production_update()
+	s.fatigue_update()
+	s.B["shift"]["cont_death_pcm"] = old_pcm
+	eq(int(s.st["dead_by"].get("agotamiento", 0)), 5, "los ingenieros en turno de 24 h también mueren de agotamiento")
+
+func test_turno_de_24h_no_se_esquiva_cambiandolo_a_las_23() -> void:
+	var deaths := []
+	for dodge in [false, true]:
+		var s := fresh(12)
+		var old_pcm: int = s.B["shift"]["cont_death_pcm"]
+		s.B["shift"]["cont_death_pcm"] = 20000
+		_with_laws(s, ["ley_jornada", "ley_turno_continuo"])
+		var site: Dictionary = s.free_sites("veta_carbon")[0]
+		var ex := place_done(s, "extractor", site["x"], site["y"])
+		s.caps["carbon"] = 1 << 40
+		eq(s.command({"c": "staff", "bid": ex["id"], "o": 10}), "", "personal en el extractor")
+		eq(s.command({"c": "shift", "bid": ex["id"], "v": 2}), "", "turno de 24 h permitido por las leyes")
+		for i in 24 * 3:
+			if dodge and s.hour() == 23:
+				s.command({"c": "shift", "bid": ex["id"], "v": 1})
+			elif dodge and s.hour() == 0:
+				s.command({"c": "shift", "bid": ex["id"], "v": 2})
+			s.step()
+		s.B["shift"]["cont_death_pcm"] = old_pcm
+		deaths.append(int(s.st["dead_by"].get("agotamiento", 0)))
+	check(int(deaths[0]) > 0, "el turno de 24 h mata de agotamiento (%d)" % deaths[0])
+	check(int(deaths[1]) >= 3, "pasar a turno largo justo antes de las 23 no evita las muertes (%d)" % deaths[1])
+
+func test_descontento_por_turno_cuenta_lo_trabajado() -> void:
+	# Turno largo solo de 18 a 22: el descontento sigue contando durante el día siguiente.
+	var s := fresh(13)
+	_with_laws(s, ["ley_jornada"])
+	var site: Dictionary = s.free_sites("veta_carbon")[0]
+	var ex := place_done(s, "extractor", site["x"], site["y"])
+	s.caps["carbon"] = 1 << 40
+	s.command({"c": "staff", "bid": ex["id"], "o": 10})
+	var seen_at_3 := false
+	for i in 24 * 2:
+		if s.hour() == 18:
+			s.command({"c": "shift", "bid": ex["id"], "v": 1})
+		elif s.hour() == 22:
+			s.command({"c": "shift", "bid": ex["id"], "v": 0})
+		var h := s.hour()
+		s.step()
+		if h == 3 and s.day() == 2:
+			seen_at_3 = (s.st["mood"]["dp"] as Dictionary).has("turnos")
+	check(seen_at_3, "a las 3 del día siguiente sigue el descontento por las horas extra trabajadas")
+	# Cazadores: turno largo a las 8 (vuelven a las 22 con +40 %) y normal a las 9.
+	var s2 := fresh(14)
+	_with_laws(s2, ["ley_jornada"])
+	var p := free_spot(s2, "cazadores")
+	var hb := place_done(s2, "cazadores", p.x, p.y)
+	s2.command({"c": "staff", "bid": hb["id"], "o": 6})
+	var seen_at_19 := false
+	for i in 14:
+		if s2.hour() == 8:
+			s2.command({"c": "shift", "bid": hb["id"], "v": 1})
+		elif s2.hour() == 9:
+			s2.command({"c": "shift", "bid": hb["id"], "v": 0})
+		var h := s2.hour()
+		s2.step()
+		if h == 19:
+			seen_at_19 = (s2.st["mood"]["dp"] as Dictionary).has("turnos")
+	eq(int(hb.get("trip_ret", 0)), 22, "los cazadores salieron con turno largo")
+	check(seen_at_19, "los cazadores afuera después de las 18 cuentan como turno largo")
+
+func test_automata_parado_no_gasta_carbon() -> void:
+	var s := fresh()
+	var site: Dictionary = s.free_sites("veta_carbon")[0]
+	var ex := place_done(s, "extractor", site["x"], site["y"])
+	ex["auto"] = 1
+	ex["auto_stall"] = 1
+	s.st["res"]["carbon"] = 100 * FX.ONE
+	s.st["hour"] = 10
+	s.autos_update()
+	eq(s.res("carbon"), 100 * FX.ONE, "un autómata sin mantenimiento no consume carbón")
+	eq(int(ex["auto_ok"]), 0, "y no trabaja")
+	ex["auto_stall"] = 0
+	s.autos_update()
+	check(s.res("carbon") < 100 * FX.ONE and int(ex["auto_ok"]) == 1, "con mantenimiento consume y trabaja")
+
+func test_demoler_cementerio_libera_su_lugar() -> void:
+	var s := fresh()
+	var p := free_spot(s, "cementerio")
+	var cem := place_done(s, "cementerio", p.x, p.y)
+	var p2 := free_spot(s, "fosa")
+	var fosa := place_done(s, "fosa", p2.x, p2.y)
+	var g_cem: int = s.bdef("cementerio")["graves"]
+	var g_fosa: int = s.bdef("fosa")["graves"]
+	s.st["bodies"] = g_cem + 10
+	s.bodies_update()
+	eq(int(s.st["bodies"]), 0, "entran todos")
+	eq(int(s.st["buried"]), g_cem + 10, "enterrados")
+	eq(s.command({"c": "demolish", "bid": cem["id"]}), "", "se demuele el cementerio lleno")
+	eq(int(s.st["buried"]), 10, "quedan solo los de la fosa")
+	s.st["bodies"] = g_fosa - 10
+	s.bodies_update()
+	eq(int(s.st["bodies"]), 0, "la fosa conserva su lugar libre")
+	var p3 := free_spot(s, "cementerio")
+	place_done(s, "cementerio", p3.x, p3.y)
+	s.st["bodies"] = 5
+	s.bodies_update()
+	eq(int(s.st["bodies"]), 0, "un cementerio nuevo no nace lleno")
+	check(fosa.has("used"), "cada lugar lleva su ocupación")
+
+func test_caza_apagada_o_reasignada_vuelve() -> void:
+	var s := fresh(9)
+	var p := free_spot(s, "cazadores")
+	var hb := place_done(s, "cazadores", p.x, p.y)
+	hb["do"] = 6
+	hb["o"] = 6
+	hb["bat"] = [6, 0, 0]
+	s.st["hour"] = 8
+	s.st["outdoor"] = -10
+	s.production_update()
+	eq(int(hb.get("trip", 0)), 6, "salen 6 cazadores")
+	s.command({"c": "toggle", "bid": hb["id"], "on": 0})
+	s.st["hour"] = 9
+	s.staff_fill()
+	s.production_update()
+	eq(int(hb.get("trip", 0)), 0, "al apagar la cabaña la partida vuelve (sin presa)")
+	hb["trip"] = 6
+	var ex_a := s.compute_exposure()
+	hb["trip"] = 0
+	var ex_b := s.compute_exposure()
+	eq(ex_a["obreros"], ex_b["obreros"], "con la cabaña apagada nadie queda afuera cazando")
+	s.command({"c": "toggle", "bid": hb["id"], "on": 1})
+	s.st["hour"] = 18
+	var c0 := s.res("crudo")
+	s.staff_fill()
+	s.production_update()
+	eq(s.res("crudo"), c0, "al reencender no vuelven con carne que nadie cazó")
+	# Reasignados en medio de la partida: la abandonan.
+	var s2 := fresh(9)
+	var hb2 := place_done(s2, "cazadores", p.x, p.y)
+	hb2["do"] = 6
+	hb2["o"] = 6
+	hb2["bat"] = [6, 0, 0]
+	s2.st["hour"] = 8
+	s2.st["outdoor"] = -10
+	s2.production_update()
+	s2.command({"c": "staff", "bid": hb2["id"], "o": 2})
+	s2.st["hour"] = 10
+	s2.staff_fill()
+	s2.production_update()
+	eq(int(hb2.get("trip", 0)), 2, "los reasignados dejan la partida de caza")
+
+func test_cambiar_de_clase_tambien_viaja() -> void:
+	var s := fresh(3)
+	var node := _carbon_node(s)
+	var p := s.find_spot_near("puesto_rec", node["x"], node["y"])
+	var post := place_done(s, "puesto_rec", p.x, p.y)
+	s.command({"c": "staff", "bid": post["id"], "i": 5})
+	s.staff_fill()
+	s.st["tick"] += s.travel_hours(post)
+	s.staff_fill()
+	eq(s.bat_arrived(post), 5, "llegaron los 5 ingenieros")
+	s.command({"c": "staff", "bid": post["id"], "o": 5, "i": 0})
+	s.staff_fill()
+	eq(int(post["o"]), 5, "5 obreros asignados")
+	eq(s.bat_arrived(post), 0, "los obreros que reemplazan a los ingenieros también viajan")
+	s.st["tick"] += s.travel_hours(post)
+	eq(s.bat_arrived(post), 5, "y llegan después del viaje")
+	# En dos órdenes: sumar ingenieros (viajando) y después sacar a los obreros ya llegados.
+	s.command({"c": "staff", "bid": post["id"], "o": 5, "i": 5})
+	s.staff_fill()
+	s.command({"c": "staff", "bid": post["id"], "o": 0, "i": 5})
+	s.staff_fill()
+	eq(s.bat_arrived(post), 0, "sacar a los obreros no hace llegar antes a los ingenieros")
+
+func test_medicos_y_sociales_tambien_viajan() -> void:
+	var s := fresh(31)
+	var p := free_spot(s, "puesto_medico")
+	var m := place_done(s, "puesto_medico", p.x, p.y)
+	s.command({"c": "staff", "bid": m["id"], "o": 4})
+	s.staff_fill()
+	eq(int(s.beds_by_tier()["basic"]), 0, "recién asignados todavía no atienden")
+	s.st["tick"] += s.travel_hours(m)
+	check(int(s.beds_by_tier()["basic"]) > 0, "al llegar atienden")
+	var p2 := free_spot(s, "taberna")
+	var tb := place_done(s, "taberna", p2.x, p2.y)
+	s.command({"c": "staff", "bid": tb["id"], "o": 3})
+	s.staff_fill()
+	s.production_update()
+	eq(int(s.st["social_d"]), 0, "la taberna no rinde hasta que llega su personal")
+	s.st["tick"] += s.travel_hours(tb)
+	s.production_update()
+	check(int(s.st["social_d"]) != 0, "con el personal llegado sí rinde")
+
+func test_azar_de_eventos_fijo_al_aparecer() -> void:
+	var changed := 0
+	var outcomes := {}
+	for seed in range(1, 41):
+		var s := fresh(seed)
+		s.fire_event("ev_loc_presa")
+		var inst: int = s.st["ev_pending"][0]["inst"]
+		var res := []
+		for mode in 3:
+			var c := s.clone() # guardar y cargar
+			if mode == 1:
+				c.step() # resolver una hora más tarde
+			elif mode == 2:
+				c.st["req"]["offer"] = {"id": "rq_raciones", "expires": c.tick() + 8}
+				c.command({"c": "request", "accept": 0}) # contestar antes un pedido
+			var n0 := c.res("nucleos")
+			var d0: int = c.st["dead"]
+			eq(c.command({"c": "event", "inst": inst, "choice": 0}), "", "se resuelve el evento")
+			res.append([c.res("nucleos") - n0, int(c.st["dead"]) - d0])
+		if res[1] != res[0] or res[2] != res[0]:
+			changed += 1
+		outcomes[str(res[0])] = 1
+	eq(changed, 0, "recargar y resolver más tarde o en otro orden no cambia el desenlace")
+	check(outcomes.size() >= 2, "el evento sigue teniendo los dos desenlaces según la semilla")
+
+func test_ordenes_no_consumen_azar() -> void:
+	var s := fresh(17)
+	s.st["hour"] = int(s.B["requests"]["offer_hour"])
+	s.st["req"]["next"] = 0
+	s.st["day"] = 8
+	s.requests_update()
+	check(not (s.st["req"]["offer"] as Dictionary).is_empty(), "hay un pedido ofrecido")
+	var rng0 := s.rng
+	s.command({"c": "request", "accept": 1})
+	eq(s.rng, rng0, "contestar un pedido no consume el azar de la partida")
+	s.fire_event("ev_lobos")
+	eq(s.rng, rng0, "que aparezca un evento no consume el azar de la partida")
+
+func test_estacion_apagada_no_queda_encendida() -> void:
+	var s := fresh()
+	var p := free_spot(s, "estacion_vapor")
+	var e := place_done(s, "estacion_vapor", p.x, p.y)
+	s.st["res"]["carbon"] = 100 * FX.ONE
+	s.heat_update()
+	eq(int(e.get("lit", 0)), 1, "con carbón la estación se enciende")
+	s.command({"c": "toggle", "bid": e["id"], "on": 0})
+	s.heat_update()
+	eq(int(e.get("lit", 0)), 0, "apagada con el botón no queda encendida")
+
+func test_cargar_guardado_formato_1() -> void:
+	var s := _run_scripted(61, 24 * 4)
+	var arrived := {}
+	var v1: Dictionary = s.st.duplicate(true)
+	for b in v1["buildings"]:
+		arrived[b["id"]] = s.bat_arrived(s.building(b["id"]))
+		var pairs := []
+		var bat: Array = b["bat"]
+		var i := 0
+		while i < bat.size():
+			pairs.append_array([bat[i], bat[i + 1]])
+			i += 3
+		b["bat"] = pairs
+		b.erase("used")
+	v1.erase("fat")
+	for p in v1["ev_pending"]:
+		p.erase("rs")
+	var bytes := var_to_bytes({"magic": "BRASA", "v": 1, "rng": s.rng, "st": v1})
+	var s2 := Simulation.new()
+	check(s2.deserialize(bytes), "carga un guardado del formato 1")
+	for b in s2.st["buildings"]:
+		eq(s2.bat_arrived(b), int(arrived[b["id"]]), "personal llegado igual tras migrar (%s)" % b["type"])
+		eq((b["bat"] as Array).size() % 3, 0, "lotes con clase")
+	eq((s2.st["fat"] as Array).size(), 3, "acumulador de fatiga")
+	s2.run_hours(24)
+	eq(s2.st["status"], "playing", "sigue la partida")
