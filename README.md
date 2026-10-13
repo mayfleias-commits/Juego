@@ -63,7 +63,12 @@ Para abrir el proyecto en el editor: `godot -e --path .`
 - Almacén: `secrets/ultimabrasa-release.keystore` (alias `ultimabrasa`).
 - Contraseña: `secrets/clave_android.env`.
 
-La carpeta `secrets/` está en `.gitignore` y **nunca se sube al repositorio**. La clave se generó en el contenedor de desarrollo y se entregó aparte al dueño del proyecto (no está en GitHub). **Guardala en un lugar seguro**: para publicar actualizaciones del APK que se instalen encima de la versión anterior hace falta exactamente la misma clave. Si se pierde, `tools/export.sh` genera una nueva, pero los usuarios tendrán que desinstalar la versión vieja.
+La carpeta `secrets/` está en `.gitignore` y **nunca se sube al repositorio** (tampoco a la rama `release-assets`). Esos dos archivos se generaron en el contenedor de desarrollo y se **enviaron como archivos adjuntos en la conversación de Claude Code** que creó el proyecto; no están en GitHub. **Guardalos en un lugar seguro** (por ejemplo un gestor de contraseñas o un disco propio):
+
+- Para volver a exportar con la misma clave, copiá ambos archivos a `secrets/` en la raíz del proyecto antes de correr `tools/export.sh`.
+- Para publicar actualizaciones del APK que se instalen encima de la versión anterior hace falta exactamente la misma clave. Si se pierde, `tools/export.sh` genera una nueva, pero quien tenga instalada la versión vieja tendrá que desinstalarla primero.
+
+`clave_android.env` contiene el alias (`GODOT_ANDROID_KEYSTORE_RELEASE_USER`, que es `ultimabrasa`) y la contraseña (`GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD`); la contraseña del almacén y la de la clave son la misma. Para firmar a mano: `apksigner sign --ks ultimabrasa-release.keystore --ks-key-alias ultimabrasa archivo.apk`.
 
 ## Estructura
 

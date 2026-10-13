@@ -669,7 +669,7 @@
   {
    "id": "ev_comerciante",
    "title": "El mercader del trineo",
-   "text": "Un mercader con un trineo tirado por perros ofrece metal a cambio de comida.",
+   "text": "Un mercader con un trineo tirado por perros ofrece metal a cambio de comida o madera.",
    "trigger": "daily",
    "unique": true,
    "day_min": 6,

@@ -40,6 +40,8 @@ EOT
 fi
 # shellcheck disable=SC1090
 source "$ENVF"
+# La ruta guardada puede ser de otra máquina: siempre se usa la de esta copia del proyecto.
+export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$(pwd)/$KS"
 export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DBG" GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android
 timeout 300 godot --headless --path . --import >/dev/null 2>&1 || true
 echo "== Windows"
