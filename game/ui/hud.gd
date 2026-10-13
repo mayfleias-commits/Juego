@@ -45,7 +45,7 @@ func setup(scr) -> void:
 	add_child(panel_host)
 	_layout_panel_host()
 	notes_box = UiKit.vbox(4)
-	notes_box.position = Vector2(8, _top_h() + 8)
+	notes_box.position = Vector2(8, _top_h() + (70 if UiKit.mobile else 8))
 	notes_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(notes_box)
 	toast_box = UiKit.vbox(4)
@@ -94,7 +94,7 @@ func _build_top() -> void:
 	top.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.9), 0, Color(0, 0, 0, 0), 0, 8))
 	add_child(top)
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
-	var h := UiKit.hbox(14 if not UiKit.mobile else 10)
+	var h := UiKit.hbox(14 if not UiKit.mobile else 8)
 	top.add_child(h)
 	for r in Simulation.RES:
 		var item := UiKit.hbox(3)
@@ -102,6 +102,7 @@ func _build_top() -> void:
 		var l := UiKit.label("0", 17)
 		item.add_child(l)
 		var tr := UiKit.label("", 13, UiKit.TXT_DIM)
+		tr.visible = not UiKit.mobile
 		item.add_child(tr)
 		res_labels[r] = l
 		res_trend[r] = tr
@@ -119,18 +120,18 @@ func _build_top() -> void:
 	var hope := UiKit.hbox(3)
 	hope.add_child(UiKit.icon_rect("esperanza", 22))
 	var hv := UiKit.vbox(0)
-	lbl_hope = UiKit.label("Esperanza", 12, UiKit.TXT_DIM)
+	lbl_hope = UiKit.label("Esperanza", 12 if not UiKit.mobile else 9, UiKit.TXT_DIM)
 	hv.add_child(lbl_hope)
-	bar_hope = UiKit.bar(50, Color(1.0, 0.65, 0.25), 90 if not UiKit.mobile else 80, 8)
+	bar_hope = UiKit.bar(50, Color(1.0, 0.65, 0.25), 90 if not UiKit.mobile else 64, 8)
 	hv.add_child(bar_hope)
 	hope.add_child(hv)
 	h.add_child(hope)
 	var disc := UiKit.hbox(3)
 	disc.add_child(UiKit.icon_rect("descontento", 22))
 	var dv := UiKit.vbox(0)
-	lbl_disc = UiKit.label("Descontento", 12, UiKit.TXT_DIM)
+	lbl_disc = UiKit.label("Descontento", 12 if not UiKit.mobile else 9, UiKit.TXT_DIM)
 	dv.add_child(lbl_disc)
-	bar_disc = UiKit.bar(20, Color(0.9, 0.32, 0.28), 90 if not UiKit.mobile else 80, 8)
+	bar_disc = UiKit.bar(20, Color(0.9, 0.32, 0.28), 90 if not UiKit.mobile else 64, 8)
 	dv.add_child(bar_disc)
 	disc.add_child(dv)
 	h.add_child(disc)
@@ -142,7 +143,21 @@ func _build_top() -> void:
 	var clk := UiKit.hbox(3)
 	lbl_clock = UiKit.label("Día 1 · 07:00", 16)
 	clk.add_child(lbl_clock)
-	h.add_child(clk)
+	# En celular el reloj y la velocidad van en un grupo aparte arriba a la derecha.
+	var speed_parent: Container = h
+	if UiKit.mobile:
+		var cl := PanelContainer.new()
+		cl.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.85), 8, Color(0, 0, 0, 0), 0, 6))
+		var ch := UiKit.hbox(6)
+		cl.add_child(ch)
+		ch.add_child(clk)
+		add_child(cl)
+		cl.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		cl.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
+		cl.offset_top = _top_h() + 4
+		speed_parent = ch
+	else:
+		h.add_child(clk)
 	# Los popups se conectan después de crear `info`
 	call_deferred("_attach_top_tips", pop, hope, disc, temp, clk)
 	for i in 4:
@@ -153,7 +168,7 @@ func _build_top() -> void:
 		var idx := i
 		b.pressed.connect(func(): _set_speed(idx))
 		b.tooltip_text = ["Pausa (Espacio)", "Velocidad x1 (1)", "Velocidad x2 (2)", "Velocidad x3 (3)"][i]
-		h.add_child(b)
+		speed_parent.add_child(b)
 		speed_btns.append(b)
 
 func _attach_top_tips(pop, hope, disc, temp, clk) -> void:
@@ -399,12 +414,14 @@ func refresh() -> void:
 	lbl_pop.text = "%d" % sim.total_pop() + ("  ✚%d" % sim.total_sick() if sim.total_sick() > 0 else "")
 	bar_hope.value = sim.st["hope"] / 1000.0
 	bar_disc.value = sim.st["disc"] / 1000.0
-	lbl_hope.text = "Esperanza %d" % (sim.st["hope"] / FX.ONE)
-	lbl_disc.text = "Descontento %d" % (sim.st["disc"] / FX.ONE)
+	lbl_hope.text = ("Esperanza %d" if not UiKit.mobile else "Esp. %d") % (sim.st["hope"] / FX.ONE)
+	lbl_disc.text = ("Descontento %d" if not UiKit.mobile else "Desc. %d") % (sim.st["disc"] / FX.ONE)
 	var t := sim.outdoor()
 	lbl_temp.text = Fmt.temp(t)
 	lbl_temp.add_theme_color_override("font_color", UiKit.COLD if t > -40 else Color(0.6, 0.6, 1.0))
 	lbl_clock.text = Fmt.day_hour(sim) + (" · OLEADA" if sim.in_wave() else "")
+	if UiKit.mobile:
+		lbl_clock.text = "D%d %02d:00%s" % [sim.day(), sim.hour(), " ❄" if sim.in_wave() else ""]
 
 # ---------------------------------------------------------------- textos de detalle
 func _res_tip(r: String) -> String:

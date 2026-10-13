@@ -26,7 +26,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box = PanelContainer.new()
 	box.add_theme_stylebox_override("panel", UiKit._sb(Color(0.1, 0.08, 0.05, 0.94), 8, UiKit.ACCENT, 2, 12))
-	box.custom_minimum_size = Vector2(420 if not UiKit.mobile else 560, 0)
+	box.custom_minimum_size = Vector2(420 if not UiKit.mobile else 500, 0)
 	var v := UiKit.vbox(8)
 	box.add_child(v)
 	var h := UiKit.hbox(6)
@@ -34,7 +34,7 @@ func _ready() -> void:
 	h.add_child(UiKit.label("Consejo del ingeniero", 17, UiKit.ACCENT))
 	v.add_child(h)
 	lbl = UiKit.label("", 16, UiKit.TXT, true)
-	lbl.custom_minimum_size = Vector2(400 if not UiKit.mobile else 540, 0)
+	lbl.custom_minimum_size = Vector2(400 if not UiKit.mobile else 480, 0)
 	v.add_child(lbl)
 	var bh := UiKit.hbox(8)
 	bh.alignment = BoxContainer.ALIGNMENT_END
@@ -65,7 +65,10 @@ func _show() -> void:
 func _place_box() -> void:
 	box.reset_size()
 	var vp := get_viewport_rect().size
-	box.position = Vector2(10, vp.y - box.size.y - (90 if UiKit.mobile else 70))
+	if UiKit.mobile:
+		box.position = Vector2(10, 74)
+	else:
+		box.position = Vector2(10, vp.y - box.size.y - 70)
 
 func _advance() -> void:
 	step += 1
@@ -80,7 +83,8 @@ func _finish(disable: bool) -> void:
 
 func _process(_d: float) -> void:
 	if screen and screen.hud:
-		box.visible = active and not screen.hud.modal_open
+		# En celular se oculta mientras hay una hoja inferior abierta.
+		box.visible = active and not screen.hud.modal_open and not (UiKit.mobile and screen.hud.current_panel != null and screen.placing == "")
 	if not active or Session.sim == null:
 		return
 	var s: Dictionary = STEPS[mini(step, STEPS.size() - 1)]
