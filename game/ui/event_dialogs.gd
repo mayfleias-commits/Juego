@@ -28,7 +28,11 @@ static func event(hud: Hud, inst: int) -> PanelContainer:
 		var txt: String = c["text"]
 		var eff := Fmt.effects(c.get("effects", []))
 		var b := UiKit.button(txt, "", func():
-			Session.cmd({"c": "event", "inst": inst, "choice": idx})
+			var r := Session.cmd({"c": "event", "inst": inst, "choice": idx})
+			if r != "":
+				# Rechazada (p. ej. ya no alcanza): el diálogo queda abierto para elegir otra.
+				hud.toast(r, UiKit.BAD)
+				return
 			hud.close_modal())
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -88,7 +92,9 @@ static func game_over(screen) -> PanelContainer:
 		var sc := UiKit.scroll(UiKit.label(epi, 15, UiKit.TXT_DIM, true))
 		sc.custom_minimum_size = Vector2(0, 200)
 		v.add_child(sc)
-	v.add_child(UiKit.label("Día %d · Población %d · Muertes %d · Llegaron %d · Ubicaciones exploradas %d" % [sim.day(), sim.total_pop(), int(sim.st["dead"]), int(sim.st["arrived_total"]), int(sim.st["explored"])], 14, UiKit.TXT_DIM, true))
+	# Al ganar, el reloj ya pasó al día 61 a las 00:00: se muestra el último día jugado.
+	var day_txt := ("Día %d completado" % Fmt.last_day(sim)) if won else ("Día %d" % Fmt.last_day(sim))
+	v.add_child(UiKit.label("%s · Población %d · Muertes %d · Llegaron %d · Ubicaciones exploradas %d" % [day_txt, sim.total_pop(), int(sim.st["dead"]), int(sim.st["arrived_total"]), int(sim.st["explored"])], 14, UiKit.TXT_DIM, true))
 	var h := UiKit.hbox(10)
 	h.alignment = BoxContainer.ALIGNMENT_END
 	h.add_child(UiKit.button("Menú principal", "menu", func(): screen.exit_to_menu()))

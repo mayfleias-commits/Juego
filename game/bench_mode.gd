@@ -39,8 +39,9 @@ func _process(delta: float) -> void:
 	var rig := world.camera_rig
 	var k := t / seconds
 	rig._t_yaw = k * TAU
-	rig._t_dist = 50.0 + 60.0 * (0.5 + 0.5 * sin(k * TAU * 2.0))
-	rig._t_pitch = 0.75 + 0.3 * sin(k * TAU)
+	# Recorre todo el rango que permite la cámara del juego (zoom y ángulo), incluidos los extremos.
+	rig._t_dist = lerpf(CameraRig.DIST_MIN, CameraRig.DIST_MAX, 0.5 + 0.5 * sin(k * TAU * 2.0))
+	rig._t_pitch = lerpf(CameraRig.PITCH_MIN, CameraRig.PITCH_MAX, 0.5 + 0.5 * sin(k * TAU))
 	rig._t_target = Vector3(sin(k * TAU) * 20.0, 0, cos(k * TAU) * 20.0)
 	if t >= seconds:
 		set_process(false)
@@ -57,9 +58,14 @@ func _report() -> Dictionary:
 	var p99: float = sorted[int(n * 0.99)] if n > 0 else 0.0
 	var worst: float = sorted[n - 1] if n > 0 else 0.0
 	var mem: Dictionary = OS.get_memory_info()
+	var win: Vector2i = get_window().size
+	var scale3d: float = get_viewport().scaling_3d_scale
 	var r := {
 		"fecha": Time.get_datetime_string_from_system(),
-		"preset": Settings.preset, "escala_render": Settings.render_scale, "limite_fps": Settings.fps_limit,
+		"preset": Settings.preset, "escala_render": Settings.render_scale,
+		# Lo que de verdad rigió la medición (0 = sin límite), no lo que dice el ajuste.
+		"limite_fps": Engine.max_fps, "limite_fps_ajuste": Settings.fps_limit,
+		"vsync": _vsync_name(),
 		"segundos": seconds, "cuadros": n,
 		"fps_promedio": snappedf(avg_fps, 0.1), "fps_1pct_bajo": snappedf(1.0 / maxf(0.0001, p99), 0.1),
 		"fps_minimo": snappedf(1.0 / maxf(0.0001, worst), 0.1),
@@ -71,7 +77,9 @@ func _report() -> Dictionary:
 		"gpu": RenderingServer.get_video_adapter_name(), "api": RenderingServer.get_video_adapter_api_version(),
 		"so": OS.get_name(), "modelo": OS.get_model_name(), "nucleos_cpu": OS.get_processor_count(),
 		"cpu": OS.get_processor_name(),
-		"resolucion": str(get_viewport().get_visible_rect().size),
+		# Tamaño real de la ventana (no el lógico de 1280x720) y la resolución 3D efectiva.
+		"resolucion": "%dx%d" % [win.x, win.y],
+		"resolucion_3d": "%dx%d" % [int(win.x * scale3d), int(win.y * scale3d)],
 	}
 	if save_file:
 		DirAccess.make_dir_recursive_absolute("user://benchmark")
@@ -82,3 +90,15 @@ func _report() -> Dictionary:
 			f.close()
 		r["archivo"] = ProjectSettings.globalize_path(path)
 	return r
+
+func _vsync_name() -> String:
+	match DisplayServer.window_get_vsync_mode():
+		DisplayServer.VSYNC_DISABLED:
+			return "desactivado"
+		DisplayServer.VSYNC_ENABLED:
+			return "activado"
+		DisplayServer.VSYNC_ADAPTIVE:
+			return "adaptativo"
+		DisplayServer.VSYNC_MAILBOX:
+			return "mailbox"
+	return "?"

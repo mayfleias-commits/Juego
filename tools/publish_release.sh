@@ -4,11 +4,42 @@
 #   1) exporta con tools/export.sh,
 #   2) sube los binarios + un workflow a la rama huérfana `release-assets`,
 #   3) el workflow (GitHub Actions) crea la Release apuntando al commit indicado.
-# Uso: tools/publish_release.sh v1.0.0 [commit_destino]
+# Uso: tools/publish_release.sh vX.Y.Z [commit_destino]
+# Antes: tools/set_version.sh X.Y.Z y commit. La etiqueta tiene que coincidir con la versión
+# del proyecto (project.godot y export_presets.cfg), tanto en la copia de trabajo (que es la
+# que se exporta) como en el commit destino; si no, no publica nada.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-TAG="${1:?versión, p.ej. v1.0.0}"
+TAG="${1:?versión, p.ej. v1.1.0}"
 TARGET="${2:-$(git rev-parse HEAD)}"
+if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "La etiqueta tiene que tener la forma vX.Y.Z (por ejemplo v1.1.0)." >&2
+  exit 1
+fi
+V="${TAG#v}"
+# Lee la versión de project.godot y de los presets (del archivo o, con un commit, de ese commit).
+versions() {
+  local pg ep
+  if [ -n "${1:-}" ]; then
+    pg=$(git show "$1:project.godot") ep=$(git show "$1:export_presets.cfg")
+  else
+    pg=$(cat project.godot) ep=$(cat export_presets.cfg)
+  fi
+  echo "proyecto=$(sed -n 's/^config\/version="\(.*\)"$/\1/p' <<<"$pg" | head -1)" \
+    "android=$(sed -n 's/^version\/name="\(.*\)"$/\1/p' <<<"$ep" | head -1)" \
+    "windows=$(sed -n 's/^application\/file_version="\(.*\)"$/\1/p' <<<"$ep" | head -1)"
+}
+WANT="proyecto=$V android=$V windows=$V.0"
+for where in "" "$TARGET"; do
+  GOT=$(versions "$where")
+  if [ "$GOT" != "$WANT" ]; then
+    echo "La versión ${where:+del commit $where }no coincide con $TAG:" >&2
+    echo "  tiene:   $GOT" >&2
+    echo "  debería: $WANT" >&2
+    echo "Corré tools/set_version.sh $V, hacé commit y volvé a intentar." >&2
+    exit 1
+  fi
+done
 [ "${SKIP_EXPORT:-0}" = "1" ] || tools/export.sh
 WORK=$(mktemp -d)
 git clone -q --branch release-assets --single-branch "$(git remote get-url origin)" "$WORK" 2>/dev/null || {

@@ -25,6 +25,8 @@ const GLASS := Color(0.55, 0.85, 0.8, 0.68)
 const CORE := Color(1.0, 0.55, 0.15, 0.1)
 
 static var _cache := {}
+## Bocas de chimenea por modelo (coordenadas locales del modelo, sin rotar): de ahí sale el humo.
+static var _chimneys := {}
 ## Material por color base (va en UV.x): 0 genérico, 1 metal, 2 hielo, 3 piedra, 4 madera, 5 nieve, 6 tela.
 static var MAT_OF := {}
 
@@ -49,6 +51,7 @@ static func _mat_id(col: Color) -> float:
 
 var st := SurfaceTool.new()
 var _inside := Vector3.ZERO # punto interior del primitivo actual (para orientar caras)
+var chimneys: Array = [] # bocas de chimenea del modelo que se está armando
 const FLIP := false # convención de cara frontal de Godot (verificada con render de prueba)
 
 func _init() -> void:
@@ -163,6 +166,17 @@ func house(sx: float, sz: float, h: float, wall: Color, rf: Color, chimney: bool
 	windows_row(h * 0.4, -sz / 2, xs)
 	if chimney:
 		box(Vector3(sx * 0.3, h, sz * 0.15), Vector3(0.5, sx * 0.45 + 0.8, 0.5), STONE_D)
+		chimneys.append(Vector3(sx * 0.3, h + sx * 0.45 + 0.8, sz * 0.15))
+
+## Chimenea cilíndrica: registra la boca (centro de la tapa superior).
+func stack(c: Vector3, r: float, h: float, col: Color, seg: int = 6) -> void:
+	cyl(c, r, h, col, seg)
+	chimneys.append(c + Vector3(0, h, 0))
+
+## Quad vertical de frente a +Z (para el impostor que se orienta a la cámara).
+func panel(c: Vector3, w: float, h: float, col: Color) -> void:
+	_inside = c + Vector3(0, h / 2, -1.0)
+	quad(Vector3(c.x - w / 2, c.y, c.z), Vector3(c.x + w / 2, c.y, c.z), Vector3(c.x + w / 2, c.y + h, c.z), Vector3(c.x - w / 2, c.y + h, c.z), col)
 
 # ---------------------------------------------------------------- catálogo
 static func get_mesh(kind: String) -> ArrayMesh:
@@ -172,9 +186,15 @@ static func get_mesh(kind: String) -> ArrayMesh:
 	m._build(kind)
 	var mesh := m.finish()
 	_cache[kind] = mesh
+	_chimneys[kind] = m.chimneys
 	return mesh
 
-## Altura aproximada (para el recorte de obra y la ubicación del humo).
+## Bocas de chimenea del modelo (locales, sin rotar). Vacío si no tiene.
+static func chimneys_of(kind: String) -> Array:
+	get_mesh(kind)
+	return _chimneys.get(kind, [])
+
+## Altura aproximada (para el recorte de obra; el humo sale de chimneys_of).
 static func height_of(kind: String) -> float:
 	var mesh := get_mesh(kind)
 	return mesh.get_aabb().end.y
@@ -204,7 +224,7 @@ func _build(kind: String) -> void:
 			roof(Vector3(-1.5, 3.6, 0), Vector3(3.6, 1.2, 4.4), ROOF)
 			cyl(Vector3(1.8, 0.6, 0), 1.0, 6.5, IRON, 8)
 			box(Vector3(1.8, 7.1, 0), Vector3(2.6, 0.5, 0.8), BRASS)
-			cyl(Vector3(1.8, 0.6, 0), 0.35, 8.0, IRON, 6)
+			stack(Vector3(1.8, 0.6, 0), 0.35, 8.0, IRON)
 			windows_row(1.8, 2.0, [-2.3, -0.7])
 			cyl(Vector3(-2.6, 3.6, 1.2), 0.3, 2.5, IRON, 6)
 		"aserradero":
@@ -213,7 +233,7 @@ func _build(kind: String) -> void:
 			for i in 4:
 				cyl(Vector3(2.4, 0.3 + i * 0.55, -2.0 + i * 0.2), 0.3, 4.0, WOOD_D, 6)
 			windows_row(1.3, 2.5, [-2.2, 0.2])
-			cyl(Vector3(-2.5, 4.0, 1.5), 0.25, 2.0, IRON, 6)
+			stack(Vector3(-2.5, 4.0, 1.5), 0.25, 2.0, IRON)
 		"mina_hierro":
 			box(Vector3(0, 0, 0), Vector3(7.0, 0.5, 7.0), RUST.darkened(0.3))
 			for dx in [-1.6, 1.6]:
@@ -224,7 +244,7 @@ func _build(kind: String) -> void:
 			window(Vector3(-2.2, 1.4, 0), 0.7, 0.7, 3.2)
 		"horno_carbon":
 			cyl(Vector3(0, 0, 0), 2.2, 2.2, Color(0.55, 0.3, 0.22), 10, 1.0)
-			cyl(Vector3(0.8, 0, 0.8), 0.35, 5.0, STONE_D, 6)
+			stack(Vector3(0.8, 0, 0.8), 0.35, 5.0, STONE_D)
 			window(Vector3(0, 0.4, 0), 0.9, 0.7, 2.21)
 		"perforadora":
 			box(Vector3(0, 0, 0), Vector3(7.0, 0.6, 7.0), STONE_D)
@@ -245,12 +265,12 @@ func _build(kind: String) -> void:
 			box(Vector3(2.0, 10.6, 0), Vector3(3.2, 0.5, 3.2), IRON)
 			cyl(Vector3(2.0, 11.1, 0), 1.2, 0.4, BRASS, 10)
 			windows_row(2.0, 3.0, [-2.8, -1.8, -0.8])
-			cyl(Vector3(-3.0, 4.6, -2.0), 0.4, 4.0, IRON, 6)
+			stack(Vector3(-3.0, 4.6, -2.0), 0.4, 4.0, IRON)
 		"fundicion":
 			box(Vector3(0, 0, 0), Vector3(7.0, 4.5, 6.0), STONE_D)
 			roof(Vector3(0, 4.5, 0), Vector3(7.4, 1.6, 6.4), ROOF)
 			for dx in [-2.2, 2.2]:
-				cyl(Vector3(dx, 4.5, -1.8), 0.6, 6.0, Color(0.5, 0.28, 0.2), 8)
+				stack(Vector3(dx, 4.5, -1.8), 0.6, 6.0, Color(0.5, 0.28, 0.2), 8)
 			windows_row(1.4, 3.0, [-2.4, -0.8, 0.8, 2.4], 0.8, 1.2)
 		"cazadores":
 			box(Vector3(-0.6, 0, 0), Vector3(3.6, 2.2, 3.6), WOOD_D)
@@ -262,7 +282,7 @@ func _build(kind: String) -> void:
 			box(Vector3(2.0, 1.1, -0.5), Vector3(0.15, 0.8, 0.6), Color(0.5, 0.2, 0.18))
 		"cocina":
 			house(4.8, 4.2, 2.8, WOOD, ROOF, false, 2)
-			cyl(Vector3(1.2, 2.8, -0.8), 0.45, 3.2, STONE_D, 6)
+			stack(Vector3(1.2, 2.8, -0.8), 0.45, 3.2, STONE_D)
 		"invernadero", "invernadero_ind":
 			var big := kind == "invernadero_ind"
 			var sx := 7.6 if big else 7.0
@@ -272,7 +292,7 @@ func _build(kind: String) -> void:
 			if big:
 				for dx in [-2.6, 0.0, 2.6]:
 					cyl(Vector3(dx, 2.8, 2.6), 0.25, 3.0, BRASS, 6)
-				cyl(Vector3(-3.2, 0.8, -3.0), 0.5, 5.0, IRON, 8)
+				stack(Vector3(-3.2, 0.8, -3.0), 0.5, 5.0, IRON, 8)
 		"puesto_medico":
 			house(4.8, 4.2, 2.8, Color(0.85, 0.85, 0.82), ROOF, false, 2)
 			box(Vector3(0, 1.6, 2.12), Vector3(1.0, 0.25, 0.04), RED)
@@ -302,13 +322,13 @@ func _build(kind: String) -> void:
 		"estacion_vapor":
 			cyl(Vector3(0, 0, 0), 2.0, 3.6, IRON, 10)
 			cyl(Vector3(0, 3.6, 0), 2.1, 0.4, BRASS, 10)
-			cyl(Vector3(0, 4.0, 0), 0.6, 4.5, RUST, 8)
+			stack(Vector3(0, 4.0, 0), 0.6, 4.5, RUST, 8)
 			box(Vector3(0, 1.0, 1.98), Vector3(1.2, 1.0, 0.06), CORE)
 		"taller":
 			box(Vector3(0, 0, 0), Vector3(5.0, 3.2, 4.6), STONE)
 			roof(Vector3(0, 3.2, 0), Vector3(5.4, 1.2, 5.0), ROOF)
 			windows_row(1.2, 2.3, [-1.5, 0.0, 1.5], 0.7, 1.0)
-			cyl(Vector3(1.8, 3.2, -1.2), 0.3, 2.6, IRON, 6)
+			stack(Vector3(1.8, 3.2, -1.2), 0.3, 2.6, IRON)
 			cyl(Vector3(-1.6, 3.6, 0), 0.7, 0.2, BRASS, 10)
 		"deposito":
 			box(Vector3(0, 0, 0), Vector3(5.4, 2.8, 5.0), WOOD_D)
@@ -332,7 +352,7 @@ func _build(kind: String) -> void:
 			roof(Vector3(0, 5.0, 0), Vector3(8.4, 1.4, 7.4), ROOF)
 			for dx in [-2.6, 0.0, 2.6]:
 				box(Vector3(dx, 5.6, 0), Vector3(1.4, 0.8, 7.0), GLASS)
-			cyl(Vector3(3.2, 5.0, -2.6), 0.6, 5.0, IRON, 8)
+			stack(Vector3(3.2, 5.0, -2.6), 0.6, 5.0, IRON, 8)
 			box(Vector3(0, 0, 3.52), Vector3(3.0, 3.2, 0.05), IRON)
 			windows_row(3.4, 3.5, [-3.0, 3.0], 1.0, 0.8)
 		"taberna":
@@ -342,7 +362,7 @@ func _build(kind: String) -> void:
 			box(Vector3(0, 0, 0), Vector3(5.2, 2.6, 4.8), STONE)
 			cyl(Vector3(0, 2.6, 0), 2.2, 1.6, STONE_D, 10, 0.4)
 			windows_row(1.0, 2.4, [-1.6, 0.0, 1.6])
-			cyl(Vector3(1.8, 2.6, -1.6), 0.35, 3.0, IRON, 6)
+			stack(Vector3(1.8, 2.6, -1.6), 0.35, 3.0, IRON)
 		"refugio_inf":
 			house(5.0, 4.4, 2.8, Color(0.62, 0.48, 0.32), Color(0.45, 0.18, 0.16), true, 3)
 		"guardia":
@@ -406,6 +426,7 @@ func _build(kind: String) -> void:
 			cyl(Vector3(0, 12.7, 0), 3.2, 1.0, IRON, 16, 2.0)
 			cyl(Vector3(0, 13.7, 0), 1.6, 9.0, IRON.darkened(0.2), 12, 1.3)
 			cyl(Vector3(0, 22.7, 0), 1.6, 0.6, BRASS, 12)
+			chimneys.append(Vector3(0, 23.3, 0))
 			for a in 4:
 				var ang2 := TAU * a / 4.0 + 0.4
 				box(Vector3(cos(ang2) * 5.2, 0, sin(ang2) * 5.2), Vector3(1.2, 4.5, 1.2), STONE)
@@ -457,7 +478,10 @@ func _build(kind: String) -> void:
 			box(Vector3(0, 1.15, 0), Vector3(0.3, 0.3, 0.3), Color(0.85, 0.7, 0.6))
 			box(Vector3(0, 1.38, 0), Vector3(0.36, 0.12, 0.36), Color(0.35, 0.15, 0.12))
 		"ciudadano_lejos":
-			box(Vector3(0, 0, 0), Vector3(0.5, 1.5, 0.05), Color(0.25, 0.22, 0.2))
+			# Impostor: tres quads de frente a +Z (abrigo, cara y gorro); Citizens lo orienta a la cámara.
+			panel(Vector3(0, 0, 0), 0.5, 1.15, Color(0.28, 0.24, 0.22))
+			panel(Vector3(0, 1.15, 0), 0.32, 0.3, Color(0.85, 0.7, 0.6))
+			panel(Vector3(0, 1.38, 0.001), 0.4, 0.14, Color(0.35, 0.15, 0.12))
 		"automata":
 			box(Vector3(0, 0, 0), Vector3(0.8, 1.6, 0.6), BRASS)
 			box(Vector3(0, 1.6, 0), Vector3(0.5, 0.5, 0.5), IRON)

@@ -15,6 +15,9 @@ var placing := ""
 var selected := 0
 var _shown_events := {}
 var _last_hover := Vector2.ZERO
+var _hover_tile := Vector2i(-99, -99)
+var _hover_text := ""
+var _hover_ms := 0
 
 func start() -> void:
 	world = World.new()
@@ -55,10 +58,14 @@ func reload_from_session() -> void:
 	start()
 
 func _on_commanded() -> void:
+	# Notas que dejó la orden (ley promulgada, expedición que parte, evento que dispara una ley...).
+	hud.flush_command_notes()
 	world.refresh()
 	hud.refresh()
 	if hud.current_panel:
 		hud.current_panel.refresh()
+	# Un evento con opciones que disparó la orden se muestra aunque el juego esté en pausa.
+	_check_pending()
 
 func _on_stepped(_notes: Array) -> void:
 	world.refresh()
@@ -117,10 +124,14 @@ func _on_tap(pos: Vector2) -> void:
 	var t := _tile_at(pos)
 	var bid := world.building_at_tile(t)
 	if bid > 0:
-		select_building(bid, false)
+		# En celular, si lo tocado queda debajo de la hoja que se abre, se lo trae a la vista.
+		select_building(bid, UiKit.mobile and pos.y > hud.panel_host.position.y - 10.0)
 	else:
 		deselect()
 		hud.close_panel()
+		if _is_generator_tile(t):
+			hud.open_panel("generator")
+			return
 		var txt := _tile_text(t)
 		if txt != "":
 			hud.toast(txt)
@@ -130,25 +141,57 @@ func _on_long(pos: Vector2) -> void:
 	var bid := world.building_at_tile(t)
 	var txt := ""
 	if bid > 0:
-		var b := Session.sim.building(bid)
-		var d: Dictionary = Session.sim.bdef(b["type"])
-		txt = "%s · %s · %d/%d trabajando" % [d["name"], UiKit.LEVEL_NAMES[int(b["lvl"])], int(b["o"]) + int(b["i"]) + int(b["n"]), Session.sim.staff_max(d)]
+		txt = _building_brief(bid)
+	elif _is_generator_tile(t):
+		txt = _generator_brief()
 	else:
 		txt = _tile_text(t)
 	if txt != "":
-		hud.toast(txt)
+		hud.toast(txt.replace("\n", " · "))
+
+func _is_generator_tile(t: Vector2i) -> bool:
+	var sim := Session.sim
+	return absi(t.x - sim.msize / 2) <= 2 and absi(t.y - sim.msize / 2) <= 2
+
+## Nombre y estado breve de un edificio (detalle al pasar el mouse o mantener presionado).
+func _building_brief(bid: int) -> String:
+	var sim := Session.sim
+	var b := sim.building(bid)
+	if b.is_empty():
+		return ""
+	var d: Dictionary = sim.bdef(b["type"])
+	var st := ""
+	if int(b["state"]) == 0:
+		var total: float = float(d["build_h"]) * 1000.0
+		st = "En construcción %d%%" % int(100.0 * (1.0 - float(b["left"]) / maxf(1.0, total)))
+	elif b.get("up", "") != "":
+		st = "Mejorando a " + str(sim.bdef(b["up"])["name"])
+	elif int(b["on"]) == 0:
+		st = "Apagado"
+	else:
+		st = UiKit.LEVEL_NAMES[int(b["lvl"])]
+		var mx := sim.staff_max(d)
+		if mx > 0:
+			st += " · %d/%d trabajando" % [int(b["o"]) + int(b["i"]) + int(b["n"]), mx]
+		elif int(d.get("housing", 0)) > 0:
+			st += " · %d camas" % int(d["housing"])
+	return "%s\n%s" % [d["name"], st]
+
+func _generator_brief() -> String:
+	var g: Dictionary = Session.sim.st["gen"]
+	if int(g["on"]) == 0:
+		return "Generador\nAPAGADO"
+	return "Generador\nPotencia %d%s · estrés %d%%" % [int(g["level"]), " · sobrecarga" if int(g["over"]) == 1 else "", int(g["stress"]) / 1000]
 
 func _tile_text(t: Vector2i) -> String:
 	var sim := Session.sim
 	for n in sim.st["nodes"]:
 		if int(n["amt"]) > 0 and t.x >= int(n["x"]) and t.x < int(n["x"]) + 2 and t.y >= int(n["y"]) and t.y < int(n["y"]) + 2:
-			return "Pila de %s: quedan %d (recolectar con un puesto cercano)" % [Fmt.RES[n["kind"]], int(n["amt"]) / 1000]
+			return "Pila de %s: quedan %d (se junta con una %s cercana)" % [Fmt.RES[n["kind"]], int(n["amt"]) / 1000, str(sim.bdef("puesto_rec")["name"]).to_lower()]
 	for s in sim.st["sites"]:
 		if t.x >= int(s["x"]) and t.x < int(s["x"]) + 3 and t.y >= int(s["y"]) and t.y < int(s["y"]) + 3:
 			var names := {"veta_carbon": "Veta de carbón (extractor)", "veta_profunda": "Veta profunda (pozo)", "bosque": "Bosque helado (aserradero)", "muro_hielo": "Muro de hielo (perforadora)", "veta_metal": "Veta de hierro (mina)"}
 			return "%s: quedan %d" % [names.get(s["kind"], s["kind"]), int(s["amt"]) / 1000]
-	if absi(t.x - sim.msize / 2) <= 2 and absi(t.y - sim.msize / 2) <= 2:
-		hud.open_panel("generator")
 	return ""
 
 func select_building(bid: int, focus: bool) -> void:
@@ -158,7 +201,8 @@ func select_building(bid: int, focus: bool) -> void:
 	if focus:
 		var b := Session.sim.building(bid)
 		if not b.is_empty():
-			world.camera_rig.focus_on(world.rect_center(b["x"], b["y"], b["w"], b["h"]))
+			# En celular la hoja inferior tapa el centro: el edificio queda en la franja visible.
+			world.camera_rig.focus_on_at(world.rect_center(b["x"], b["y"], b["w"], b["h"]), hud.focus_frac())
 
 func deselect() -> void:
 	if selected != 0:
@@ -168,6 +212,7 @@ func deselect() -> void:
 # ---------------------------------------------------------------- construcción
 func begin_place(type: String) -> void:
 	placing = type
+	hud.hide_hover()
 	if UiKit.mobile:
 		hud.close_panel()
 	hud.show_place_bar(true)
@@ -176,8 +221,28 @@ func begin_place(type: String) -> void:
 
 func _on_hover(pos: Vector2) -> void:
 	_last_hover = pos
-	if placing != "" and not UiKit.mobile:
+	if UiKit.mobile:
+		return
+	if placing != "":
+		hud.hide_hover()
 		_update_ghost()
+		return
+	# PC: detalle breve de lo que hay bajo el puntero (clic abre su panel).
+	if hud.modal_open or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		hud.hide_hover()
+		return
+	var t := _tile_at(pos)
+	if t != _hover_tile or Time.get_ticks_msec() - _hover_ms > 500:
+		_hover_tile = t
+		_hover_ms = Time.get_ticks_msec()
+		var bid := world.building_at_tile(t)
+		if bid > 0:
+			_hover_text = _building_brief(bid)
+		elif _is_generator_tile(t):
+			_hover_text = _generator_brief()
+		else:
+			_hover_text = _tile_text(t)
+	hud.show_hover(_hover_text, pos)
 
 func _update_ghost() -> void:
 	if placing == "":
@@ -243,6 +308,8 @@ func _unhandled_key_input(ev: InputEvent) -> void:
 		KEY_F5:
 			if Session.save_game("manual"):
 				hud.toast("Partida guardada.")
+			else:
+				hud.toast("No se pudo guardar: %s" % Session.last_error, UiKit.BAD)
 
 func show_help() -> void:
 	tutorial.show_help()

@@ -17,7 +17,16 @@ vec3 heat_ramp(float v) {
 }
 
 void fragment() {
-	vec4 t = texture(data_tex, UV);
+	vec4 t;
+	if (mode == 0) {
+		// Calor: suavizado entre casillas.
+		t = texture(data_tex, UV);
+	} else {
+		// Salud y recursos: una casilla, un color (sin que el borde se mezcle con el vacío).
+		ivec2 sz = textureSize(data_tex, 0);
+		ivec2 px = clamp(ivec2(floor(UV * vec2(sz))), ivec2(0), sz - ivec2(1));
+		t = texelFetch(data_tex, px, 0);
+	}
 	vec3 col;
 	if (mode == 0) {
 		col = heat_ramp(t.r);

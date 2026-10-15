@@ -40,7 +40,9 @@ func _stream(name: String, loop: bool) -> AudioStream:
 		s = s.duplicate()
 		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		s.loop_begin = 0
-		s.loop_end = s.data.size() / 2
+		# En cuadros, desde la duración real: los WAV se importan comprimidos (QOA),
+		# así que el tamaño de `data` no dice cuántas muestras hay.
+		s.loop_end = int(round(s.get_length() * s.mix_rate))
 	_streams[key] = s
 	return s
 

@@ -12,9 +12,16 @@ Todo lo siguiente fue creado específicamente para *Última Brasa* y no usa mate
 Licencia de estos recursos propios: CC0 1.0 (dominio público).
 
 ## Software de terceros
-- **Godot Engine 4.7.2** — © Juan Linietsky, Ariel Manzur y colaboradores de Godot. Licencia MIT. <https://godotengine.org/license>
-  El ejecutable incluye componentes de terceros de Godot (FreeType, ICU, mbedTLS, etc.) bajo sus propias licencias libres; ver `Acerca de → Licencias de terceros` en el editor de Godot o <https://github.com/godotengine/godot/blob/master/COPYRIGHT.txt>.
-- **Tipografía:** la fuente por defecto que trae el motor Godot (Open Sans, licencia libre incluida con el motor).
+- **Godot Engine 4.7.2** — © 2014-presente, colaboradores de Godot Engine; © 2007-2014, Juan Linietsky, Ariel Manzur. Licencia MIT (Expat). <https://godotengine.org/license>
+  El ejecutable incluye componentes de terceros del motor (FreeType, HarfBuzz, ICU, mbedTLS, zlib, etc.) bajo sus propias licencias libres (MIT, BSD, Apache-2.0, Zlib, OFL y otras).
+- **Tipografía:** la fuente por defecto que trae el motor Godot (Open Sans, © The Open Sans Project Authors, licencia SIL OFL 1.1).
+
+### Dónde están los avisos de licencia
+La licencia MIT de Godot (y las de sus componentes) pide que el aviso de copyright y el texto de la licencia acompañen cada copia del juego:
+
+- **En el juego (PC y celular):** *Créditos → Licencias* muestra la licencia de Godot, la lista de componentes de terceros con sus titulares y licencias, y el texto completo de cada licencia (lo que devuelven `Engine.get_license_text()`, `Engine.get_copyright_info()` y `Engine.get_license_info()`).
+- **En el `.zip` de Windows:** `LICENCIAS.txt`, al lado de `UltimaBrasa.exe`, con lo mismo y la licencia del contenido propio. Lo genera `tools/licencias.gd`, que `tools/export.sh` corre en cada exportación.
+- Referencia completa del motor: <https://github.com/godotengine/godot/blob/master/COPYRIGHT.txt>.
 
 ## Herramientas usadas para producir el juego
 Python 3 y NumPy (generación de íconos y sonidos), Xvfb + Mesa (capturas y benchmarks por software), OpenJDK y apksigner (firma del APK).

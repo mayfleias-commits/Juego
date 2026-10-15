@@ -5,6 +5,7 @@ render_mode unshaded, cull_disabled, depth_draw_never, blend_mix, shadows_disabl
 uniform float rise = 6.0;
 uniform float life = 6.0;
 uniform vec2 wind = vec2(1.5, 0.4);
+// El mundo lo oscurece de noche (el humo es unshaded y si no se vería luminoso).
 uniform vec3 tint : source_color = vec3(0.55, 0.55, 0.58);
 varying float v_alpha;
 

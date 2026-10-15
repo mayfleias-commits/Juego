@@ -1,6 +1,6 @@
 class_name ExplorePanel
 extends SidePanel
-## Mapa del páramo: ubicaciones, equipos y expediciones.
+## Mapa del páramo: ubicaciones y expediciones.
 
 var map: ExploreMap
 var selected := ""
@@ -13,12 +13,27 @@ func _title() -> String:
 func _build() -> void:
 	map = ExploreMap.new()
 	map.panel = self
-	map.custom_minimum_size = Vector2(0, 300 if not UiKit.mobile else 240)
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map.clip_contents = true
-	body.add_child(map)
+	# PASS: un arrastre que empieza sobre el mapa llega al contenedor con scroll.
+	map.mouse_filter = Control.MOUSE_FILTER_PASS
 	detail = UiKit.vbox(6)
-	body.add_child(detail)
+	if UiKit.mobile:
+		# La hoja inferior es baja: mapa y detalle lado a lado, así el detalle de la
+		# ubicación y el botón de enviar siempre quedan a la vista.
+		var h := maxf(150.0, hud.panel_host.size.y - UiKit.btn_h() - 34.0)
+		var hb := UiKit.hbox(10)
+		map.custom_minimum_size = Vector2(0, h)
+		map.size_flags_stretch_ratio = 1.3 # algo más de ancho para los nombres del mapa
+		hb.add_child(map)
+		var sc := UiKit.scroll(detail)
+		sc.custom_minimum_size = Vector2(0, h)
+		hb.add_child(sc)
+		body.add_child(hb)
+	else:
+		map.custom_minimum_size = Vector2(0, 300)
+		body.add_child(map)
+		body.add_child(detail)
 	_rebuild_detail()
 
 func refresh() -> void:
@@ -37,22 +52,37 @@ func select(id: String) -> void:
 	selected = id
 	_sig = ""
 	refresh()
+	_show_detail_end()
+
+## Lleva a la vista el final del detalle (el botón de enviar o el motivo): en PC queda
+## debajo del mapa. Espera un cuadro para que el contenedor ya haya acomodado lo nuevo.
+func _show_detail_end() -> void:
+	await get_tree().process_frame
+	if not is_instance_valid(detail) or detail.get_child_count() == 0:
+		return
+	var n: Node = detail.get_parent()
+	while n and not (n is ScrollContainer):
+		n = n.get_parent()
+	if n:
+		(n as ScrollContainer).ensure_control_visible(detail.get_child(detail.get_child_count() - 1) as Control)
 
 func _rebuild_detail() -> void:
 	UiKit.clear(detail)
 	var teams: Array = sim.st["teams"]
 	if teams.is_empty():
-		detail.add_child(UiKit.label("Para explorar hace falta un Faro de exploradores (investigación: Faros de exploración).", 15, UiKit.TXT_DIM, true))
+		detail.add_child(UiKit.label("Para explorar hace falta una %s (investigación: %s)." % [sim.bdef("faro")["name"], sim.db["research"]["exp_faro"]["name"]], 15, UiKit.TXT_DIM, true))
+	var n_team := 0
 	for t in teams:
+		n_team += 1
 		var st: String = {"home": "En la base", "out": "Viajando a %s", "back": "Volviendo de %s"}[t["state"]]
 		if "%s" in st:
 			st = st % sim.db["locations"][t["loc"]]["name"]
 		var eta := ""
 		if t["state"] != "home":
 			eta = " · faltan %d h" % maxi(0, int(t["eta"]) - sim.tick())
-		detail.add_child(UiKit.label("Equipo del faro #%d: %s%s" % [int(t["bid"]), st, eta], 15, UiKit.TXT, true))
+		detail.add_child(UiKit.label("Expedición #%d: %s%s" % [n_team, st, eta], 15, UiKit.TXT, true))
 	if sim.in_wave():
-		detail.add_child(UiKit.label("Hay una oleada: nadie sale y los equipos afuera esperan refugiados.", 15, UiKit.COLD, true))
+		detail.add_child(UiKit.label("Hay una oleada: no sale ninguna expedición y las que están afuera esperan a resguardo.", 15, UiKit.COLD, true))
 	if selected == "":
 		detail.add_child(UiKit.label("Tocá una ubicación del mapa para ver detalles.", 15, UiKit.TXT_DIM, true))
 		return
@@ -67,12 +97,11 @@ func _rebuild_detail() -> void:
 	for t in teams:
 		if t["state"] == "home":
 			var tb: int = t["bid"]
-			var b := UiKit.button("Enviar equipo (5 obreros, %d raciones)" % (int(sim.B["explore"]["food_m"]) / 1000), "exploracion", func():
-				var r := Session.cmd({"c": "expedition", "bid": tb, "loc": selected})
-				if r != "":
-					hud.toast(r, UiKit.BAD)
+			var b := UiKit.button("Enviar expedición (5 obreros, %d raciones)" % (int(sim.B["explore"]["food_m"]) / 1000), "exploracion", func():
+				cmd({"c": "expedition", "bid": tb, "loc": selected})
 				_sig = "")
 			b.disabled = why != "" or sim.in_wave()
+			b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			detail.add_child(b)
 			break
 	if why != "" and int(s["state"]) != 2:
@@ -82,6 +111,8 @@ class ExploreMap extends Control:
 	var panel: ExplorePanel
 
 	func _gui_input(ev: InputEvent) -> void:
+		if UiKit.is_emulated(ev):
+			return # el toque llega como ScreenTouch
 		var pressed: bool = (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT) or (ev is InputEventScreenTouch and ev.pressed)
 		if not pressed:
 			return
@@ -99,19 +130,29 @@ class ExploreMap extends Control:
 			panel.select(best)
 			accept_event()
 
+	## Escala del mapa: en un recuadro apaisado (la hoja del celular) se estira a lo ancho
+	## hasta 1,6 veces para que las ubicaciones no queden amontonadas.
+	func _scale() -> Vector2:
+		var sy := minf(size.x, size.y) / 22.0
+		return Vector2(minf(size.x, size.y * 1.6) / 22.0, sy)
+
 	func _pos(id: String) -> Vector2:
 		var L: Dictionary = panel.sim.db["locations"][id]
 		var p: Array = L.get("pos", [0, 0])
 		var c := size / 2.0
-		var sc := minf(size.x, size.y) / 22.0
-		return c + Vector2(float(p[0]), float(p[1])) * sc
+		return c + Vector2(float(p[0]), float(p[1])) * _scale()
 
 	func _draw() -> void:
 		var sim := panel.sim
 		draw_rect(Rect2(Vector2.ZERO, size), Color(0.08, 0.11, 0.15, 0.9))
 		var c := size / 2.0
+		var sc := _scale()
 		for r in [3, 6, 9]:
-			draw_arc(c, minf(size.x, size.y) / 22.0 * r, 0, TAU, 48, Color(0.25, 0.3, 0.38, 0.5), 1.0)
+			var pts := PackedVector2Array()
+			for i in 49:
+				var a := TAU * i / 48.0
+				pts.append(c + Vector2(cos(a) * sc.x, sin(a) * sc.y) * r)
+			draw_polyline(pts, Color(0.25, 0.3, 0.38, 0.5), 1.0)
 		for id in sim.st["locs"]:
 			if int(sim.st["locs"][id]["state"]) == 0:
 				continue
@@ -134,8 +175,10 @@ class ExploreMap extends Control:
 			# Nombres solo de lo seleccionado o lo pendiente de explorar (evita amontonar texto).
 			if id == panel.selected or st == 1:
 				var nm: String = sim.db["locations"][id]["name"]
-				var off := Vector2(10, -6) if p.x < size.x * 0.6 else Vector2(-10 - nm.length() * UiKit.fs(12) * 0.5, -6)
-				draw_string(font, p + off, nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UiKit.fs(12), Color(0.85, 0.9, 0.95) if st == 1 else UiKit.ACCENT)
+				var fsz := UiKit.fs(12)
+				var tw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz).x
+				var off := Vector2(12, -8) if p.x + 12 + tw < size.x - 4 else Vector2(-12 - tw, -8)
+				draw_string(font, p + off, nm, HORIZONTAL_ALIGNMENT_LEFT, -1, fsz, Color(0.85, 0.9, 0.95) if st == 1 else UiKit.ACCENT)
 		for t in sim.st["teams"]:
 			if t["state"] == "home" or t["loc"] == "":
 				continue

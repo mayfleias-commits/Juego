@@ -39,7 +39,7 @@ func _rebuild() -> void:
 		body.add_child(UiKit.label("Investigando: " + d["name"], 16, UiKit.ACCENT))
 		prog_bar = UiKit.bar(100.0 * float(R["progs"].get(R["cur"], 0)) / (int(d["rp"]) * 1000), UiKit.ACCENT, 320, 12)
 		body.add_child(prog_bar)
-		body.add_child(UiKit.button("Detener", "", func(): Session.cmd({"c": "research", "id": ""}); _sig = ""))
+		body.add_child(UiKit.button("Detener", "", func(): cmd({"c": "research", "id": ""}); _sig = ""))
 	var th := HFlowContainer.new()
 	for br in BRANCHES:
 		var id: String = br[0]

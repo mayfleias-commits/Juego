@@ -1,7 +1,9 @@
 class_name UiKit
 extends RefCounted
 ## Tema y utilidades de interfaz construidos por código.
-## En celular la escala base es menor (960x540) para que los botones midan >= 48 dp.
+## En celular la escala base es 960x540: en una pantalla de 720p cada unidad mide
+## 720/540 = 1,333 px. Un botón de 62 u son ~83 px, unos 49 dp físicos en 5,5" (267 ppi)
+## y en 6,5" 20:9 (270 ppi). El texto nunca baja de 16 u (~12,8 sp en esas pantallas).
 
 const ACCENT := Color(0.95, 0.63, 0.28)
 const ACCENT_D := Color(0.62, 0.38, 0.16)
@@ -20,11 +22,18 @@ static var mobile := false
 static var _icons := {}
 static var theme: Theme
 
+## Alto mínimo de un botón (en celular, >= 48 dp físicos en 720p de 5,5" a 6,5").
 static func btn_h() -> int:
-	return 58 if mobile else 40
+	return 62 if mobile else 40
 
+## Tamaño de fuente: en celular suma 3 y nunca baja de 16 u (>= 12 sp).
 static func fs(base: int) -> int:
-	return base + (3 if mobile else 0)
+	return maxi(base + 3, 16) if mobile else base
+
+## true si el evento es un mouse emulado a partir de un toque (emulate_mouse_from_touch):
+## donde ya se manejan ScreenTouch/ScreenDrag hay que ignorarlo para no procesar dos veces.
+static func is_emulated(ev: InputEvent) -> bool:
+	return ev is InputEventMouse and ev.device == InputEvent.DEVICE_ID_EMULATION
 
 static func icon(name: String) -> Texture2D:
 	if _icons.has(name):

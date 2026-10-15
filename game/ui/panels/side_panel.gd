@@ -34,6 +34,17 @@ func _build() -> void:
 func refresh() -> void:
 	pass
 
+## Manda una orden y, si la simulación la rechaza, muestra el motivo.
+func cmd(c: Dictionary) -> String:
+	var r := Session.cmd(c)
+	if r != "" and hud:
+		hud.toast(r, UiKit.BAD)
+	return r
+
+## Motivo visible bajo un control deshabilitado (en táctil no hay tooltips).
+func why_label(text: String) -> Label:
+	return UiKit.label(text, 13, UiKit.BAD, true)
+
 func row(label_text: String, value: String, col: Color = UiKit.TXT) -> HBoxContainer:
 	var h := UiKit.hbox(8)
 	var l := UiKit.label(label_text, 15, UiKit.TXT_DIM)

@@ -9,7 +9,7 @@ Todo el juego está en español. Hecho con Godot 4.7 (renderer *Compatibility*),
 
 ### PC (Windows 10/11, 64 bits)
 1. Bajá `UltimaBrasa-Windows-x64.zip` desde la sección **Releases** del repositorio.
-2. Descomprimilo en cualquier carpeta.
+2. Descomprimilo en cualquier carpeta. Trae `UltimaBrasa.exe` (el juego completo, en un solo archivo) y `LICENCIAS.txt` (licencias del motor y de sus componentes).
 3. Ejecutá `UltimaBrasa.exe`. Si Windows SmartScreen avisa que la aplicación no está firmada, tocá *Más información → Ejecutar de todos modos*.
 4. En el primer arranque el juego mide tu equipo durante 5 segundos y elige la calidad gráfica (se puede cambiar en *Ajustes*).
 
@@ -21,14 +21,16 @@ Requisitos mínimos: Intel de 7.ª generación con gráficos HD 620, 4 GB de RAM
 3. Instalá y abrí **Última Brasa**. El juego se juega en horizontal.
 
 Requisitos mínimos: 2 GB de RAM, pantalla de 720p, GPU con OpenGL ES 3.0 (PowerVR GE8320, Adreno 505, Mali-G52 o mejor). El APK incluye ARM de 32 y 64 bits.
+En el celular la calidad gráfica se limita a *Muy bajo* o *Bajo*, sin sombras y con 30 FPS como máximo (20 para ahorrar más batería).
 
-Las partidas se guardan solas cada día de juego y cuando la app pasa a segundo plano.
+Las partidas se guardan solas cada día de juego (con las 3 anteriores de respaldo), al salir al menú y cuando la app pasa a segundo plano o se cierra. También se puede guardar a mano desde el menú (o con F5 en PC).
 
 ## Cómo se juega
 
 - **Objetivo:** llegar al final del día 60 con el generador encendido y gente viva. Hay 5 oleadas de frío (−45, −55, −65, −75 y −90 °C). Se gana con 1 a 5 estrellas y un epílogo según tus decisiones.
 - **Se pierde si** la esperanza llega a 0, el descontento a 100, muere toda la población o el generador explota.
-- **Recursos:** carbón, madera, metal, núcleos de vapor (rarísimos, solo explorando), comida cruda y raciones. Todos los depósitos se agotan y los almacenes tienen límite.
+- **Recursos:** carbón, madera, metal, núcleos de vapor, comida cruda y raciones. Todos los depósitos se agotan y los almacenes tienen límite. Los núcleos de vapor son rarísimos: se empieza con 1 de reserva, no se fabrican ni se compran, y solo la exploración da núcleos nuevos.
+- **Producción:** al principio se junta a mano desde las pilas con la *Cuadrilla de acopio* (rinde la mitad que los edificios específicos: extractor, aserradero, mina de hierro). Para explorar el páramo hace falta investigar *Expediciones al páramo* y construir la *Torre de expediciones*.
 
 ### Controles
 | Acción | PC | Celular |
@@ -36,11 +38,12 @@ Las partidas se guardan solas cada día de juego y cuando la app pasa a segundo 
 | Mover la cámara | arrastrar con clic izquierdo, WASD o flechas | arrastrar con un dedo |
 | Zoom | rueda, R/F | pellizcar |
 | Rotar | clic derecho y arrastrar, Q/E | girar con dos dedos |
-| Seleccionar | clic | tocar |
-| Ver información | pasar el mouse | mantener presionado |
+| Seleccionar (abre el panel del edificio) | clic | tocar |
+| Ver información | pasar el mouse: cartel breve con el nombre y el estado del edificio, el generador o la pila; en la barra superior, el detalle de cada recurso. También mantener el clic | mantener presionado; tocar la barra superior |
 | Construir | menú *Construir* (B), clic para colocar; Mayús para seguir colocando | menú *Construir*, mover el mapa bajo el fantasma y *Construir aquí* |
 | Pausa / velocidad | Espacio, 1, 2, 3 | botones arriba a la derecha |
 | Paneles | G generador, L leyes, I investigar, M mapa, H capas, Esc menú | barra inferior |
+| Guardar | F5 o *Menú → Guardar partida* | *Menú → Guardar partida* |
 | Rendimiento | F3 (FPS y memoria) | *Ajustes → Contador de FPS* |
 
 ## Compilar desde el código
@@ -50,9 +53,18 @@ En Linux (probado en Ubuntu 24.04):
 ```bash
 tools/setup_env.sh        # instala Godot 4.7.2, plantillas de exportación, SDK de Android mínimo, Xvfb
 tools/run_tests.sh        # tests unitarios del núcleo de simulación (headless)
-tools/balance.sh 500      # banco de balance con bots (resultados en bench_out/)
-python3 tools/balance_report.py --md   # regenera BALANCE.md
-tools/export.sh           # exporta build/UltimaBrasa-Windows-x64.zip y build/UltimaBrasa.apk
+tools/balance.sh 500      # banco de balance completo (los 23 bots, semillas 1000–1499; resultados en bench_out/)
+python3 tools/balance_report.py --md   # regenera BALANCE.md con lo que haya en bench_out/
+tools/export.sh           # exporta build/UltimaBrasa-Windows-x64.zip (.exe + LICENCIAS.txt) y build/UltimaBrasa.apk
+```
+
+`bench_out/` no se sube al repositorio: en un clon nuevo hay que correr el banco completo antes de regenerar BALANCE.md (si falta algún bot, el informe lo marca como «sin datos» y no cumplido). Con un segundo argumento, `tools/balance.sh` corre solo los bots indicados (por ejemplo `tools/balance.sh 100 "competente ola_1"`). En el contenedor de desarrollo el banco completo de 500 semillas tardó unas 2 horas.
+
+### Publicar una versión nueva
+```bash
+tools/set_version.sh 1.2.0          # versión en project.godot y export_presets.cfg (versionCode de Android +1)
+git commit -am "Versión 1.2.0" && git push
+tools/publish_release.sh v1.2.0     # verifica que la etiqueta coincida, exporta y crea la Release
 ```
 
 Para abrir el proyecto en el editor: `godot -e --path .`
@@ -75,11 +87,11 @@ La carpeta `secrets/` está en `.gitignore` y **nunca se sube al repositorio** (
 | Carpeta | Contenido |
 |---|---|
 | `sim/` | Núcleo de simulación determinista (solo enteros, paso fijo de 1 hora, sin render). |
-| `data/` | Todo el contenido: edificios, leyes, investigación, eventos, pedidos, ubicaciones, clima, balance, textos. |
-| `bots/`, `bench/` | Bots (competente, pasivo, aleatorio, 14 tramposos, variantes) y banco de balance. |
+| `data/` | Todo el contenido: edificios, leyes, investigación, eventos, pedidos, ubicaciones, clima, balance, textos. Formato, unidades y convenciones en [`data/LEEME.md`](data/LEEME.md). |
+| `bots/`, `bench/` | Bots (competente, pasivo, aleatorio, 14 tramposos, 5 variantes que ignoran una oleada y uno que se estanca: 23 en total) y banco de balance. |
 | `tests/` | Tests unitarios headless. |
 | `game/` | Capa visual e interfaz (solo lee el estado de la simulación). |
 | `assets/` | Íconos SVG y sonidos generados por `tools/make_icons.py` y `tools/make_audio.py`. |
-| `tools/` | Scripts de entorno, tests, balance, exportación, capturas y benchmarks. |
+| `tools/` | Scripts de entorno, tests, balance, exportación (con `licencias.gd`), versión (`set_version.sh`), publicación, capturas y benchmarks. |
 
 Ver también: [BALANCE.md](BALANCE.md), [DECISIONES.md](DECISIONES.md), [PROGRESO.md](PROGRESO.md), [RENDIMIENTO.md](RENDIMIENTO.md) y [CREDITOS.md](CREDITOS.md).

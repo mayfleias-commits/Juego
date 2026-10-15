@@ -3,6 +3,8 @@ extends Node3D
 ## Cámara aérea orbital. Mouse/teclado y táctil:
 ## arrastrar = mover, rueda/pellizco = zoom, botón derecho/dos dedos = rotar.
 ## Emite tap (seleccionar), long_press (info) y hover (posición del puntero).
+## El táctil se maneja solo con ScreenTouch/ScreenDrag: los clics de mouse que Godot
+## emula a partir de cada toque (emulate_mouse_from_touch) se ignoran.
 
 signal tapped(screen_pos: Vector2)
 signal long_pressed(screen_pos: Vector2)
@@ -22,7 +24,11 @@ const DIST_MIN := 16.0
 const DIST_MAX := 175.0
 const PITCH_MIN := 0.35
 const PITCH_MAX := 1.38
-const LIMIT := 95.0
+const LIMIT := 66.0 # radio de la cuenca plana (22 casillas de 3 m); afuera sube la ladera
+const CLEAR_CAM := 4.0 # altura mínima de la cámara sobre el terreno (m)
+const CLEAR_RAY := 2.0 # margen del rayo cámara-objetivo sobre la ladera (m)
+const CAM_R_MAX := 138.0 # distancia máxima de la cámara al centro (la malla del terreno llega a 150 m)
+const PINCH_ROT_START := 0.12 # giro (rad) a partir del cual dos dedos rotan además de hacer zoom
 
 var _touches := {}
 var _press_pos := Vector2.ZERO
@@ -33,6 +39,10 @@ var _pressing := false
 var _rot_drag := false
 var _pinch_d := 0.0
 var _pinch_a := 0.0
+var _pinch_rot_acc := 0.0
+var _pinch_rotating := false
+var _height_fn: Callable # altura del terreno en (x, z), la da el World padre
+var _limit := LIMIT
 var input_enabled := true
 var drag_pan_enabled := true # se desactiva mientras se coloca un edificio con mouse
 
@@ -43,22 +53,52 @@ func _ready() -> void:
 	cam.far = 900.0
 	add_child(cam)
 	cam.current = true
+	var w := get_parent()
+	if w:
+		if w.has_method("terrain_height"):
+			_height_fn = Callable(w, "terrain_height")
+		elif w.has_method("_terrain_height"):
+			_height_fn = Callable(w, "_terrain_height")
+		var s = w.get("sim")
+		if s != null and "mradius" in s:
+			_limit = float(s.mradius) * Models.TILE
 	_apply()
 
 func focus_on(p: Vector3) -> void:
-	_t_target = Vector3(p.x, 0, p.z)
+	var flat := Vector2(p.x, p.z)
+	# Un poco más allá del límite del pan se permite (enfocar algo del borde con la hoja abierta).
+	if flat.length() > _limit * 1.25:
+		flat = flat.normalized() * _limit * 1.25
+	_t_target = Vector3(flat.x, 0, flat.y)
+
+## Enfoca p de modo que quede a la altura `frac` de la pantalla (0 = arriba, 0,5 = centro),
+## con el zoom y la inclinación actuales. Sirve para que una hoja inferior no lo tape.
+func focus_on_at(p: Vector3, frac: float) -> void:
+	if absf(frac - 0.5) < 0.01:
+		focus_on(p)
+		return
+	var half := deg_to_rad((cam.fov if cam else 50.0) * 0.5)
+	var a := atan((0.5 - frac) * 2.0 * tan(half)) # ángulo sobre el centro de la vista
+	var pt := clampf(_t_pitch, PITCH_MIN, PITCH_MAX)
+	var dep := clampf(pt - a, 0.1, 1.5) # depresión con la que hay que ver p
+	var x := _t_dist * sin(pt) / tan(dep) - _t_dist * cos(pt)
+	var fwd := Vector3(sin(_t_yaw), 0, cos(_t_yaw))
+	focus_on(p + fwd * x)
 
 func _process(delta: float) -> void:
 	# Teclado
 	var mv := Vector2.ZERO
 	if input_enabled:
-		if Input.is_action_pressed("ui_left") or Input.is_key_pressed(KEY_A):
+		# Las flechas son también las acciones ui_* de la interfaz: si un control tiene el
+		# foco (p. ej. un deslizador de Ajustes) las usa él y la cámara no se mueve.
+		var arrows := get_viewport().gui_get_focus_owner() == null
+		if (arrows and Input.is_action_pressed("ui_left")) or Input.is_key_pressed(KEY_A):
 			mv.x -= 1
-		if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
+		if (arrows and Input.is_action_pressed("ui_right")) or Input.is_key_pressed(KEY_D):
 			mv.x += 1
-		if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
+		if (arrows and Input.is_action_pressed("ui_up")) or Input.is_key_pressed(KEY_W):
 			mv.y -= 1
-		if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
+		if (arrows and Input.is_action_pressed("ui_down")) or Input.is_key_pressed(KEY_S):
 			mv.y += 1
 		if Input.is_key_pressed(KEY_Q):
 			_t_yaw -= delta * 1.6
@@ -84,17 +124,48 @@ func _process(delta: float) -> void:
 func _apply() -> void:
 	if cam == null:
 		return
-	var off := Vector3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw)) * dist
-	cam.global_position = target + off
+	var off := Vector3(cos(pitch) * sin(yaw), sin(pitch), cos(pitch) * cos(yaw)) * _fit_dist()
+	var p := target + off
+	p.y = maxf(p.y, _min_cam_y(target, p))
+	cam.global_position = p
 	cam.look_at(target, Vector3.UP)
+
+## Distancia efectiva: la cámara no sale del terreno modelado (la malla llega a 150 m del
+## centro). Con el zoom al máximo y poca inclinación se acerca sobre la misma línea de vista.
+func _fit_dist() -> float:
+	var hd := Vector2(sin(yaw), cos(yaw))
+	var tf := Vector2(target.x, target.z)
+	var h := cos(pitch) * dist
+	var b := tf.dot(hd)
+	var disc := b * b - tf.length_squared() + CAM_R_MAX * CAM_R_MAX
+	if disc <= 0.0 or h <= 0.001:
+		return dist
+	var h_max := -b + sqrt(disc)
+	if h <= h_max:
+		return dist
+	return dist * maxf(h_max, 1.0) / h
+
+## Altura mínima de la cámara para no quedar dentro de la ladera del cráter y para que
+## el borde no tape el objetivo: se muestrea el terreno a lo largo del rayo.
+func _min_cam_y(t: Vector3, p: Vector3) -> float:
+	if not _height_fn.is_valid():
+		return -INF
+	var need := float(_height_fn.call(p.x, p.z)) + CLEAR_CAM
+	for i in range(1, 8):
+		var f := i / 8.0
+		var h := float(_height_fn.call(lerpf(t.x, p.x, f), lerpf(t.z, p.z, f)))
+		# Solo cuenta la ladera (en la cuenca plana el terreno está a la altura del objetivo).
+		if h > t.y + 0.5:
+			need = maxf(need, t.y + (h + CLEAR_RAY - t.y) / f)
+	return need
 
 func _pan(v: Vector2) -> void:
 	var right := Vector3(cos(_t_yaw), 0, -sin(_t_yaw))
 	var fwd := Vector3(sin(_t_yaw), 0, cos(_t_yaw))
 	_t_target += right * v.x + fwd * v.y
 	var flat := Vector2(_t_target.x, _t_target.z)
-	if flat.length() > LIMIT:
-		flat = flat.normalized() * LIMIT
+	if flat.length() > _limit:
+		flat = flat.normalized() * _limit
 		_t_target = Vector3(flat.x, 0, flat.y)
 
 func _zoom(f: float) -> void:
@@ -103,11 +174,18 @@ func _zoom(f: float) -> void:
 func _unhandled_input(ev: InputEvent) -> void:
 	if not input_enabled:
 		return
+	# Mouse emulado desde un toque: el toque real llega como ScreenTouch/ScreenDrag.
+	# Procesarlo también duplicaba el arrastre y hacía derivar el pellizco.
+	if UiKit.is_emulated(ev):
+		return
 	# ---------------- táctil
 	if ev is InputEventScreenTouch:
 		if ev.pressed:
 			_touches[ev.index] = ev.position
 			if _touches.size() == 1:
+				# Pantalla táctil en PC: el fantasma de construcción sigue al dedo (antes lo
+				# movía el mouse emulado, que ahora se ignora).
+				hovered.emit(ev.position)
 				_begin_press(ev.position)
 			else:
 				_moved = true
@@ -123,6 +201,7 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if ev is InputEventScreenDrag:
 		_touches[ev.index] = ev.position
 		if _touches.size() == 1:
+			hovered.emit(ev.position)
 			if (ev.position - _press_pos).length() > 14.0:
 				_moved = true
 			if _moved:
@@ -142,6 +221,8 @@ func _unhandled_input(ev: InputEvent) -> void:
 					_zoom(1.1)
 			MOUSE_BUTTON_LEFT:
 				if ev.pressed:
+					# Clic en el mundo: la interfaz suelta el foco (las flechas vuelven a la cámara).
+					get_viewport().gui_release_focus()
 					_begin_press(ev.position)
 				else:
 					_end_press(ev.position)
@@ -189,6 +270,8 @@ func _drag_pan(rel: Vector2) -> void:
 
 func _pinch_reset() -> void:
 	var ps := _touches.values()
+	_pinch_rot_acc = 0.0
+	_pinch_rotating = false
 	if ps.size() >= 2:
 		_pinch_d = (ps[0] as Vector2).distance_to(ps[1])
 		_pinch_a = ((ps[1] as Vector2) - (ps[0] as Vector2)).angle()
@@ -201,6 +284,15 @@ func _pinch_update() -> void:
 	var a := ((ps[1] as Vector2) - (ps[0] as Vector2)).angle()
 	if _pinch_d > 1.0 and d > 1.0:
 		_zoom(_pinch_d / d)
-	_t_yaw -= wrapf(a - _pinch_a, -PI, PI)
+	# El pellizco casi nunca es perfectamente recto: la rotación arranca recién cuando
+	# el giro acumulado supera un umbral, así el zoom no hace girar la vista.
+	var da := wrapf(a - _pinch_a, -PI, PI)
+	if _pinch_rotating:
+		_t_yaw -= da
+	else:
+		_pinch_rot_acc += da
+		if absf(_pinch_rot_acc) > PINCH_ROT_START:
+			_pinch_rotating = true
+			_t_yaw -= _pinch_rot_acc
 	_pinch_d = d
 	_pinch_a = a

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Exporta Windows (.exe en .zip) y Android (APK firmado con la clave de release).
+# Exporta Windows (.exe y LICENCIAS.txt en .zip) y Android (APK firmado con la clave de release).
+# La versión sale de project.godot y export_presets.cfg (se cambia con tools/set_version.sh).
 # La clave y su contraseña viven en secrets/ (NO se sube al repositorio).
 # Si no existe, se genera una clave nueva (ver README, sección "Clave de firma").
 set -euo pipefail
@@ -46,7 +47,11 @@ export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$DBG" GODOT_ANDROID_KEYSTORE_DEBUG_USE
 timeout 300 godot --headless --path . --import >/dev/null 2>&1 || true
 echo "== Windows"
 timeout 900 godot --headless --path . --export-release "Windows" build/windows/UltimaBrasa.exe 2>&1 | grep -v -e '^$' | tail -5
-(cd build/windows && rm -f ../UltimaBrasa-Windows-x64.zip && zip -q -9 ../UltimaBrasa-Windows-x64.zip UltimaBrasa.exe)
+# Avisos de licencia del motor y de sus componentes (la MIT de Godot exige que viajen con el juego).
+rm -f build/windows/LICENCIAS.txt
+timeout 120 godot --headless --path . --script res://tools/licencias.gd -- "$(pwd)/build/windows/LICENCIAS.txt" 2>&1 | grep -e '^LICENCIAS' -e 'ERROR' || true
+[ -s build/windows/LICENCIAS.txt ] || { echo "No se pudo generar build/windows/LICENCIAS.txt" >&2; exit 1; }
+(cd build/windows && rm -f ../UltimaBrasa-Windows-x64.zip && zip -q -9 ../UltimaBrasa-Windows-x64.zip UltimaBrasa.exe LICENCIAS.txt)
 ls -la build/UltimaBrasa-Windows-x64.zip
 echo "== Android"
 timeout 900 godot --headless --path . --export-release "Android" build/UltimaBrasa.apk 2>&1 | grep -v -e '^$' | tail -8

@@ -9,6 +9,8 @@ var screen # GameScreen
 var sim: Simulation
 var info: InfoPopup
 var top: PanelContainer
+var top_box: HBoxContainer
+var clock_panel: PanelContainer
 var bottom: PanelContainer
 var panel_host: Control
 var modal_host: Control
@@ -31,6 +33,12 @@ var history: Array = [] # stock de recursos por hora (últimas 25 h)
 var _acc := 0.0
 var _modal_queue: Array = []
 var modal_open := false
+var _top_level := -1 # compactación aplicada a la barra superior (0 completa .. 2 compacta)
+var _note_buf: Array = [] # notas de cada paso de simulación desde el último stepped
+var _note_seen := 0 # cuántas notas de sim.notes ya se tomaron (las órdenes agregan más)
+var hover_tip: PanelContainer
+var hover_lbl: Label
+var _hover_pos := Vector2.ZERO
 
 func setup(scr) -> void:
 	screen = scr
@@ -45,13 +53,14 @@ func setup(scr) -> void:
 	add_child(panel_host)
 	_layout_panel_host()
 	notes_box = UiKit.vbox(4)
-	notes_box.position = Vector2(8, _top_h() + (70 if UiKit.mobile else 8))
+	notes_box.position = Vector2(8, _top_h() + (4 if UiKit.mobile else 8))
 	notes_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(notes_box)
 	toast_box = UiKit.vbox(4)
 	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(toast_box)
 	_build_place_bar()
+	_build_hover_tip()
 	modal_host = Control.new()
 	modal_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(modal_host)
@@ -61,18 +70,32 @@ func setup(scr) -> void:
 	Session.stepped.connect(_on_stepped)
 	Session.speed_changed.connect(_on_speed)
 	Session.day_ended.connect(_on_day_end)
+	# Notas de cada paso: si en un cuadro corren varios pasos, sim.notes solo tiene las del último.
+	sim.stepped.connect(_on_sim_step)
+	_note_seen = sim.notes.size()
 	get_viewport().size_changed.connect(_on_resize)
 	refresh()
 	_on_speed(0 if Session.paused else Session.speed)
+	_on_resize.call_deferred()
 
+## Alto de la barra superior. En celular cada indicador se toca para ver su detalle:
+## con 70 u la zona táctil mide unos 60 u (~48 dp en 720p de 5,5").
 func _top_h() -> int:
-	return 64 if UiKit.mobile else 50
+	return 70 if UiKit.mobile else 50
 
 func _bottom_h() -> int:
 	return 76 if UiKit.mobile else 56
 
 func _on_resize() -> void:
+	_fit_top()
 	_layout_panel_host()
+	_layout_float()
+
+## Borde inferior del grupo reloj/velocidad (arriba a la derecha, bajo la barra).
+func _clock_bottom() -> float:
+	if clock_panel == null:
+		return _top_h()
+	return _top_h() + 4 + maxf(clock_panel.size.y, clock_panel.get_combined_minimum_size().y)
 
 func _layout_panel_host() -> void:
 	var vp := get_viewport_rect().size
@@ -81,11 +104,25 @@ func _layout_panel_host() -> void:
 		panel_host.position = Vector2(0, vp.y * 0.36)
 		panel_host.size = Vector2(vp.x, vp.y * 0.64 - _bottom_h())
 	else:
-		var w := minf(460.0, vp.x * 0.42)
-		panel_host.position = Vector2(vp.x - w - 6, _top_h() + 6)
-		panel_host.size = Vector2(w, vp.y - _top_h() - _bottom_h() - 12)
+		# Panel lateral debajo del grupo reloj/velocidad. Con "Tamaño de la interfaz" alto
+		# el ancho lógico baja: el panel nunca es más angosto que su contenido.
+		var w := minf(460.0, maxf(vp.x * 0.42, 440.0))
+		if current_panel:
+			w = maxf(w, current_panel.get_combined_minimum_size().x)
+		w = minf(w, vp.x - 12.0)
+		var y := _clock_bottom() + 6
+		panel_host.position = Vector2(vp.x - w - 6, y)
+		panel_host.size = Vector2(w, vp.y - y - _bottom_h() - 6)
 	if current_panel:
 		current_panel.size = panel_host.size
+
+## Punto de la pantalla (fracción del alto) donde centrar lo que se enfoca: en celular,
+## en la franja que queda visible entre la barra superior y la hoja inferior.
+func focus_frac() -> float:
+	if not UiKit.mobile or current_panel == null:
+		return 0.5
+	var vp := get_viewport_rect().size
+	return clampf((_top_h() + panel_host.position.y) * 0.5 / maxf(1.0, vp.y), 0.15, 0.5)
 
 # ---------------------------------------------------------------- barra superior
 func _build_top() -> void:
@@ -95,8 +132,10 @@ func _build_top() -> void:
 	add_child(top)
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE)
 	var h := UiKit.hbox(14 if not UiKit.mobile else 8)
+	top_box = h
 	top.add_child(h)
 	# Margen para recortes de pantalla (notch) en celulares.
+	var notch := 0
 	if UiKit.mobile:
 		var safe := DisplayServer.get_display_safe_area()
 		var scr := DisplayServer.screen_get_size()
@@ -104,7 +143,8 @@ func _build_top() -> void:
 			var k := 960.0 / float(scr.x)
 			var pad_l := int(safe.position.x * k)
 			var pad_r := int((scr.x - safe.end.x) * k)
-			top.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.9), 0, Color(0, 0, 0, 0), 0, 8 + maxi(pad_l, pad_r)))
+			notch = maxi(pad_l, pad_r)
+			top.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.9), 0, Color(0, 0, 0, 0), 0, 8 + notch))
 	for r in Simulation.RES:
 		var item := UiKit.hbox(3)
 		item.add_child(UiKit.icon_rect(r, 24))
@@ -129,7 +169,7 @@ func _build_top() -> void:
 	var hope := UiKit.hbox(3)
 	hope.add_child(UiKit.icon_rect("esperanza", 22))
 	var hv := UiKit.vbox(0)
-	lbl_hope = UiKit.label("Esperanza", 12 if not UiKit.mobile else 9, UiKit.TXT_DIM)
+	lbl_hope = UiKit.label("Esperanza", 12, UiKit.TXT_DIM)
 	hv.add_child(lbl_hope)
 	bar_hope = UiKit.bar(50, Color(1.0, 0.65, 0.25), 90 if not UiKit.mobile else 64, 8)
 	hv.add_child(bar_hope)
@@ -138,7 +178,7 @@ func _build_top() -> void:
 	var disc := UiKit.hbox(3)
 	disc.add_child(UiKit.icon_rect("descontento", 22))
 	var dv := UiKit.vbox(0)
-	lbl_disc = UiKit.label("Descontento", 12 if not UiKit.mobile else 9, UiKit.TXT_DIM)
+	lbl_disc = UiKit.label("Descontento", 12, UiKit.TXT_DIM)
 	dv.add_child(lbl_disc)
 	bar_disc = UiKit.bar(20, Color(0.9, 0.32, 0.28), 90 if not UiKit.mobile else 64, 8)
 	dv.add_child(bar_disc)
@@ -152,33 +192,62 @@ func _build_top() -> void:
 	var clk := UiKit.hbox(3)
 	lbl_clock = UiKit.label("Día 1 · 07:00", 16)
 	clk.add_child(lbl_clock)
-	# En celular el reloj y la velocidad van en un grupo aparte arriba a la derecha.
-	var speed_parent: Container = h
-	if UiKit.mobile:
-		var cl := PanelContainer.new()
-		cl.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.85), 8, Color(0, 0, 0, 0), 0, 6))
-		var ch := UiKit.hbox(6)
-		cl.add_child(ch)
-		ch.add_child(clk)
-		add_child(cl)
-		cl.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-		cl.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6)
-		cl.offset_top = _top_h() + 4
-		speed_parent = ch
-	else:
-		h.add_child(clk)
+	# El reloj y la velocidad van en un grupo aparte arriba a la derecha, bajo la barra
+	# (en una sola fila con los recursos y sus tendencias no entran en 1280 px lógicos).
+	clock_panel = PanelContainer.new()
+	clock_panel.add_theme_stylebox_override("panel", UiKit._sb(Color(0.05, 0.07, 0.1, 0.85), 8, Color(0, 0, 0, 0), 0, 6))
+	var ch := UiKit.hbox(6)
+	clock_panel.add_child(ch)
+	ch.add_child(clk)
+	add_child(clock_panel)
+	clock_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 6 + notch)
+	clock_panel.offset_top = _top_h() + 4
+	clk.alignment = BoxContainer.ALIGNMENT_CENTER
 	# Los popups se conectan después de crear `info`
 	call_deferred("_attach_top_tips", pop, hope, disc, temp, clk)
 	for i in 4:
 		var names := ["pausa", "x1", "x2", "x3"]
 		var b := UiKit.button("", names[i], Callable(), 0)
-		b.custom_minimum_size = Vector2(UiKit.btn_h() - 6, UiKit.btn_h() - 8)
+		var bs := UiKit.btn_h() if UiKit.mobile else 36
+		b.custom_minimum_size = Vector2(bs, bs)
 		b.toggle_mode = true
 		var idx := i
 		b.pressed.connect(func(): _set_speed(idx))
 		b.tooltip_text = ["Pausa (Espacio)", "Velocidad x1 (1)", "Velocidad x2 (2)", "Velocidad x3 (3)"][i]
-		speed_parent.add_child(b)
+		ch.add_child(b)
 		speed_btns.append(b)
+
+## Ajusta la barra superior al ancho disponible (también con "Tamaño de la interfaz" > 100 %):
+## 0 = completa; 1 = sin tendencias (siguen en el detalle); 2 = etiquetas y barras compactas.
+func _fit_top() -> void:
+	if top_box == null:
+		return
+	var avail := get_viewport_rect().size.x - 16.0
+	var lvl := 0 if not UiKit.mobile else 1
+	while lvl < 2:
+		_apply_top_level(lvl)
+		if top_box.get_combined_minimum_size().x <= avail:
+			break
+		lvl += 1
+	if lvl == 2:
+		_apply_top_level(2)
+
+func _apply_top_level(lvl: int) -> void:
+	for r in res_trend:
+		res_trend[r].visible = lvl == 0
+	var compact := lvl >= 2 or UiKit.mobile
+	top_box.add_theme_constant_override("separation", 8 if compact else 14)
+	var bw := 64 if compact else 90
+	bar_hope.custom_minimum_size.x = bw
+	bar_disc.custom_minimum_size.x = bw
+	_top_level = lvl
+	_refresh_mood_labels()
+
+func _refresh_mood_labels() -> void:
+	var compact := _top_level >= 2 or UiKit.mobile
+	lbl_hope.text = ("Esperanza %d" if not compact else "Esp. %d") % (sim.st["hope"] / FX.ONE)
+	lbl_disc.text = ("Descontento %d" if not compact else "Desc. %d") % (sim.st["disc"] / FX.ONE)
 
 func _attach_top_tips(pop, hope, disc, temp, clk) -> void:
 	for r in res_labels:
@@ -219,9 +288,15 @@ func _build_bottom() -> void:
 	]
 	for it in items:
 		var key: String = it[2]
-		var b := UiKit.button(it[0] if not UiKit.mobile else "", it[1], func(): open_panel(key), 0)
+		var b := UiKit.button(it[0], it[1], func(): open_panel(key), 0)
 		if UiKit.mobile:
+			# En táctil no hay tooltip: nombre corto debajo del ícono.
 			b.custom_minimum_size = Vector2(UiKit.btn_h() + 26, UiKit.btn_h())
+			b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+			b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			b.add_theme_constant_override("icon_max_width", 26)
+			b.add_theme_font_size_override("font_size", UiKit.fs(12))
+			b.add_theme_constant_override("h_separation", 0)
 		b.tooltip_text = it[0]
 		b.name = "btn_" + key
 		h.add_child(b)
@@ -239,6 +314,40 @@ func show_place_bar(show: bool) -> void:
 		place_bar.reset_size()
 		var vp := get_viewport_rect().size
 		place_bar.position = Vector2((vp.x - place_bar.size.x) / 2, vp.y - _bottom_h() - place_bar.size.y - 12)
+	_layout_float()
+
+# ---------------------------------------------------------------- detalle al pasar el mouse (PC)
+func _build_hover_tip() -> void:
+	hover_tip = PanelContainer.new()
+	hover_tip.add_theme_stylebox_override("panel", UiKit._sb(UiKit.BG2, 6, UiKit.ACCENT_D, 1, 8))
+	hover_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hover_lbl = UiKit.label("", 14)
+	hover_tip.add_child(hover_lbl)
+	hover_tip.visible = false
+	add_child(hover_tip)
+
+## Muestra un detalle breve junto al puntero (nombre y estado de lo que hay debajo).
+func show_hover(text: String, pos: Vector2) -> void:
+	_hover_pos = pos
+	if text == "" or modal_open:
+		hover_tip.visible = false
+		return
+	if hover_lbl.text != text:
+		hover_lbl.text = text
+		hover_tip.reset_size()
+	var vp := get_viewport_rect().size
+	var sz := hover_tip.get_combined_minimum_size()
+	var p := pos + Vector2(16, 18)
+	if p.x + sz.x > vp.x - 4:
+		p.x = pos.x - sz.x - 10
+	if p.y + sz.y > vp.y - _bottom_h() - 4:
+		p.y = pos.y - sz.y - 10
+	hover_tip.position = p
+	hover_tip.visible = true
+
+func hide_hover() -> void:
+	if hover_tip:
+		hover_tip.visible = false
 
 # ---------------------------------------------------------------- paneles
 func open_panel(key: String, arg = null) -> void:
@@ -280,6 +389,8 @@ func open_panel(key: String, arg = null) -> void:
 	p.size = panel_host.size
 	p.build()
 	p.refresh()
+	_layout_panel_host()
+	_layout_float()
 
 func close_panel() -> void:
 	if current_panel:
@@ -287,6 +398,7 @@ func close_panel() -> void:
 			screen.deselect()
 		current_panel.queue_free()
 		current_panel = null
+		_layout_float()
 
 func cycle_overlay() -> void:
 	overlay_mode += 1
@@ -332,6 +444,21 @@ const NOTE_ICONS := {"alerta": "alerta", "muerte": "muerte", "evento": "pedido",
 const NOTE_SOUNDS := {"muerte": "campana", "oleada": "oleada", "evento": "evento", "pedido": "evento",
 	"investigacion": "investigacion", "ley": "ley", "obra": "obra", "alerta": "evento"}
 
+## Texto de una nota. Los eventos informativos (sin decisión) muestran también qué pasó
+## y su efecto, que se aplicó en el acto.
+func _note_text(n: Dictionary) -> String:
+	var t: String = n["text"]
+	if int(n.get("info", 0)) == 1 and n.has("event"):
+		var ev: Dictionary = sim.db["events"].get(n["event"], {})
+		if not ev.is_empty():
+			t = "%s: %s" % [ev.get("title", t), ev.get("text", "")]
+			var ch: Array = ev.get("choices", [])
+			if ch.size() > 0:
+				var eff := Fmt.effects((ch[0] as Dictionary).get("effects", []))
+				if eff != "":
+					t += " (%s)" % eff
+	return t
+
 func add_note(n: Dictionary) -> void:
 	var k: String = n.get("kind", "")
 	if k == "rechazo":
@@ -339,6 +466,7 @@ func add_note(n: Dictionary) -> void:
 		return
 	if NOTE_SOUNDS.has(k):
 		Audio.play(NOTE_SOUNDS[k], -4.0 if k in ["oleada", "muerte"] else -8.0)
+	var info_ev := int(n.get("info", 0)) == 1
 	var row := PanelContainer.new()
 	row.add_theme_stylebox_override("panel", UiKit._sb(Color(0.06, 0.08, 0.11, 0.82), 6, Color(0, 0, 0, 0), 0, 6))
 	var h := UiKit.hbox(6)
@@ -348,15 +476,19 @@ func add_note(n: Dictionary) -> void:
 		col = Color(1.0, 0.75, 0.6)
 	elif k == "oleada":
 		col = UiKit.COLD
-	var l := UiKit.label(n["text"], 14, col, true)
+	var l := UiKit.label(_note_text(n), 14, col, true)
 	l.custom_minimum_size = Vector2(320 if not UiKit.mobile else 380, 0)
 	h.add_child(l)
 	row.add_child(h)
-	row.mouse_filter = Control.MOUSE_FILTER_STOP
+	# Solo se puede tocar si lleva a un edificio; si no, no le roba toques al mundo ni a la hoja.
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if n.has("bid"):
+		row.mouse_filter = Control.MOUSE_FILTER_STOP
 		var bid: int = n["bid"]
 		row.gui_input.connect(func(ev):
-			if (ev is InputEventMouseButton and ev.pressed) or (ev is InputEventScreenTouch and ev.pressed):
+			if UiKit.is_emulated(ev):
+				return
+			if (ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT) or (ev is InputEventScreenTouch and ev.pressed):
 				screen.select_building(bid, true))
 	notes_box.add_child(row)
 	notes_box.move_child(row, 0)
@@ -366,9 +498,10 @@ func add_note(n: Dictionary) -> void:
 		notes_box.remove_child(last)
 		last.queue_free()
 	var tw := row.create_tween()
-	tw.tween_interval(9.0)
+	tw.tween_interval(14.0 if info_ev else 9.0)
 	tw.tween_property(row, "modulate:a", 0.0, 1.0)
 	tw.tween_callback(row.queue_free)
+	_layout_float.call_deferred()
 
 func toast(text: String, col: Color = UiKit.TXT) -> void:
 	var p := PanelContainer.new()
@@ -385,13 +518,38 @@ func toast(text: String, col: Color = UiKit.TXT) -> void:
 	tw.tween_callback(p.queue_free)
 
 # ---------------------------------------------------------------- actualización
-func _on_stepped(notes: Array) -> void:
-	for n in notes:
-		add_note(n)
-		if n.get("kind", "") == "evento" and n.has("inst"):
-			screen.on_event(n)
-		if n.get("kind", "") == "pedido" and n.has("id") and not n.has("ok"):
-			screen.on_request()
+## Cada paso de simulación: guarda sus notas (el siguiente paso las borra de sim.notes).
+func _on_sim_step() -> void:
+	_note_buf.append_array(sim.notes)
+	if _note_buf.size() > 40:
+		_note_buf = _note_buf.slice(_note_buf.size() - 40)
+	_note_seen = sim.notes.size()
+
+## Notas que dejó una orden del jugador (ley promulgada, expedición, eventos que dispara
+## una ley...). Se llama desde GameScreen al recibir Session.commanded.
+func flush_command_notes() -> void:
+	var ns: Array = sim.notes
+	if _note_seen > ns.size():
+		_note_seen = 0
+	var fresh := ns.slice(_note_seen)
+	_note_seen = ns.size()
+	for n in fresh:
+		# Los rechazos ya los muestra quien dio la orden.
+		if n.get("kind", "") != "rechazo":
+			_handle_note(n)
+
+func _handle_note(n: Dictionary) -> void:
+	add_note(n)
+	if n.get("kind", "") == "evento" and n.has("inst"):
+		screen.on_event(n)
+	if n.get("kind", "") == "pedido" and n.has("id") and not n.has("ok"):
+		screen.on_request()
+
+func _on_stepped(_notes: Array) -> void:
+	var buf := _note_buf
+	_note_buf = []
+	for n in buf:
+		_handle_note(n)
 	var snap := {}
 	for r in Simulation.RES:
 		snap[r] = sim.res(r)
@@ -401,28 +559,33 @@ func _on_stepped(notes: Array) -> void:
 	refresh()
 
 var _day_card: PanelContainer
+var _card_left := 0.0 # segundos que le quedan a la tarjeta (solo corren mientras se ve)
+var _card_ready := false # ya se acomodó su contenido (los textos con ajuste necesitan un cuadro)
 
 ## Resumen breve al final de cada día (no bloquea; desaparece solo).
 func _on_day_end(rep: Dictionary) -> void:
+	# Una vez por día se intenta volver a la barra completa (las tendencias pudieron achicarse).
+	_fit_top()
 	if _day_card and is_instance_valid(_day_card):
 		_day_card.queue_free()
 	var c := PanelContainer.new()
 	c.add_theme_stylebox_override("panel", UiKit._sb(Color(0.06, 0.08, 0.12, 0.92), 8, UiKit.ACCENT_D, 1, 12))
+	c.custom_minimum_size = Vector2(430 if UiKit.mobile else 420, 0)
 	var v := UiKit.vbox(4)
 	c.add_child(v)
 	v.add_child(UiKit.label("Fin del día %d" % int(rep["day"]), 18, UiKit.ACCENT))
 	var deaths: int = rep["deaths"]
 	var line := "Mínima %d °C · %d personas · %d enfermos" % [int(rep["tmin"]), int(rep["pop"]), int(rep["sick"])]
 	if deaths > 0:
-		line += " · %d muertes" % deaths
+		line += " · " + Fmt.pl(deaths, "muerte", "muertes")
 	if int(rep["arrived"]) > 0:
 		line += " · llegaron %d" % int(rep["arrived"])
-	v.add_child(UiKit.label(line, 15))
+	v.add_child(UiKit.label(line, 15, UiKit.TXT, true))
 	var res_line := ""
 	for r in ["carbon", "madera", "metal", "raciones"]:
 		var net: int = (int(rep["prod"].get(r, 0)) - int(rep["cons"].get(r, 0))) / FX.ONE
-		res_line += "%s %s   " % [UiKit.RES_NAMES[r], Fmt.sgn(net)]
-	v.add_child(UiKit.label(res_line, 14, UiKit.TXT_DIM))
+		res_line += "%s\u00a0%s   " % [UiKit.RES_NAMES[r], Fmt.sgn(net)] # sin corte entre nombre y valor
+	v.add_child(UiKit.label(res_line.strip_edges(), 14, UiKit.TXT_DIM, true))
 	var h := UiKit.hbox(8)
 	h.add_child(UiKit.button("Ver reporte", "reporte", func():
 		open_panel("report")
@@ -434,24 +597,127 @@ func _on_day_end(rep: Dictionary) -> void:
 	xb.custom_minimum_size = Vector2(UiKit.btn_h(), UiKit.btn_h())
 	h.add_child(xb)
 	v.add_child(h)
+	# Primero se arma fuera de la pantalla: los textos con ajuste de línea toman su alto real
+	# recién después de un par de cuadros.
+	c.modulate.a = 0.0
+	c.position = Vector2(-4000, -4000)
 	add_child(c)
 	move_child(c, modal_host.get_index()) # debajo de los diálogos
 	_day_card = c
+	_card_left = 11.0
+	_card_ready = false
 	await get_tree().process_frame
-	if not is_instance_valid(c):
+	await get_tree().process_frame
+	if is_instance_valid(c) and c == _day_card:
+		_card_ready = true
+		_layout_float()
+
+func _live_card() -> PanelContainer:
+	if _day_card and is_instance_valid(_day_card) and not _day_card.is_queued_for_deletion() and _card_ready:
+		return _day_card
+	return null
+
+## Alto de una fila de notificación (si está oculta, su alto mínimo ya acomodado).
+func _row_h(row: Control) -> float:
+	return row.size.y if row.visible and row.size.y > 0.0 else row.get_combined_minimum_size().y
+
+## Ubica la tarjeta del día y las notificaciones para que no tapen la hoja inferior,
+## el panel lateral, el tutorial, el grupo del reloj ni la barra de colocación.
+func _layout_float() -> void:
+	if notes_box == null:
 		return
 	var vp := get_viewport_rect().size
-	c.position = Vector2((vp.x - c.size.x) / 2, _top_h() + (70 if UiKit.mobile else 10))
-	var tw := c.create_tween()
-	tw.tween_interval(10.0)
-	tw.tween_property(c, "modulate:a", 0.0, 1.0)
-	tw.tween_callback(c.queue_free)
+	var card := _live_card()
+	var placing: bool = screen != null and screen.placing != ""
+	var tut_rect := Rect2()
+	if screen and screen.tutorial and screen.tutorial.box and screen.tutorial.box.is_visible_in_tree():
+		tut_rect = screen.tutorial.box.get_global_rect()
+	var limit := vp.y - _bottom_h() - 8.0
+	if place_bar.visible:
+		limit = minf(limit, place_bar.position.y - 6.0)
+	var x := 8.0
+	var y := 0.0
+	if UiKit.mobile:
+		if current_panel:
+			limit = minf(limit, panel_host.position.y - 4.0)
+		# Columna: a la izquierda; si el tutorial ocupa ese lugar, a la derecha bajo el reloj.
+		var right := tut_rect.size.x > 0
+		var nw := maxf(notes_box.size.x, notes_box.get_combined_minimum_size().x)
+		x = vp.x - nw - 8.0 if right else 8.0
+		y = (_clock_bottom() + 6.0) if right else _top_h() + 4.0
+		if card:
+			var cs := card.get_combined_minimum_size()
+			var fits := not placing and y + cs.y <= limit
+			card.visible = fits
+			if fits:
+				card.size = cs
+				card.position = Vector2(vp.x - cs.x - 8.0 if right else x, y)
+				y += cs.y + 6.0
+	else:
+		y = _top_h() + 8.0
+		if tut_rect.size.x > 0:
+			limit = minf(limit, tut_rect.position.y - 6.0)
+		if card:
+			# Centrada, sin tapar la columna de notificaciones, el reloj ni el panel lateral:
+			# primero junto al reloj; si no entra, debajo de él; si tampoco, contra el panel
+			# (más angosta) y las notificaciones bajan.
+			var left := 8.0
+			if notes_box.get_child_count() > 0:
+				left = 16.0 + maxf(notes_box.size.x, notes_box.get_combined_minimum_size().x)
+			var right_b := (panel_host.position.x if current_panel else vp.x) - 8.0
+			var right_a := minf(right_b, clock_panel.position.x - 8.0)
+			var want := 420.0
+			var cy := _top_h() + 10.0
+			var r := right_a
+			if right_a - left < want:
+				cy = _clock_bottom() + 6.0
+				r = right_b
+			var lo := left
+			if r - left < 300.0:
+				lo = 8.0
+			var room_w := r - lo
+			card.visible = room_w >= 300.0
+			if card.visible:
+				var w := minf(want, room_w)
+				if absf(card.custom_minimum_size.x - w) > 1.0:
+					card.custom_minimum_size.x = w
+				var cs2 := card.get_combined_minimum_size()
+				card.size = cs2
+				var cx := clampf((vp.x - cs2.x) / 2.0, lo, maxf(lo, r - cs2.x))
+				card.position = Vector2(cx, cy)
+				if cx < left:
+					y = maxf(y, cy + cs2.y + 6.0)
+	notes_box.position = Vector2(x, y)
+	# Notificaciones: solo las que entran enteras por encima del límite (las más nuevas primero).
+	var ny := y
+	var room := true
+	for row in notes_box.get_children():
+		var rc := row as Control
+		var rh := _row_h(rc)
+		room = room and ny + rh <= limit
+		rc.visible = room
+		ny += rh + 4.0
 
 func _process(delta: float) -> void:
 	_acc += delta
+	# La tarjeta del día solo descuenta tiempo mientras se ve.
+	var card := _live_card()
+	if card and card.visible:
+		_card_left -= delta
+		card.modulate.a = clampf(_card_left, 0.0, 1.0) if _card_left < 1.0 else minf(1.0, card.modulate.a + delta * 6.0)
+		if _card_left <= 0.0:
+			card.queue_free()
+			_day_card = null
+	# El detalle del puntero se va si el mouse pasó a la interfaz (ya no llegan hovers del mundo).
+	if hover_tip.visible and get_viewport().get_mouse_position().distance_to(_hover_pos) > 2.0:
+		hover_tip.visible = false
 	if _acc > 0.25:
 		_acc = 0.0
-		if current_panel:
+		if current_panel and not UiKit.mobile and current_panel.get_combined_minimum_size().x > panel_host.size.x:
+			_layout_panel_host()
+		_layout_float()
+		# No reconstruir el panel mientras hay un clic o toque en curso (se perdería el botón).
+		if current_panel and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			current_panel.refresh()
 
 func refresh() -> void:
@@ -472,14 +738,17 @@ func refresh() -> void:
 	lbl_pop.text = "%d" % sim.total_pop() + ("  ✚%d" % sim.total_sick() if sim.total_sick() > 0 else "")
 	bar_hope.value = sim.st["hope"] / 1000.0
 	bar_disc.value = sim.st["disc"] / 1000.0
-	lbl_hope.text = ("Esperanza %d" if not UiKit.mobile else "Esp. %d") % (sim.st["hope"] / FX.ONE)
-	lbl_disc.text = ("Descontento %d" if not UiKit.mobile else "Desc. %d") % (sim.st["disc"] / FX.ONE)
+	_refresh_mood_labels()
 	var t := sim.outdoor()
 	lbl_temp.text = Fmt.temp(t)
 	lbl_temp.add_theme_color_override("font_color", UiKit.COLD if t > -40 else Color(0.6, 0.6, 1.0))
-	lbl_clock.text = Fmt.day_hour(sim) + (" · OLEADA" if sim.in_wave() else "")
+	var over := sim.day() > int(sim.B["days"])
+	lbl_clock.text = Fmt.day_hour(sim) + (" · OLEADA" if sim.in_wave() and not over else "")
 	if UiKit.mobile:
-		lbl_clock.text = "D%d %02d:00%s" % [sim.day(), sim.hour(), " ❄" if sim.in_wave() else ""]
+		lbl_clock.text = "D%d %s" % [mini(sim.day(), int(sim.B["days"])), "fin" if over else "%02d:00%s" % [sim.hour(), " ❄" if sim.in_wave() else ""]]
+	# Las tendencias cambian el ancho de la barra: volver a ajustarla si hace falta.
+	if _top_level >= 0 and top_box.get_combined_minimum_size().x > get_viewport_rect().size.x - 16.0:
+		_fit_top()
 
 # ---------------------------------------------------------------- textos de detalle
 func _res_tip(r: String) -> String:
@@ -495,10 +764,12 @@ func _res_tip(r: String) -> String:
 	if history.size() >= 2:
 		s += "Últimas %d h: %s\n" % [history.size() - 1, Fmt.sgn((sim.res(r) - int(history[0][r])) / FX.ONE)]
 	if r == "carbon":
-		var per := sim.gen_coal_per_hour() / FX.ONE
-		s += "Generador: %d por hora" % per
-		if per > 0:
-			s += " (alcanza ~%d h)" % (v / maxi(1, per))
+		var burn := Fmt.coal_burn(sim)
+		var tot: int = burn["total"]
+		s += "Consumo actual: %s por hora" % FX.fmt(tot, 1)
+		if tot > 0:
+			s += " (alcanza ~%d h)" % (sim.res("carbon") / maxi(1, tot))
+		s += "\n" + Fmt.coal_burn_detail(burn)
 	if int(sim.st["wasted"][r]) > 0:
 		s += "\n[color=#ffb347]Perdido por falta de espacio: %d[/color]" % (int(sim.st["wasted"][r]) / FX.ONE)
 	return s
@@ -519,8 +790,14 @@ func _pop_tip() -> String:
 
 const CAUSE_NAMES := {"base": "Base (cansancio del invierno)", "sin_techo": "Gente sin techo", "frio": "Viviendas frías",
 	"hambre": "Hambre", "enfermos": "Enfermos sin atender", "cuerpos": "Cuerpos sin enterrar", "muertes": "Muertes recientes",
-	"oleada": "Oleada de frío", "turnos": "Turnos largos", "generador": "Generador apagado", "edificios": "Edificios (fe, orden, ocio)",
-	"leyes": "Leyes", "bienestar": "Nada falta"}
+	"oleada": "Oleada de frío", "turnos": "Turnos largos (pesan hasta 24 h después de las horas extra)", "generador": "Generador apagado", "edificios": "Edificios (fe, orden, ocio)",
+	"leyes": "Leyes", "bienestar": "Nada falta", "eventos": "Eventos", "pedidos": "Pedidos del pueblo",
+	"llegadas": "Llegadas", "investigacion": "Investigación"}
+
+## Golpes inmediatos de esperanza/descontento (los que guarda cada reporte por causa).
+const HIT_NAMES := {"eventos": "Eventos", "leyes": "Leyes promulgadas", "pedidos": "Pedidos del pueblo",
+	"investigacion": "Investigaciones terminadas", "oleada": "Oleada superada", "muertes": "Muertes",
+	"hambre": "Hambre", "llegadas": "Llegada de sobrevivientes"}
 
 func _mood_tip(hope: bool) -> String:
 	var m: Dictionary = sim.st.get("mood", {})
@@ -547,8 +824,9 @@ func _temp_tip() -> String:
 		s += "[color=#9fd0ff]Oleada en curso: %s[/color]\n" % w["name"]
 	s += "Pronóstico:\n"
 	for f in sim.forecast(5):
-		s += "Día %d: %d / %d °C%s\n" % [f[0], f[1], f[2], "  [color=#9fd0ff]OLEADA[/color]" if int(f[3]) == 1 else ""]
+		s += "Día %d: %d / %d °C%s\n" % [f[0], f[1], f[2], "  [color=#9fd0ff]OLEADA[/color]" if Fmt.wave_announced(sim, int(f[0])) else ""]
+	# La próxima oleada solo se nombra cuando la ciudad ya recibió el aviso (2-3 días antes).
 	var nw := sim.wave_next(sim.day())
-	if not nw.is_empty():
-		s += "Próxima oleada: %s, día %d" % [nw["name"], int(nw["start"])]
-	return s
+	if not nw.is_empty() and Fmt.wave_known(sim, nw):
+		s += "[color=#9fd0ff]Se acerca %s: llega el día %d[/color]" % [nw["name"], int(nw["start"])]
+	return s.strip_edges()

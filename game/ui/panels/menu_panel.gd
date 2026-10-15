@@ -8,22 +8,30 @@ func _title() -> String:
 func _build() -> void:
 	body.add_child(UiKit.button("Guardar partida", "ok", func():
 		if Session.save_game("manual"):
-			hud.toast("Partida guardada.")))
+			hud.toast("Partida guardada.")
+		else:
+			hud.toast("No se pudo guardar: %s" % Session.last_error, UiKit.BAD)))
 	body.add_child(UiKit.button("Cargar partida guardada", "", func(): _load_list()))
 	body.add_child(UiKit.button("Ajustes", "menu", func(): hud.open_panel("settings")))
 	body.add_child(UiKit.button("Ayuda / tutorial", "pedido", func(): hud.screen.show_help()))
 	body.add_child(UiKit.button("Salir al menú principal", "cerrar", func():
 		hud.push_modal(ConfirmDialog.make("¿Salir al menú?", "Se guardará automáticamente.", func():
-			Session.save_game("auto")
+			Session.save_on_exit()
 			hud.screen.exit_to_menu()))))
 	body.add_child(UiKit.sep())
-	body.add_child(UiKit.label("Atajos (PC): Espacio pausa · 1/2/3 velocidad · WASD/flechas mover · Q/E rotar · rueda o R/F zoom · B construir · G generador · L leyes · I investigar · M mapa · H capas · F3 rendimiento · Esc cancelar", 13, UiKit.TXT_DIM, true))
+	body.add_child(UiKit.label("Atajos (PC): Espacio pausa · 1/2/3 velocidad · WASD/flechas mover · Q/E rotar · rueda o R/F zoom · B construir · G generador · L leyes · I investigar · M mapa · H capas · F3 rendimiento · F5 guardar · Esc cancelar · pasar el mouse sobre un edificio muestra su detalle y el clic abre su panel", 13, UiKit.TXT_DIM, true))
 
 func _load_list() -> void:
 	UiKit.clear(body)
-	for s in Session.list_saves():
+	body.add_child(UiKit.label("Cargar partida", 17, UiKit.ACCENT))
+	var saves := Session.list_saves()
+	if saves.is_empty():
+		body.add_child(UiKit.label("No hay partidas guardadas.", 15, UiKit.TXT_DIM, true))
+	for s in saves:
 		var slot: String = s["slot"]
-		body.add_child(UiKit.button("%s · día %d · %d personas · %s" % [slot, int(s["day"]), int(s["pop"]), str(s["date"]).replace("T", " ")], "", func():
+		body.add_child(MainMenu.save_button(s, func():
 			if Session.load_game(slot):
-				hud.screen.reload_from_session()))
+				hud.screen.reload_from_session()
+			else:
+				hud.toast("No se pudo cargar: %s" % Session.last_error, UiKit.BAD)))
 	body.add_child(UiKit.button("Volver", "cerrar", func(): hud.open_panel("menu")))
