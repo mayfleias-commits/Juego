@@ -551,6 +551,22 @@ func test_descontento_por_turno_cuenta_lo_trabajado() -> void:
 			seen_at_19 = (s2.st["mood"]["dp"] as Dictionary).has("turnos")
 	eq(int(hb.get("trip_ret", 0)), 22, "los cazadores salieron con turno largo")
 	check(seen_at_19, "los cazadores afuera después de las 18 cuentan como turno largo")
+	# Cazadores con turno normal: vuelven a las 18 y eso no es hora extra.
+	var s3 := fresh(14)
+	_with_laws(s3, ["ley_jornada"])
+	var p3 := free_spot(s3, "cazadores")
+	var hb3 := place_done(s3, "cazadores", p3.x, p3.y)
+	s3.command({"c": "staff", "bid": hb3["id"], "o": 6})
+	var went_out := false
+	var any_turnos := false
+	for i in 24 * 3:
+		s3.step()
+		if int(hb3.get("trip_ret", 0)) == 18:
+			went_out = true
+		if (s3.st["mood"]["dp"] as Dictionary).has("turnos"):
+			any_turnos = true
+	check(went_out, "los cazadores de turno normal salieron a cazar")
+	check(not any_turnos, "cazar con turno normal no genera descontento por turnos")
 
 func test_automata_parado_no_gasta_carbon() -> void:
 	var s := fresh()

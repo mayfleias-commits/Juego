@@ -222,8 +222,10 @@ func _hunt(b: Dictionary, d: Dictionary, h: int) -> void:
 		# Los que se reasignan durante la partida de caza la abandonan (no cazan
 		# y trabajan en otro lado a la vez).
 		b["trip"] = mini(int(b["trip"]), int(b["o"]))
-		if int(b["trip"]) > 0 and h >= 18:
-			b["sx1"] = st["tick"] # afuera después de las 18: turno largo trabajado
+		# Solo la partida de turno largo (vuelve a las 22) trabaja después de las 18:
+		# la de turno normal vuelve justo a las 18 y no cuenta como hora extra.
+		if int(b["trip"]) > 0 and h >= 18 and int(b.get("trip_ret", 18)) > 18:
+			b["sx1"] = st["tick"]
 	if h == 8 and int(b.get("trip", 0)) == 0:
 		var hunters: int = bat_arrived3(b)[0]
 		hunters = mini(hunters, int(b["o"]))

@@ -44,6 +44,7 @@ Registro de decisiones tomadas de forma autónoma (fecha: 2026-10-13 en adelante
 - Sendas de propósito: **Orden** y **Fe**, 9 leyes cada una (las 2 últimas, extremas).
 
 ## Economía y balance (fase 2)
+- **Reservas iniciales de comida (v1.1):** 100 de comida cruda y 150 raciones (antes 80 y 120). Las correcciones de la auditoría (viaje por clase, memoria de turnos, caza interrumpida, eventos nuevos con penalidades) hicieron el arranque más duro (el competente bajó de 71 % a 63 % de victorias; las pruebas por separado muestran que cada cambio aporta entre 1,5 y 3 puntos, sin una causa única); se compensó con más comida inicial, que es la reserva que más pesa en los primeros días antes de las oleadas, en lugar de aflojar las reglas arregladas.
 - **Población inicial 80** (50 obreros, 15 ingenieros, 15 niños): con menos gente el arranque era imposible para el bot competente.
 - **Tasas:** cuadrilla de acopio 1,0 carbón / 0,5 madera / 0,3 metal por trabajador-hora; extractor 2,0, aserradero 1,0, mina de hierro 0,6 (exactamente el doble).
 - **Generador:** 4 / 6 / 9 / 12 de carbón por hora según potencia; el radio multiplica 1,0 / 1,25 / 1,5 / 1,75; calor +8 °C por nivel, sobrecarga +8 °C.
