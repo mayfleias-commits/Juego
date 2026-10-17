@@ -19,17 +19,11 @@
 | 5 | Exploración, eventos, sendas, finales (UI y contenido) | ✅ Terminada (18 ubicaciones, 80 eventos —49 diarios, 8 encadenados por followup, 13 de ubicación, 7 de ley y 3 de oleada—, 15 pedidos, sendas Orden/Fe, epílogo y estrellas) |
 | 6 | Audio, tutorial y pulido | ✅ Terminada |
 | 7 | Rendimiento/memoria, exports Windows + Android, Release | ✅ Terminada: RENDIMIENTO.md, `tools/export.sh`, Release `v1.0.0` publicada con `tools/publish_release.sh` |
-| 8 | Auditoría post-release contra requisitos y correcciones (v1.1.0) | 🔄 En curso |
+| 8 | Auditoría post-release contra requisitos y correcciones (v1.1.0) | ✅ Terminada: banco de 500 semillas × 23 bots con todos los criterios cumplidos; Release v1.1.0 |
 
-## Fase 8: auditoría v1.1 — qué falta
-Se auditó la v1.0.0 contra los requisitos y se corrigieron los hallazgos (simulación, bots tramposos, contenido y nombres propios, interfaz, ajustes del celular, guardado, exportación y documentación; las decisiones están en DECISIONES.md, sección «Auditoría v1.1»). Para cerrar la fase falta:
-1. **Banco de balance completo** (`tools/balance.sh 500`, los 23 bots) porque cambió la simulación, y regenerar BALANCE.md con `python3 tools/balance_report.py --md`. Revisar en especial la oleada 1 (en la v1.0 ignorarla costaba solo 6,6 puntos, apenas por encima del umbral de 5).
-2. **Re-medir rendimiento** con la build nueva (`tools/perf_measure.sh`) y actualizar las tablas de RENDIMIENTO.md (cambiaron la nieve de Alto, el tope de FPS de Bajo/Muy bajo en PC y algunos materiales).
-3. **Release v1.1.0:** la versión ya está puesta (1.1.0 en `project.godot` y en `export_presets.cfg`, versionCode 2); después del commit, `tools/publish_release.sh v1.1.0`. Comprobar que el `.zip` traiga `LICENCIAS.txt` y que el `.exe` muestre el ícono y «Última Brasa» en sus propiedades.
-
-## Resultados clave (v1.0.0; se actualizan al cerrar la fase 8)
-- Balance (BALANCE.md, 500 semillas): competente 71,0 % de victorias; pasivo y aleatorio 0 %; sobrantes con mediana 11–20 % y p90 ≤ 25 %; 14 exploits sin ventaja; ignorar cualquier oleada baja las victorias entre 6,6 y 71 puntos; estancarse desde el día 15 = 0 %.
-- Rendimiento (RENDIMIENTO.md): 46 llamadas de dibujo / 13–18 k triángulos en presets de celular, 137 / 71–95 k en PC; RSS 303–412 MB; APK 53 MB, zip de Windows ≈ 39 MB.
+## Resultados clave (v1.1.0)
+- Balance (BALANCE.md, 500 semillas × 23 bots): competente 71,2 % de victorias; pasivo y aleatorio 0 %; sobrantes con mediana 13–20 % y p90 ≤ 24 %; los 14 exploits sin ventaja; ignorar una oleada baja las victorias entre 9,6 y 71 puntos; estancarse desde el día 15 = 0 %.
+- Rendimiento: las cifras de RENDIMIENTO.md son de la v1.0.0 (llamadas de dibujo, triángulos y memoria) y hay que re-medirlas con la build 1.1.0 (`tools/perf_measure.sh`).
 
 ## Pendiente / no verificable en este entorno
 - FPS en hardware real (PC con Intel HD 620 y celular Helio G25/G35): el contenedor no tiene GPU. Se mide con *Ajustes → Ejecutar benchmark* (ver RENDIMIENTO.md, «Cómo verificar los objetivos»).
