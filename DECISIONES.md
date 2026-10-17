@@ -53,6 +53,7 @@ Registro de decisiones tomadas de forma autónoma (fecha: 2026-10-13 en adelante
 - **Congelamiento:** quien pasa la hora en su casa (o sin techo) a nivel *Congelante* tiene 0,3 %/h de morir; *Muy frío* 0,03 %/h. El trabajo al aire libre enferma pero no mata directamente.
 - **La caza se suspende durante las oleadas** (además de no salir con menos de −42 °C).
 - **Perfiles de las oleadas 1 y 2** con días centrales más fríos (los picos siguen siendo −45 y −55 °C).
+- **Oleada 1 (v1.1):** perfil diario −36/−39/−39 (antes −33/−39/−37), mismo pico de −45 °C. Con la comida inicial mayor, ignorar la primera oleada ya no costaba nada (+2 puntos de victorias); con este perfil cuesta unos 10 puntos. Un perfil de cuatro días era demasiado duro (el competente bajaba al 49 %).
 - **Investigación de nivel 1 sin costo material** (solo puntos) y la de nivel 2 a mitad de precio: con madera escasa la investigación se trababa y la colonia se estancaba.
 - **Depósitos finitos:** vetas de carbón 2500–3200, veta profunda 6000–7500, bosques 1200–1600, muros de hielo 1000–1400, vetas de metal 600–780, pilas chicas; zonas de caza 450–800 con regeneración de 2–4 por día.
 - **Estrellas:** 1 por sobrevivir, +1 por cada uno: supervivencia ≥ 95 %, población final ≥ 220, esperanza ≥ 80 y descontento ≤ 10 al final, gobierno "humano" (sin leyes extremas ni trabajo infantil y supervivencia ≥ 97 %).

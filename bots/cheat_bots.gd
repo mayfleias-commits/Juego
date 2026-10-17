@@ -212,8 +212,11 @@ class Recargar extends BotCompetent:
 	## Desenlace como signos de cada cambio (no lo afectan los topes de los almacenes).
 	func _sig(d: Array) -> Array:
 		var out := []
-		for x in d:
-			out.append(signi(int(x)))
+		for i in d.size():
+			var x := int(d[i])
+			# Recursos: ganar 0 equivale a ganar algo (el almacén puede estar lleno una hora después);
+			# solo cuenta si hubo pérdida o no.
+			out.append((-1 if x < 0 else 1) if i >= 7 else signi(x))
 		return out
 	func _value(d) -> int:
 		if typeof(d) != TYPE_ARRAY:
