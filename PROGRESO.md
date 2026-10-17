@@ -29,17 +29,17 @@ Se auditó la v1.0.0 contra los requisitos y se corrigieron los hallazgos (simul
 
 ## Resultados clave (v1.0.0; se actualizan al cerrar la fase 8)
 - Balance (BALANCE.md, 500 semillas): competente 71,0 % de victorias; pasivo y aleatorio 0 %; sobrantes con mediana 11–20 % y p90 ≤ 25 %; 14 exploits sin ventaja; ignorar cualquier oleada baja las victorias entre 6,6 y 71 puntos; estancarse desde el día 15 = 0 %.
-- Rendimiento (RENDIMIENTO.md): 46 llamadas de dibujo / 13–18 k triángulos en presets de celular, 137 / 71–95 k en PC; RSS 303–412 MB; APK 53 MB, zip de Windows 38 MB.
+- Rendimiento (RENDIMIENTO.md): 46 llamadas de dibujo / 13–18 k triángulos en presets de celular, 137 / 71–95 k en PC; RSS 303–412 MB; APK 53 MB, zip de Windows ≈ 39 MB.
 
 ## Pendiente / no verificable en este entorno
 - FPS en hardware real (PC con Intel HD 620 y celular Helio G25/G35): el contenedor no tiene GPU. Se mide con *Ajustes → Ejecutar benchmark* (ver RENDIMIENTO.md, «Cómo verificar los objetivos»).
-- La medición de rendimiento todavía no incluye la interfaz ni los zooms extremos de la cámara (el recorrido del benchmark va de 50 a 110 m).
+- La medición de rendimiento todavía no incluye la interfaz; el recorrido del benchmark de la v1.1 cubre todo el rango de la cámara (16–175 m), pero las tablas de la v1.0 usaron 50–110 m y hay que re-medir.
 
 ## Cómo publicar una versión nueva
 1. `tools/run_tests.sh` y, si se tocó la simulación, el banco completo: `tools/balance.sh 500` (sin segundo argumento corre los 23 bots) + `python3 tools/balance_report.py --md`.
 2. `tools/set_version.sh X.Y.Z`: pone la versión en `project.godot` (la que muestra el menú y va en los guardados) y en `export_presets.cfg` (Android: versionCode +1 y versionName; Windows: file_version y product_version). `SAVE_VERSION` (formato de guardado) es otra cosa: solo sube si cambia el formato, con su migración.
-3. Commit y push.
-4. `tools/publish_release.sh vX.Y.Z`: verifica que la etiqueta coincida con la versión del proyecto (si no, no publica), exporta (el `.zip` de Windows lleva `LICENCIAS.txt`), sube los binarios a la rama `release-assets` y un workflow de Actions crea la Release.
+3. Actualizar `tools/release/NOTAS.md` (sección «Novedades de la vX.Y.Z»), commit y push.
+4. `tools/publish_release.sh vX.Y.Z`: verifica que la etiqueta coincida con la versión del proyecto, que no haya cambios sin commitear, que HEAD sea el destino y que NOTAS.md tenga las novedades (si no, no publica), exporta (el `.zip` de Windows lleva `LICENCIAS.txt`), sube los binarios a la rama `release-assets` y un workflow de Actions crea la Release.
 
 ## Notas técnicas
 - Simulación en `sim/` (cadena de herencia SimBase → SimMap → SimHeat → SimPeople → SimEconomy → SimSociety → SimWorld → Simulation).

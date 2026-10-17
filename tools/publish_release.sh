@@ -5,9 +5,16 @@
 #   2) sube los binarios + un workflow a la rama huérfana `release-assets`,
 #   3) el workflow (GitHub Actions) crea la Release apuntando al commit indicado.
 # Uso: tools/publish_release.sh vX.Y.Z [commit_destino]
-# Antes: tools/set_version.sh X.Y.Z y commit. La etiqueta tiene que coincidir con la versión
-# del proyecto (project.godot y export_presets.cfg), tanto en la copia de trabajo (que es la
-# que se exporta) como en el commit destino; si no, no publica nada.
+# Antes: tools/set_version.sh X.Y.Z, actualizar tools/release/NOTAS.md (sección «Novedades de la
+# vX.Y.Z») y commit. No publica nada si:
+#   - la etiqueta no coincide con la versión del proyecto (project.godot y export_presets.cfg),
+#     ni en la copia de trabajo ni en el commit destino;
+#   - hay cambios sin commitear en archivos versionados, o HEAD no es el commit destino
+#     (los binarios salen de la copia de trabajo, que tiene que ser exactamente ese commit);
+#   - NOTAS.md no tiene la sección «Novedades de la vX.Y.Z»;
+#   - el APK exportado no declara la versión pedida o el .zip no trae LICENCIAS.txt.
+# Con SKIP_EXPORT=1 reutiliza build/ en lugar de exportar, pero exige que el .zip y el .apk sean
+# más nuevos que el último commit que toca game/, sim/, data/, project.godot o export_presets.cfg.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 TAG="${1:?versión, p.ej. v1.1.0}"
@@ -40,12 +47,76 @@ for where in "" "$TARGET"; do
     exit 1
   fi
 done
-[ "${SKIP_EXPORT:-0}" = "1" ] || tools/export.sh
+
+# La copia de trabajo tiene que ser exactamente el commit destino: de ahí salen los binarios.
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  echo "Hay cambios sin commitear en archivos versionados; los binarios no saldrían del commit $TARGET:" >&2
+  git status --short --untracked-files=no >&2
+  echo "Hacé commit (o descartá los cambios) y volvé a intentar." >&2
+  exit 1
+fi
+HEAD_SHA=$(git rev-parse HEAD)
+TARGET_SHA=$(git rev-parse --verify "$TARGET^{commit}")
+if [ "$HEAD_SHA" != "$TARGET_SHA" ]; then
+  echo "HEAD ($HEAD_SHA) no es el commit destino ($TARGET_SHA)." >&2
+  echo "Los binarios se exportan de la copia de trabajo; pasate a ese commit o publicá sin segundo argumento." >&2
+  exit 1
+fi
+TARGET="$TARGET_SHA"
+# Las notas de la Release se copian tal cual: tienen que ser las de esta versión.
+if ! grep -q "Novedades de la v$V" tools/release/NOTAS.md; then
+  echo "tools/release/NOTAS.md no tiene la sección «Novedades de la v$V»." >&2
+  echo "Actualizá las notas (novedades, tamaños, requisitos) para esta versión y hacé commit." >&2
+  exit 1
+fi
+
+ZIP=build/UltimaBrasa-Windows-x64.zip
+APK=build/UltimaBrasa.apk
+if [ "${SKIP_EXPORT:-0}" = "1" ]; then
+  # Los binarios de build/ tienen que ser posteriores al último cambio del juego exportado.
+  LAST=$(git log -1 --format=%ct -- game sim data project.godot export_presets.cfg)
+  for f in "$ZIP" "$APK"; do
+    if [ ! -f "$f" ]; then
+      echo "SKIP_EXPORT=1 pero falta $f. Quitá SKIP_EXPORT para exportar." >&2
+      exit 1
+    fi
+    if [ "$(stat -c %Y "$f")" -le "${LAST:-0}" ]; then
+      echo "$f es más viejo que el último commit que toca game/, sim/, data/ o la configuración del proyecto." >&2
+      echo "Quitá SKIP_EXPORT para exportar de nuevo." >&2
+      exit 1
+    fi
+  done
+else
+  tools/export.sh
+fi
+
+# Verifica lo que realmente se va a subir.
+for f in "$ZIP" "$APK"; do
+  [ -f "$f" ] || { echo "Falta $f después de exportar." >&2; exit 1; }
+done
+ZIP_LIST=$(unzip -Z1 "$ZIP")
+if ! grep -qx "LICENCIAS.txt" <<<"$ZIP_LIST"; then
+  echo "$ZIP no contiene LICENCIAS.txt; no se publica." >&2
+  exit 1
+fi
+AAPT=$(command -v aapt || ls /usr/lib/android-sdk/build-tools/*/aapt 2>/dev/null | tail -1 || true)
+if [ -z "$AAPT" ]; then
+  echo "No encuentro aapt para verificar la versión del APK (tools/setup_env.sh instala el SDK de Android)." >&2
+  exit 1
+fi
+CODE=$(sed -n 's/^version\/code=\([0-9]*\)$/\1/p' export_presets.cfg | head -1)
+BADGING=$("$AAPT" dump badging "$APK")
+if ! grep -q "versionCode='$CODE' versionName='$V'" <<<"$BADGING"; then
+  echo "El APK no declara la versión $V (versionCode $CODE):" >&2
+  grep -m1 "^package:" <<<"$BADGING" >&2 || true
+  echo "Quitá SKIP_EXPORT o exportá de nuevo." >&2
+  exit 1
+fi
 WORK=$(mktemp -d)
 git clone -q --branch release-assets --single-branch "$(git remote get-url origin)" "$WORK" 2>/dev/null || {
   git init -q "$WORK"; (cd "$WORK" && git checkout -q --orphan release-assets && git remote add origin "$(git -C "$OLDPWD" remote get-url origin)"); }
-cp build/UltimaBrasa-Windows-x64.zip "$WORK/UltimaBrasa-Windows-x64.zip"
-cp build/UltimaBrasa.apk "$WORK/UltimaBrasa-Android.apk"
+cp "$ZIP" "$WORK/UltimaBrasa-Windows-x64.zip"
+cp "$APK" "$WORK/UltimaBrasa-Android.apk"
 echo "$TAG" > "$WORK/VERSION"
 echo "$TARGET" > "$WORK/TARGET"
 cp tools/release/NOTAS.md "$WORK/NOTAS.md"

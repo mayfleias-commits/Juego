@@ -3,8 +3,8 @@
 ## Descargas
 | Archivo | Para | Tamaño aprox. |
 |---|---|---|
-| `UltimaBrasa-Windows-x64.zip` | Windows 10/11 de 64 bits (trae `UltimaBrasa.exe` y `LICENCIAS.txt`) | 39 MB |
-| `UltimaBrasa-Android.apk` | Android 8.0 o superior (ARM de 32 y 64 bits) | 53 MB |
+| `UltimaBrasa-Windows-x64.zip` | Windows 10/11 de 64 bits (trae `UltimaBrasa.exe` y `LICENCIAS.txt`) | ≈ 39 MB |
+| `UltimaBrasa-Android.apk` | Pensado para Android 8.0 o superior (ARM de 32 y 64 bits). El APK declara Android 7.0 como mínimo técnico, pero no se prueba ni se da soporte ahí | 53 MB |
 
 ### Instalar en PC
 1. Bajá `UltimaBrasa-Windows-x64.zip` y descomprimilo en cualquier carpeta.

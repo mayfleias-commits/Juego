@@ -11,7 +11,7 @@
 
 ## Cómo se midió
 - **Escena de prueba (peor caso):** `BenchMode` arma una ciudad de ~100 edificios con **400 ciudadanos simulados**, en plena *Gran Ventisca* (día 55, −90 °C, nevada doble, sobrecarga y humo en todas las chimeneas) y recorre el valle con la cámara durante 20 s.
-- **Qué cubre y qué no:** el recorrido va de 50 a 110 m de distancia y de 0,45 a 1,05 rad de inclinación. La cámara del juego permite de 16 a 175 m y de 0,35 a 1,38 rad, así que los zooms más cerrados y más abiertos **no** están en la medición. Se dibujan el mundo 3D y la viñeta de escarcha; la **interfaz** (barra de recursos, paneles) **no está incluida** en las cifras de llamadas de dibujo y triángulos. Las dos cosas quedan para la próxima medición.
+- **Qué cubre y qué no:** desde la v1.1 el recorrido cubre todo el rango de la cámara (16 a 175 m de distancia y 0,35 a 1,38 rad de inclinación), extremos incluidos. Las tablas de la v1.0.0 se midieron con un recorrido más corto (50 a 110 m y 0,45 a 1,05 rad) y **no son comparables** con las de la v1.1 hasta re-medir con la build 1.1.0; hasta entonces no se puede decir si una diferencia viene del cambio de cobertura o de los cambios del mundo. Se dibujan el mundo 3D y la viñeta de escarcha; la **interfaz** (barra de recursos, paneles) **sigue fuera** de las cifras de llamadas de dibujo y triángulos, y queda pendiente.
 - Se ejecuta con la **build exportada** (mismo `.pck` que Windows y Android): `tools/perf_measure.sh` (Linux) o desde el juego en *Ajustes → Ejecutar benchmark* / el ejecutable con `-- --benchmark`. Cada corrida guarda un JSON en `user://benchmark/` con FPS promedio, 1 % más bajo, mínimo, llamadas de dibujo, triángulos, memoria del proceso y VRAM. Se mide sin vsync y con el límite de FPS del ajuste; desde la v1.1 el JSON guarda el límite que rigió de verdad (`limite_fps`), el vsync y la resolución real de la ventana y del 3D.
 - **Limitación importante:** el contenedor de desarrollo no tiene GPU, celulares ni una PC con Intel HD 620. Las mediciones se hicieron con **Mesa llvmpipe (render por software en CPU)**, que es muchísimo más lento que cualquier GPU real. Por eso los FPS de abajo **no** representan el hardware mínimo; lo que sí es exacto y portable son las llamadas de dibujo, los triángulos, las texturas y la memoria. Para medir en el hardware real: instalar el juego y usar el botón *Benchmark* (el resultado se muestra en pantalla y queda en un archivo).
 
@@ -24,7 +24,7 @@
 | Medio (PC) | 137 | 71 247 | ≤ 800 / ≤ 250 000 | ✅ |
 | Alto (PC) | 137 | 94 563 | ≤ 800 / ≤ 250 000 | ✅ |
 
-La cantidad de llamadas de dibujo casi no crece con el tamaño de la ciudad: cada **tipo** de edificio, pila o yacimiento es un MultiMesh (una llamada), igual que los ciudadanos, la nieve y el humo. En Medio/Alto la diferencia la ponen las sombras (cada objeto se dibuja de nuevo en el mapa de sombras).
+La cantidad de llamadas de dibujo casi no crece con el tamaño de la ciudad: cada **tipo** de edificio, pila o yacimiento es un MultiMesh (una llamada), igual que la nieve y el humo; los ciudadanos usan dos (modelo completo e impostor lejano, ver más abajo). En Medio/Alto la diferencia la ponen las sombras (cada objeto se dibuja de nuevo en el mapa de sombras).
 
 **Qué cambia en la v1.1 (se re-mide en la v1.1.0):** la nieve en la oleada pasa de 3000 a 5000 copos en Alto (cada copo es un quad de 2 triángulos y todos van en la misma llamada de dibujo); en Muy bajo, Bajo y Medio la nieve de la oleada queda igual (300, 300 y 2400). También cambiaron materiales y modelos del mundo, por lo que los triángulos de todos los presets pueden moverse. El margen frente a los presupuestos es grande (46 de 300 y 137 de 800 llamadas), pero la cifra nueva sale de la medición, no de esta estimación.
 
@@ -57,13 +57,13 @@ Con llvmpipe los *framebuffers* y las texturas viven en la RAM del proceso; con 
 |---|---|
 | Texturas ≤ 1024 px (≤ 512 en celular, ETC2) | ✅ El juego no usa texturas de imagen: todo es geometría con color por vértice. Solo íconos SVG de 64 px. Importación ETC2/ASTC activada para Android. |
 | Sin sombras ni postprocesado en celular | ✅ En el celular solo existen Muy bajo y Bajo, y las sombras quedan apagadas aunque un ajuste guardado diga otra cosa. El brillo del generador y de las estaciones es un sprite aditivo. |
-| Nieve ≤ 300 partículas en celular | ✅ 150 (Muy bajo) / 200 (Bajo); en las oleadas se duplica con tope de 300. Animada 100 % en GPU. |
-| Ciudadanos visibles ≤ 60 en celular | ✅ 30 (Muy bajo) / 60 (Bajo). Impostor de un quad cuando la cámara se aleja. |
+| Nieve ≤ 300 partículas en celular | ✅ 150 (Muy bajo) / 200 (Bajo); en las oleadas se duplica con tope de 300. Posición de los copos integrada en la CPU (un vector y un ángulo por cuadro), dibujo en una sola llamada y el resto en el shader. |
+| Ciudadanos visibles ≤ 60 en celular | ✅ 30 (Muy bajo) / 60 (Bajo). A más de 95 m de la cámara, cada ciudadano se dibuja como un impostor de 3 quads (6 triángulos) que gira solo sobre Y para mirar a la cámara; el resto, con el modelo completo. |
 | Escala de render 60–80 % en celular | ✅ 60 % / 80 %; en el celular el control de *Ajustes* no sale de ese rango. |
 | 30 FPS máximo en celular, menos en pausa o sin tocar | ✅ 30 FPS (o 20); 15 en pausa (a los 3 s sin tocar) y 20 si nadie toca la pantalla por 20 s. |
 | Luces dinámicas ≤ 8 PC / ≤ 2 celular | ✅ 1/2/4/8 por preset (sol + generador + estaciones de vapor). Ventanas emisivas. |
 | Contador de FPS y RAM | ✅ F3 en PC, *Ajustes → Contador* en celular (RAM real del proceso). |
-| APK ≤ 150 MB | ✅ 53 MB en la v1.0.0 (ARM 32 y 64 bits). Windows: 38 MB comprimido. |
+| APK ≤ 150 MB | ✅ 53 MB en la v1.0.0 (ARM 32 y 64 bits). Windows: 39 MB comprimido (38,96 MB medidos en la v1.0.0; el de la v1.1.0 trae además `LICENCIAS.txt` y se mide al exportar). |
 | 400 ciudadanos simulados | ✅ La economía es por grupos: un paso de simulación (1 hora) con 368–400 habitantes y 79 edificios costó **1,1 ms** en promedio y 3,3 ms en el peor caso en el contenedor (Xeon 2,1 GHz), medido en la v1.0.0. En un Cortex-A53 se estima 8–12 veces más: ~10–35 ms una vez cada 3,75 s a velocidad x3, sin efecto en el promedio de FPS. Guardar la partida: 135 KB, 1,4 ms. |
 
 ## FPS con render por software — v1.0.0 (solo como referencia)
@@ -79,6 +79,6 @@ Medición final de la v1.0.0, en el contenedor con llvmpipe y 4 vCPU libres, peo
 En esta tabla Muy bajo y Bajo a 720p están recortados por el tope de 30 FPS que esos presets tenían en PC en la v1.0; con el tope de 60 de la v1.1 se re-miden en la v1.1.0. Aun renderizando todo por CPU, los presets de celular llegan a 30 FPS a 720p. Una Intel HD 620 rinde del orden de 20–40 veces más que llvmpipe en escenas así, y una Mali-G52/Adreno 505 del orden de 10–20 veces más, por lo que los objetivos son esperables, pero **no se pudieron verificar en el hardware real**.
 
 ## Cómo verificar los objetivos en el hardware real
-- **PC mínima, 45 FPS a 720p:** dejar el preset que elige el juego en el primer arranque (Bajo en una HD 620) con el límite de 60 FPS, y correr desde una consola `UltimaBrasa.exe --resolution 1280x720 -- --benchmark`. En el JSON, `fps_promedio` tiene que ser ≥ 45 con `limite_fps` 60 (si dice 30, el límite está mal configurado y el objetivo no se puede medir).
+- **PC mínima, 45 FPS a 720p:** `--benchmark` se salta la detección del primer arranque y no guarda ajustes, así que en una PC limpia corre con el preset Medio (con sombras), no con Bajo. Antes hay que abrir el juego una vez normalmente (el primer arranque elige y guarda el preset; en una HD 620 sale Bajo) o fijar *Bajo* en *Ajustes*, con el límite de 60 FPS. Después correr desde una consola `UltimaBrasa.exe --resolution 1280x720 -- --benchmark` y comprobar que el JSON diga `"preset":"bajo"` antes de leer `fps_promedio`: tiene que ser ≥ 45 con `limite_fps` 60 (si dice 30, el límite está mal configurado y el objetivo no se puede medir).
 - **PC mínima, 30 FPS a 1080p:** lo mismo con `--resolution 1920x1080` (el JSON guarda la resolución real de la ventana en `resolucion`): `fps_promedio` ≥ 30.
 - **Celular:** *Ajustes → Ejecutar benchmark* con Muy bajo: `fps_promedio` cerca de 30 y `fps_minimo` ≥ 25. El resultado se muestra en pantalla con un botón para copiarlo.

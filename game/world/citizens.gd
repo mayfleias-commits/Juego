@@ -40,7 +40,7 @@ func _mk(model: String) -> MultiMeshInstance3D:
 	mm.visible_instance_count = 0
 	for i in CAP:
 		mm.set_instance_color(i, COATS[i % COATS.size()])
-		# b = 1: el visor del autómata (núcleo) queda encendido.
+		# b = 1 por si algún modelo de ciudadano llevara ventanas o núcleo; hoy ninguno los tiene.
 		mm.set_instance_custom_data(i, Color(999.0, 0, 1.0, 0))
 	mmi.multimesh = mm
 	mmi.material_override = world.mat_building

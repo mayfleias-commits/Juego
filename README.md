@@ -1,7 +1,7 @@
 # Última Brasa
 
 Juego de construcción de ciudades y supervivencia en un invierno que no termina, para **PC (Windows)** y **Android**.
-Todo el juego está en español. Hecho con Godot 4.7 (renderer *Compatibility*), todo el arte, los textos, los íconos y el sonido son originales.
+Todo el juego está en español. Hecho con Godot 4.7 (renderer *Compatibility*), todo el arte, los textos, los íconos y el sonido son originales. El código y el contenido son de dominio público (CC0 1.0, ver [`LICENSE`](LICENSE) y [CREDITOS.md](CREDITOS.md)).
 
 > Sesenta días de frío extremo. Un generador de vapor en el fondo de un cráter. Cada decisión, una vida.
 
@@ -15,11 +15,12 @@ Todo el juego está en español. Hecho con Godot 4.7 (renderer *Compatibility*),
 
 Requisitos mínimos: Intel de 7.ª generación con gráficos HD 620, 4 GB de RAM, OpenGL 3.3.
 
-### Celular (Android 8.0 o superior)
+### Celular (pensado para Android 8.0 o superior)
 1. Bajá `UltimaBrasa-Android.apk` desde **Releases** (desde el celular o pasalo por cable).
 2. Abrí el archivo. Android va a pedir permiso para *instalar apps de origen desconocido* para el navegador o el gestor de archivos: aceptalo.
 3. Instalá y abrí **Última Brasa**. El juego se juega en horizontal.
 
+El APK declara Android 7.0 como mínimo técnico, pero no se prueba ni se da soporte por debajo de Android 8.0.
 Requisitos mínimos: 2 GB de RAM, pantalla de 720p, GPU con OpenGL ES 3.0 (PowerVR GE8320, Adreno 505, Mali-G52 o mejor). El APK incluye ARM de 32 y 64 bits.
 En el celular la calidad gráfica se limita a *Muy bajo* o *Bajo*, sin sombras y con 30 FPS como máximo (20 para ahorrar más batería).
 
@@ -63,9 +64,12 @@ tools/export.sh           # exporta build/UltimaBrasa-Windows-x64.zip (.exe + LI
 ### Publicar una versión nueva
 ```bash
 tools/set_version.sh 1.2.0          # versión en project.godot y export_presets.cfg (versionCode de Android +1)
+# Actualizar tools/release/NOTAS.md: sección «## Novedades de la v1.2.0», tamaños y requisitos
 git commit -am "Versión 1.2.0" && git push
-tools/publish_release.sh v1.2.0     # verifica que la etiqueta coincida, exporta y crea la Release
+tools/publish_release.sh v1.2.0     # verifica, exporta y sube los binarios para crear la Release
 ```
+
+**Actualizar `tools/release/NOTAS.md` antes de publicar:** el script copia ese archivo tal cual como notas de la Release, y se niega a publicar si no tiene la sección «Novedades de la v1.2.0». El script también aborta si hay cambios sin commitear en archivos versionados, si `HEAD` no es el commit destino, si el APK exportado no declara la versión pedida o si el `.zip` no trae `LICENCIAS.txt`. Con `SKIP_EXPORT=1` reutiliza lo que haya en `build/`, pero exige que sea más nuevo que el último commit que toca `game/`, `sim/`, `data/`, `project.godot` o `export_presets.cfg`.
 
 Para abrir el proyecto en el editor: `godot -e --path .`
 
@@ -91,7 +95,7 @@ La carpeta `secrets/` está en `.gitignore` y **nunca se sube al repositorio** (
 | `bots/`, `bench/` | Bots (competente, pasivo, aleatorio, 14 tramposos, 5 variantes que ignoran una oleada y uno que se estanca: 23 en total) y banco de balance. |
 | `tests/` | Tests unitarios headless. |
 | `game/` | Capa visual e interfaz (solo lee el estado de la simulación). |
-| `assets/` | Íconos SVG y sonidos generados por `tools/make_icons.py` y `tools/make_audio.py`. |
+| `assets/` | Íconos SVG y sonidos generados por `tools/make_icons.py` y `tools/make_audio.py`; `icon.svg` (ícono del `.exe` y del APK) es un dibujo manual. |
 | `tools/` | Scripts de entorno, tests, balance, exportación (con `licencias.gd`), versión (`set_version.sh`), publicación, capturas y benchmarks. |
 
 Ver también: [BALANCE.md](BALANCE.md), [DECISIONES.md](DECISIONES.md), [PROGRESO.md](PROGRESO.md), [RENDIMIENTO.md](RENDIMIENTO.md) y [CREDITOS.md](CREDITOS.md).

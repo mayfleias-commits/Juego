@@ -176,12 +176,12 @@ def markdown():
     try:
         bd = {b["id"]: b for b in json.load(open(os.path.join(ROOT, "data", "buildings.json")))["list"]}
         post = bd["puesto_rec"]["rates_m"]
-        L.append("| Recurso | Puesto (por trabajador-hora) | Edificio básico | Proporción | Cumple |")
+        L.append("| Recurso | Cuadrilla de acopio (por trabajador-hora) | Edificio básico | Proporción | Cumple |")
         L.append("|---|---:|---:|---:|:---:|")
         for r, b in [("carbon", "extractor"), ("madera", "aserradero"), ("metal", "mina_hierro")]:
             pr = post[r] / 1000; br = bd[b]["rate_m"] / 1000
             L.append(f"| {MAT_NAMES[r]} | {pr:g} | {br:g} ({bd[b]['name']}) | {100 * pr / br:.0f} % | {ok(abs(pr * 2 - br) < 1e-9)} |")
-        L.append("\nLos puestos y los tres edificios básicos son de exterior y usan la misma curva de frío; las mejoras de investigación solo afectan a los edificios. El test `test_recoleccion_mitad_que_edificio` lo verifica en marcha.\n")
+        L.append("\nLas cuadrillas de acopio y los tres edificios básicos son de exterior y usan la misma curva de frío; las mejoras de investigación solo afectan a los edificios. El test `test_recoleccion_mitad_que_edificio` lo verifica en marcha.\n")
     except Exception as e:
         L.append(f"(no se pudo leer data/buildings.json: {e})")
     L.append("## Cómo reproducir\n")

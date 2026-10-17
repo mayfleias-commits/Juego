@@ -186,10 +186,11 @@ func _settings() -> void:
 func _credits() -> void:
 	_clear("credits")
 	content.add_child(UiKit.title("Créditos"))
-	var txt := "Diseño, programación, modelos, íconos, sonido y música: hechos para este proyecto y publicados como CC0 1.0 (dominio público).\n" \
+	var txt := "Código fuente, diseño, textos, modelos, íconos, sonido y música: hechos para este proyecto y publicados como CC0 1.0 (dominio público). El texto legal está en el archivo LICENSE del repositorio.\n" \
 		+ "Motor: Godot Engine, licencia MIT.\n© 2014-presente, colaboradores de Godot Engine.\n© 2007-2014, Juan Linietsky, Ariel Manzur.\n" \
 		+ "Tipografía: Open Sans, la fuente que trae Godot (licencia OFL 1.1).\n" \
-		+ "El motor incluye componentes de terceros (FreeType, HarfBuzz, ICU, mbedTLS y otros) con sus propias licencias libres: están en «Licencias»."
+		+ "El motor incluye componentes de terceros (FreeType, HarfBuzz, ICU, mbedTLS y otros) con sus propias licencias libres: están en «Licencias».\n" \
+		+ "El APK de Android incluye además AndroidX, Kotlin y kotlinx.coroutines (Apache-2.0) y libc++ de LLVM; también están en «Licencias»."
 	_add_scroll(UiKit.label(txt, 15, UiKit.TXT, true))
 	content.add_child(UiKit.button("Licencias", "reporte", func(): _licenses()))
 	content.add_child(UiKit.button("Volver", "cerrar", func(): _main()))
@@ -203,6 +204,9 @@ func _licenses() -> void:
 	var v := UiKit.vbox(8)
 	v.add_child(UiKit.label("Godot Engine", 17, UiKit.ACCENT))
 	v.add_child(UiKit.label(_reflow(Engine.get_license_text()), 13, UiKit.TXT, true))
+	v.add_child(UiKit.sep())
+	v.add_child(UiKit.label("Componentes del APK de Android", 17, UiKit.ACCENT))
+	v.add_child(UiKit.label("Solo en la versión para Android (vienen con la plantilla de exportación de Godot).\nAndroidX (core, fragment, lifecycle, activity y relacionados): © The Android Open Source Project, licencia Apache-2.0.\nKotlin (biblioteca estándar) y kotlinx.coroutines: © JetBrains s.r.o. y colaboradores, licencia Apache-2.0.\nlibc++_shared.so (biblioteca C++ de LLVM): © colaboradores de LLVM, licencia Apache-2.0 con excepciones LLVM.\nEl texto de la Apache-2.0 está más abajo, en «Textos de las licencias».", 13, UiKit.TXT, true))
 	v.add_child(UiKit.sep())
 	v.add_child(UiKit.label("Componentes de terceros incluidos en el motor", 17, UiKit.ACCENT))
 	v.add_child(UiKit.label(_components_text(), 13, UiKit.TXT_DIM, true))
