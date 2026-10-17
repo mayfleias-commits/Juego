@@ -27,6 +27,18 @@ func _ready() -> void:
 	frost.set_cold(sim.outdoor(), true)
 	world.camera_rig.input_enabled = false
 
+## Si la app pasa a segundo plano (o se bloquea la ventana) la medición se reinicia:
+## un cuadro de varios segundos arruinaría el promedio y, en el primer arranque,
+## bajaría la calidad gráfica sin motivo.
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_RESUMED,
+			NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_APPLICATION_FOCUS_OUT]:
+		t = 0.0
+		times.clear()
+		dc_max = 0
+		tri_max = 0
+		_warm = 0
+
 func _process(delta: float) -> void:
 	_warm += 1
 	if _warm < 5:

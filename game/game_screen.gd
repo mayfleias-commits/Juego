@@ -37,9 +37,13 @@ func start() -> void:
 	world.camera_rig.long_pressed.connect(_on_long)
 	world.camera_rig.hovered.connect(_on_hover)
 	world.camera_rig.cancelled.connect(cancel_place)
-	Session.stepped.connect(_on_stepped)
-	Session.game_over.connect(_on_game_over)
-	Session.commanded.connect(_on_commanded)
+	# start() también corre al cargar una partida desde el menú: no reconectar.
+	if not Session.stepped.is_connected(_on_stepped):
+		Session.stepped.connect(_on_stepped)
+	if not Session.game_over.is_connected(_on_game_over):
+		Session.game_over.connect(_on_game_over)
+	if not Session.commanded.is_connected(_on_commanded):
+		Session.commanded.connect(_on_commanded)
 	tutorial = Tutorial.new()
 	tutorial.screen = self
 	hud_layer.add_child(tutorial)

@@ -17,7 +17,7 @@ const STEPS := [
 	{"t": "Hay que comer: construí una Cabaña de cazadores y una Cocina comunal (convierte carne cruda en raciones).", "cond": "comida"},
 	{"t": "Con un Taller de ingenios los ingenieros investigan. Construilo y elegí una investigación en Investigar (el Martinete de vapor es buena idea).", "cond": "investigar"},
 	{"t": "El frío enferma. Un Puesto médico atiende a los enfermos antes de que empeoren.", "cond": "medico"},
-	{"t": "El consejo puede votar una ley por día y medio. Abrí Leyes y promulgá una (por ejemplo, qué hacer con los muertos).", "cond": "ley"},
+	{"t": "El consejo puede votar una ley cada 30 horas. Abrí Leyes y promulgá una (por ejemplo, qué hacer con los muertos).", "cond": "ley"},
 	{"t": "Tocá la temperatura para ver el pronóstico; cada oleada se anuncia unos días antes. Entonces juntá carbón y comida, y subí la potencia del generador. ¡Suerte!", "pc": "Pasá el mouse sobre la temperatura para ver el pronóstico; cada oleada se anuncia unos días antes. Entonces juntá carbón y comida, y subí la potencia del generador. ¡Suerte!", "next": true},
 ]
 
@@ -46,6 +46,7 @@ func _ready() -> void:
 	v.add_child(lbl)
 	add_child(box)
 	active = Settings.tutorial and Session.sim != null and Session.sim.day() <= 3
+	step = Session.tutorial_step
 	box.visible = active
 	_show()
 
@@ -77,6 +78,7 @@ func _place_box() -> void:
 
 func _advance() -> void:
 	step += 1
+	Session.tutorial_step = step
 	_show()
 
 func _finish(disable: bool) -> void:

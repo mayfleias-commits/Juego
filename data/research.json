@@ -90,7 +90,7 @@
      "v": 1
     }
    ],
-   "desc": "Estufas en cada vivienda: +10 °C a cambio de carbón."
+   "desc": "Estufas en cada vivienda: +8 °C a cambio de carbón."
   },
   {
    "id": "cal_red",
@@ -412,7 +412,7 @@
    "cost": {},
    "req": [],
    "effects": [],
-   "desc": "Permite barracones (+10 °C de aislamiento)."
+   "desc": "Permite barracones (+8 °C de aislamiento)."
   },
   {
    "id": "com_invernadero",
@@ -456,7 +456,7 @@
     "viv_barracones"
    ],
    "effects": [],
-   "desc": "Permite casas (+20 °C de aislamiento)."
+   "desc": "Permite casas (+15 °C de aislamiento)."
   },
   {
    "id": "sal_enfermeria",

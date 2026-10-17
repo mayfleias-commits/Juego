@@ -436,9 +436,12 @@ func test_enfermos_no_se_mueven() -> void:
 	var m := place_done(base, "puesto_medico", p.x, p.y)
 	m["o"] = 4
 	m["do"] = 4
+	m["bat"] = [4, 0, 0] # personal ya llegado: sin esto el puesto no tiene camas y el test no mide nada
 	var a := base.clone()
 	var b := base.clone()
 	var mb := b.building(m["id"])
+	check(int(a.beds_by_tier()["basic"]) > 0, "el puesto médico tiene camas")
+	var sick0: int = a.total_sick()
 	for i in 48:
 		a._treatment()
 		if i % 2 == 0:
@@ -446,6 +449,7 @@ func test_enfermos_no_se_mueven() -> void:
 		else:
 			mb["on"] = 1
 		b._treatment()
+	check(a.total_sick() < sick0, "el puesto médico cura")
 	check(b.total_sick() >= a.total_sick() - 3, "alternar el edificio médico no cura más rápido")
 
 # ------------------------------------------------------------ hallazgos de la auditoría
@@ -742,9 +746,24 @@ func test_estacion_apagada_no_queda_encendida() -> void:
 
 func test_cargar_guardado_formato_1() -> void:
 	var s := _run_scripted(61, 24 * 4)
+	# Situaciones que la migración tiene que resolver: dos cementerios con más cuerpos
+	# que la capacidad de uno, un evento pendiente sin semilla y un edificio con personal
+	# llegado y en camino.
+	var graves: int = int(s.bdef("cementerio")["graves"])
+	var c1 := place_done(s, "cementerio", free_spot(s, "cementerio").x, free_spot(s, "cementerio").y)
+	var c2 := place_done(s, "cementerio", free_spot(s, "cementerio").x, free_spot(s, "cementerio").y)
+	s.fire_event("ev_comerciante")
+	check(not (s.st["ev_pending"] as Array).is_empty(), "hay un evento pendiente para migrar")
 	var arrived := {}
 	var v1: Dictionary = s.st.duplicate(true)
+	v1["buried"] = graves + 5
+	var mixed: int = -1
 	for b in v1["buildings"]:
+		if mixed < 0 and int(b["state"]) == 1 and b["type"] != "cementerio":
+			mixed = b["id"]
+			b["o"] = 5
+			b["i"] = 0
+			b["n"] = 0
 		arrived[b["id"]] = s.bat_arrived(s.building(b["id"]))
 		var pairs := []
 		var bat: Array = b["bat"]
@@ -753,6 +772,11 @@ func test_cargar_guardado_formato_1() -> void:
 			pairs.append_array([bat[i], bat[i + 1]])
 			i += 3
 		b["bat"] = pairs
+		if b["id"] == mixed:
+			# Formato 1: [personas, llegada, ...] con los llegados primero y los pendientes del más viejo al más nuevo.
+			var t0: int = int(v1["tick"])
+			b["bat"] = [3, 0, 1, t0 + 3, 1, t0 + 8]
+			arrived[b["id"]] = 3
 		b.erase("used")
 	v1.erase("fat")
 	for p in v1["ev_pending"]:
@@ -760,9 +784,20 @@ func test_cargar_guardado_formato_1() -> void:
 	var bytes := var_to_bytes({"magic": "BRASA", "v": 1, "rng": s.rng, "st": v1})
 	var s2 := Simulation.new()
 	check(s2.deserialize(bytes), "carga un guardado del formato 1")
+	var used_sum := 0
 	for b in s2.st["buildings"]:
 		eq(s2.bat_arrived(b), int(arrived[b["id"]]), "personal llegado igual tras migrar (%s)" % b["type"])
 		eq((b["bat"] as Array).size() % 3, 0, "lotes con clase")
+		if b["type"] == "cementerio":
+			used_sum += int(b["used"])
+			check(int(b["used"]) <= graves, "un cementerio no pasa de su capacidad")
+		if b["id"] == mixed:
+			var bat2: Array = b["bat"]
+			eq(bat2.slice(0, 3), [3, 0, 0], "los llegados van primero")
+			eq(int(bat2[4]) < int(bat2[7]), true, "los pendientes van del más viejo al más nuevo")
+	eq(int(s2.st["buried"]), used_sum, "los enterrados son la suma de lo que hay en los cementerios")
+	for p in s2.st["ev_pending"]:
+		check(p.has("rs"), "el evento pendiente recibe su semilla")
 	eq((s2.st["fat"] as Array).size(), 3, "acumulador de fatiga")
 	s2.run_hours(24)
 	eq(s2.st["status"], "playing", "sigue la partida")

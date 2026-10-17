@@ -39,6 +39,8 @@ var _exit_saved_tick := -1
 ## Ranuras cuya cabecera parecía buena pero que no se pudieron cargar: se listan como
 ## dañadas (y "Continuar" las saltea) hasta que se vuelva a guardar en ellas.
 var _broken := {}
+## Paso del tutorial en curso (no se guarda: sobrevive a reconstruir la pantalla de juego).
+var tutorial_step := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -62,6 +64,7 @@ func _setup() -> void:
 	clock.max_steps_per_frame = 3
 	_ms_acc = 0.0
 	_exit_saved_tick = -1
+	tutorial_step = 0
 	_last_day = sim.day()
 	_ended = sim.st["status"] != "playing"
 	set_speed(1)
@@ -159,7 +162,10 @@ func save_game(slot: String = "manual", rotate: bool = false) -> bool:
 	# rename reemplaza el destino (en Windows Godot borra el anterior antes de mover).
 	var err := DirAccess.rename_absolute(tmp, path)
 	if err != OK:
-		DirAccess.remove_absolute(tmp)
+		# Si el destino ya no existe (en Windows el rename lo borra antes de mover), el
+		# temporal verificado es la única copia: se conserva y se recupera al arrancar.
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(tmp)
 		return _fail("No se pudo reemplazar el guardado anterior (%s)." % error_string(err))
 	_broken.erase(slot)
 	return true
@@ -189,20 +195,34 @@ func _read_var(f: FileAccess) -> Variant:
 
 func _rotate_autos() -> void:
 	for i in range(AUTO_COPIES - 1, 0, -1):
-		var a := _slot_path("auto_%d" % i)
-		if FileAccess.file_exists(a):
-			DirAccess.rename_absolute(a, _slot_path("auto_%d" % (i + 1)))
-	if FileAccess.file_exists(_slot_path("auto")):
-		DirAccess.rename_absolute(_slot_path("auto"), _slot_path("auto_1"))
+		_move_slot("auto_%d" % i, "auto_%d" % (i + 1))
+	_move_slot("auto", "auto_1")
 
-## Temporales que quedaron de un guardado interrumpido (el original sigue intacto).
+## Mueve un guardado de una ranura a otra y con él la marca de "dañado".
+func _move_slot(from: String, to: String) -> void:
+	if not FileAccess.file_exists(_slot_path(from)):
+		return
+	if DirAccess.rename_absolute(_slot_path(from), _slot_path(to)) == OK:
+		_broken.erase(to)
+		if _broken.erase(from):
+			_broken[to] = true
+
+## Temporales que quedaron de un guardado interrumpido. Si el guardado de esa ranura
+## sigue ahí, el temporal sobra. Si falta (se cortó justo entre borrar y mover, algo
+## posible en Windows) y el temporal está completo, pasa a ser el guardado.
 func _clean_temp_files() -> void:
 	var d := DirAccess.open(SAVE_DIR)
 	if d == null:
 		return
 	for fn in d.get_files():
-		if fn.ends_with(".brasa.tmp"):
-			DirAccess.remove_absolute(SAVE_DIR + "/" + fn)
+		if not fn.ends_with(".brasa.tmp"):
+			continue
+		var tmp := SAVE_DIR + "/" + fn
+		var dest := tmp.trim_suffix(".tmp")
+		if not FileAccess.file_exists(dest) and _read_header(tmp, fn.get_basename().get_basename())["ok"]:
+			if DirAccess.rename_absolute(tmp, dest) == OK:
+				continue
+		DirAccess.remove_absolute(tmp)
 
 ## Partidas guardadas, la más nueva primero. Cada una trae la cabecera más:
 ## "slot", "ok" (se puede cargar) y "problem" ("" | "version" | "danada").
@@ -216,10 +236,17 @@ func list_saves() -> Array:
 		if fn.ends_with(".brasa"):
 			out.append(_read_header(SAVE_DIR + "/" + fn, fn.get_basename()))
 	out.sort_custom(func(a, b):
-		if str(a["date"]) != str(b["date"]):
-			return str(a["date"]) > str(b["date"])
-		return float(a.get("ts", 0.0)) > float(b.get("ts", 0.0)))
+		var ta := _save_time(a)
+		var tb := _save_time(b)
+		if ta != tb:
+			return ta > tb
+		return str(a["date"]) > str(b["date"]))
 	return out
+
+## Cuándo se guardó: tiempo unix de la cabecera (los de la v1.0 no lo traen: se usa la
+## fecha de modificación del archivo). La fecha escrita es hora local y no sirve para ordenar.
+func _save_time(h: Dictionary) -> float:
+	return float(h.get("ts", h.get("mtime", 0)))
 
 ## La partida más nueva que se puede cargar (vacío si no hay ninguna).
 func latest_save() -> Dictionary:
@@ -239,6 +266,7 @@ func _read_header(path: String, slot: String) -> Dictionary:
 		return h
 	h.merge(v, true)
 	h["slot"] = slot
+	h["mtime"] = FileAccess.get_modified_time(path)
 	# El cuerpo tiene que estar completo: un archivo cortado a la mitad no se ofrece.
 	var body_len := f.get_32()
 	var complete := body_len > 0 and f.get_position() + body_len <= f.get_length()
@@ -310,7 +338,7 @@ func quit_to_menu() -> void:
 ## Guardado de cierre o de segundo plano: una sola vez por estado (sin rotar los diarios).
 func save_on_exit() -> bool:
 	if sim == null or _ended:
-		return false
+		return true # nada que guardar
 	if sim.tick() == _exit_saved_tick:
 		return true
 	if save_game("salida"):

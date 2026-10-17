@@ -22,7 +22,7 @@ func refresh() -> void:
 func _rebuild() -> void:
 	UiKit.clear(body)
 	var th := UiKit.hbox(6)
-	for t in [["adaptacion", "Adaptación"], ["proposito", "Propósito"]]:
+	for t in [["adaptacion", "Adaptación"], ["proposito", "Sendas"]]:
 		var id: String = t[0]
 		var b := UiKit.button(t[1], "", func(): tab = id; _sig = ""; refresh())
 		b.toggle_mode = true

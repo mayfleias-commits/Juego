@@ -557,6 +557,7 @@ func _migrate_v1(s: Dictionary) -> void:
 		var old: Array = b.get("bat", [])
 		var have := [int(b["o"]), int(b["i"]), int(b["n"])]
 		var nb := []
+		var pend := [] # lotes en camino [m, llegada, clase], del más nuevo al más viejo
 		var i := old.size() - 2
 		while i >= 0:
 			var n: int = old[i]
@@ -565,15 +566,18 @@ func _migrate_v1(s: Dictionary) -> void:
 				for k in 3:
 					var m := mini(n, have[k])
 					if m > 0:
-						nb.append_array([m, at, k])
+						pend.append([m, at, k])
 						have[k] -= m
 						n -= m
 			i -= 2
+		# Orden del formato 2: primero los que ya llegaron, después los que viajan, del más viejo al más nuevo.
 		for k in 3:
 			if have[k] > 0:
 				nb.append_array([have[k], 0, k])
+		for j in range(pend.size() - 1, -1, -1):
+			nb.append_array(pend[j])
 		b["bat"] = nb
-		if db["buildings"].has(b["type"]) and bdef(b["type"]).get("kind", "") == "burial" and not b.has("used"):
+		if db["buildings"].has(b["type"]) and bdef(b["type"]).get("kind", "") == "burial" and int(b.get("state", 1)) == 1 and not b.has("used"):
 			var u := mini(left, int(bdef(b["type"])["graves"]))
 			b["used"] = u
 			left -= u

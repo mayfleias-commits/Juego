@@ -241,7 +241,7 @@
    ],
    "choices": [
     {
-     "text": "Cuarentena estricta (se pierde un día de trabajo).",
+     "text": "Cuarentena estricta.",
      "effects": [
       {
        "k": "sick",
@@ -348,7 +348,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Organizar una batida (pierden un día los cazadores).",
+     "text": "Organizar una batida.",
      "effects": [
       {
        "k": "rand",
@@ -3293,7 +3293,7 @@
      ]
     },
     {
-     "text": "Desfile de los guardias.",
+     "text": "Desfile de la ronda.",
      "effects": [
       {
        "k": "disc",
@@ -3492,7 +3492,7 @@
   {
    "id": "ev_loc_aldea",
    "title": "La aldea",
-   "text": "En una de las casas encontramos a un leñador con su familia, muy débiles.",
+   "text": "Los primeros sobrevivientes ya vienen con el equipo. En la última casa encontramos a un leñador con su familia, muy débiles.",
    "trigger": "location",
    "unique": true,
    "day_min": 1,
@@ -3501,7 +3501,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Traerlos a la ciudad.",
+     "text": "Traer también a la familia del leñador.",
      "effects": [
       {
        "k": "refugees",
@@ -3570,7 +3570,7 @@
   {
    "id": "ev_loc_refugio",
    "title": "El refugio",
-   "text": "El líder del refugio desconfía: dice que solo vendrán si les garantizamos calor.",
+   "text": "Algunos del refugio ya vinieron con el equipo. Su líder desconfía: dice que el resto solo vendrá si les garantizamos calor.",
    "trigger": "location",
    "unique": true,
    "day_min": 1,
@@ -3579,7 +3579,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Prometer calor (+esperanza si cumplimos).",
+     "text": "Prometer calor a los que quedan.",
      "effects": [
       {
        "k": "refugees",
@@ -3626,7 +3626,7 @@
   {
    "id": "ev_loc_ermita",
    "title": "La ermita",
-   "text": "Un sacerdote cuida a seis niños. Pide que los salvemos a todos.",
+   "text": "Un sacerdote cuida a un grupo de niños. Algunos ya vienen con el equipo y pide que salvemos a los demás.",
    "trigger": "location",
    "unique": true,
    "day_min": 1,
@@ -3635,7 +3635,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Traer a todos.",
+     "text": "Traer a todos los demás.",
      "effects": [
       {
        "k": "refugees",
@@ -3652,7 +3652,7 @@
      ]
     },
     {
-     "text": "Solo a los niños.",
+     "text": "Solo a los niños que quedan.",
      "effects": [
       {
        "k": "refugees",
@@ -3683,7 +3683,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Ofrecerles un lugar en la guardia.",
+     "text": "Ofrecerles un lugar en la ronda.",
      "effects": [
       {
        "k": "refugees",
@@ -3771,7 +3771,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Traer medicinas y enfermos.",
+     "text": "Traer medicinas y más enfermos.",
      "effects": [
       {
        "k": "refugees",
@@ -3789,7 +3789,7 @@
      ]
     },
     {
-     "text": "Solo las medicinas.",
+     "text": "Solo las medicinas: los demás enfermos se quedan.",
      "effects": [
       {
        "k": "perm_mod",
@@ -3932,7 +3932,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Negociar su llegada.",
+     "text": "Negociar la llegada del resto.",
      "effects": [
       {
        "k": "refugees",
@@ -3982,7 +3982,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Traer a los astrónomos.",
+     "text": "Traer también a los demás astrónomos.",
      "effects": [
       {
        "k": "refugees",
@@ -4000,7 +4000,7 @@
      ]
     },
     {
-     "text": "Traer solo las lentes (para invernaderos).",
+     "text": "Quedarnos solo con las lentes (para invernaderos).",
      "effects": [
       {
        "k": "perm_mod",
@@ -4024,7 +4024,7 @@
    "conds": [],
    "choices": [
     {
-     "text": "Aceptarlos a todos.",
+     "text": "Aceptar a todos los demás.",
      "effects": [
       {
        "k": "refugees",
@@ -4041,7 +4041,7 @@
      ]
     },
     {
-     "text": "Solo a los trabajadores.",
+     "text": "Solo a los trabajadores que quedan.",
      "effects": [
       {
        "k": "refugees",

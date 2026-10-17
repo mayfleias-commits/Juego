@@ -8,7 +8,7 @@
  "muertes_purga": "%d persona(s) desaparecieron durante la noche.",
  "muertes_frio": "%d persona(s) murieron congeladas.",
  "muertes_lobos": "%d persona(s) murieron atacadas por lobos.",
- "muertes_combate": "%d persona(s) murieron defendiendo la ciudad.",
+ "muertes_combate": "%d persona(s) murieron en un enfrentamiento armado.",
  "muertes_otro": "%d persona(s) murieron.",
  "comen_crudo": "No hay raciones: la gente come carne cruda y algunos enferman.",
  "hambre": "¡%d persona(s) se quedaron sin comer!",

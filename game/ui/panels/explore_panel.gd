@@ -40,6 +40,8 @@ func refresh() -> void:
 	var sig := selected
 	for t in sim.st["teams"]:
 		sig += "%s%s%d" % [t["state"], t["loc"], int(t["eta"])]
+		if t["state"] != "home":
+			sig += "@%d" % sim.tick() # "faltan N h" y el punto del mapa avanzan cada hora
 	for id in sim.st["locs"]:
 		sig += str(sim.st["locs"][id]["state"])
 	sig += str(sim.in_wave())

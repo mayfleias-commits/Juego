@@ -47,7 +47,8 @@ func why_label(text: String) -> Label:
 
 func row(label_text: String, value: String, col: Color = UiKit.TXT) -> HBoxContainer:
 	var h := UiKit.hbox(8)
-	var l := UiKit.label(label_text, 15, UiKit.TXT_DIM)
+	# Con salto de línea: una etiqueta larga no tiene que ensanchar el panel lateral.
+	var l := UiKit.label(label_text, 15, UiKit.TXT_DIM, true)
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(l)
 	h.add_child(UiKit.label(value, 15, col))
